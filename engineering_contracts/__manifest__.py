@@ -31,6 +31,8 @@
         'views/menu_views.xml',
         'report/contract_report.xml',
         'report/contract_templates.xml',
+            'views/portal_contract_templates.xml', # <--- ADD THIS
+
     ],
     'license': 'LGPL-3',
     'installable': True,
