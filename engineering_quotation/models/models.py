@@ -239,23 +239,24 @@ class SaleOrder(models.Model):
         # 1. Clean phone number
         cleaned_phone = ''.join(filter(str.isdigit, customer_phone))
 
-        # 2. Get the Base URL (e.g., https://mazen41-odoo-last.odoo.com)
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        
-        # 3. Get the share link (usually /my/orders/...)
-        share_url = self._get_share_url(redirect=True, signup_partner=True, share_token=True)
-        
-        # 4. Combine them safely
-        # If share_url is already full (starts with http), use it. Otherwise, join them.
-        if share_url.startswith('http'):
-            full_link = share_url
-        else:
-            full_link = base_url + share_url
+        # 2. GENERATE THE CORRECT LINK
+        # A. Ensure the record has an access token (critical for the link to work without login)
+        if not self.access_token:
+            self._portal_ensure_token()
 
-        # 5. Create Message
+        # B. Get the Base URL (e.g. https://mazen41...)
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+        # C. Get the Portal Path (e.g. /my/orders/8?access_token=...)
+        portal_path = self.get_portal_url()
+
+        # D. Combine them
+        full_link = base_url.rstrip('/') + portal_path
+
+        # 3. Create Message
         msg_text = _("مرحباً %s،\nيرجى مراجعة عرض السعر %s عبر الرابط التالي:\n%s") % (self.partner_id.name, self.name, full_link)
         
-        # 6. Encode for URL
+        # 4. Encode for URL
         import urllib.parse
         encoded_msg = urllib.parse.quote(msg_text)
         
