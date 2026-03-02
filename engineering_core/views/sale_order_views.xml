@@ -5,26 +5,39 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <group string="بيانات المشروع (Project Details)" name="project_details_main_group">
-                    <!-- First set of fields, forced into their own column -->
-                    <group name="project_details_column_1">
+                <!-- Use a div to contain the entire project details section -->
+                <div class="oe_title">
+                    <h3><label for="building_type" string="بيانات المشروع (Project Details)"/></h3>
+                </div>
+
+                <group name="project_details_section">
+                    <group>
                         <field name="building_type"/>
                         <field name="service_type"/>
                     </group>
-                    <!-- This empty group pushes the next content to a new line or provides spacing -->
-                    <group name="project_details_spacer_group">
-                        <!-- Intentionally left empty for spacing/column break -->
-                    </group>
-                    <!-- A separator to visually break up the sections -->
-                    <separator string="تفاصيل الموقع (Location Details)"/>
-                    <!-- Second set of fields, also forced into their own column for clarity -->
-                    <group name="project_details_column_2">
+                    <!-- This empty group pushes the next group to a new column/row, creating space -->
+                    <group/>
+                </group>
+
+                <!-- Use a separate div for the location details to ensure they are distinct -->
+                <div class="oe_title">
+                    <h3><label for="area" string="تفاصيل الموقع (Location Details)"/></h3>
+                </div>
+
+                <group name="location_details_section">
+                    <group>
                         <field name="area"/>
                         <field name="block_no"/>
+                    </group>
+                    <group>
                         <field name="street_no"/>
                         <field name="plot_no"/>
                     </group>
                 </group>
+
+                <!-- If there's still a problem, consider adding a generic spacer -->
+                <!-- <div style="height: 20px;"></div> -->
+
             </xpath>
         </field>
     </record>
