@@ -113,19 +113,34 @@ class SaleOrder(models.Model):
 
     def action_confirm(self):
         """
-        Override standard confirm - only confirm if stage is approved.
-        Project creation is SEPARATE from confirmation.
+        Override standard confirm:
+        - If customer signs via portal, auto-move to 'Approved' stage and confirm.
+        - If salesman clicks confirm manually, block it unless it's in the 'Approved' stage.
         """
         for order in self:
-            # Skip this check entirely for standard Odoo orders (no building_type)
-            # This prevents blocking demo data installation from sale_planning etc.
+            # Skip this check entirely for standard Odoo orders
             if not order.building_type:
                 continue
-            # Only enforce approval check for ENGINEERING orders that:
-            # 1. Have a quotation_stage_id set
-            # 2. The stage is NOT an approved stage
-            if order.quotation_stage_id and not order.quotation_stage_id.is_approved_stage:
-                raise UserError(_("لا يمكن تأكيد عرض السعر حتى يتم الموافقة عليه.\nYou cannot confirm the quotation until it is in an 'Approved' stage."))
+
+            # Find the 'Approved' stage in the database
+            approved_stage = self.env['engineering.quotation.stage'].search([('is_approved_stage', '=', True)], limit=1)
+
+            # SCENARIO 1: The customer just signed via the Portal
+            # Odoo saves the signature just before calling this function
+            if order.signature:
+                if approved_stage and order.quotation_stage_id != approved_stage:
+                    # Log the stage change in history
+                    self.env['engineering.quotation.stage.history'].create({
+                        'quotation_id': order.id,
+                        'from_stage_id': order.quotation_stage_id.id if order.quotation_stage_id else False,
+                        'to_stage_id': approved_stage.id,
+                    })
+                    # Auto-change the stage to Approved
+                    order.quotation_stage_id = approved_stage.id
+
+            # SCENARIO 2: A user is clicking "Confirm" manually in the backend
+            elif order.quotation_stage_id and not order.quotation_stage_id.is_approved_stage:
+                raise UserError(_("لا يمكن تأكيد عرض السعر يدوياً حتى يتم الموافقة عليه (Approved) أو توقيعه من قبل العميل.\nYou cannot confirm the quotation until it is in an 'Approved' stage or signed by the customer."))
         
         return super(SaleOrder, self).action_confirm()
 
