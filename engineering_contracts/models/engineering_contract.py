@@ -50,7 +50,7 @@ class EngineeringContract(models.Model):
                 vals['name'] = self.env['ir.sequence'].next_by_code('engineering.contract') or _('New')
         return super().create(vals_list)
 
-    # PORTAL ROUTE LINK
+    # PORTAL ROUTE LINK GENERATOR
     def _compute_access_url(self):
         super(EngineeringContract, self)._compute_access_url()
         for contract in self:
@@ -81,26 +81,45 @@ class EngineeringContract(models.Model):
                     if hasattr(rec.project_id, 'service_type'): rec.service_type = rec.project_id.service_type
 
     def action_send_for_signature(self):
-        """ FIXED WHATSAPP LINK: Generates the Portal Link """
+        """ Changes state to sent and opens WhatsApp with Portal Link """
+        self.state = 'sent'
+        return self.action_send_whatsapp()
+
+    def action_send_whatsapp(self):
+        """ Generates the Portal Link and opens WhatsApp Web """
         self.ensure_one()
         if not self.partner_id.phone and not self.partner_id.mobile:
-            raise UserError(_("Customer phone number is missing."))
+            raise UserError(_("Customer phone number is missing (رقم هاتف العميل غير موجود)."))
         
-        self.state = 'sent'
-        self._portal_ensure_token() # Create secure token
+        # 1. Ensure the contract has a secure web token for the portal link
+        self._portal_ensure_token() 
         
+        # 2. Get the Base URL (e.g. https://mazen41-odoo-last.odoo.com)
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         full_link = f"{base_url}{self.get_portal_url()}"
         
+        # 3. Clean the phone number
         phone = self.partner_id.mobile or self.partner_id.phone
         cleaned_phone = ''.join(filter(str.isdigit, phone))
         
-        message = _("السلام عليكم %s،\nنرفق لكم عقد %s رقم %s للمراجعة والتوقيع.\nيرجى مراجعة العقد والتوقيع عليه عبر الرابط التالي:\n%s") % (self.partner_id.name, dict(self._fields['service_type'].selection).get(self.service_type, ''), self.name, full_link)
+        # 4. Get Arabic Service Type Name safely
+        service_dict = dict(self._fields['service_type'].selection)
+        service_name = service_dict.get(self.service_type, '')
         
+        # 5. Create message with Portal Link
+        message = _("السلام عليكم %s،\nنرفق لكم عقد %s رقم %s للمراجعة والتوقيع.\nيرجى فتح الرابط التالي:\n%s") % (
+            self.partner_id.name, service_name, self.name, full_link
+        )
+        
+        # 6. Encode and send
         encoded_message = urllib.parse.quote(message)
         whatsapp_url = f"https://web.whatsapp.com/send?phone={cleaned_phone}&text={encoded_message}"
         
         return {'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new'}
+
+    def action_print_contract(self):
+        """ Print contract PDF """
+        return self.env.ref('engineering_contracts.action_report_engineering_contract').report_action(self)
 
     def action_mark_signed(self):
         self.write({'state': 'signed', 'signature_date': fields.Datetime.now()})
