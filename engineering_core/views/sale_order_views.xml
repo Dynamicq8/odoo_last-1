@@ -5,38 +5,21 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <!-- Use a div to contain the entire project details section -->
-                <div class="oe_title">
-                    <h3><label for="building_type" string="بيانات المشروع (Project Details)"/></h3>
-                </div>
-
-                <group name="project_details_section">
-                    <group>
-                        <field name="building_type"/>
-                        <field name="service_type"/>
-                    </group>
-                    <!-- This empty group pushes the next group to a new column/row, creating space -->
-                    <group/>
+                <!-- Project Details Section -->
+                <group string="بيانات المشروع (Project Details)">
+                    <!-- Each field gets its own sub-group or direct field placement to force vertical -->
+                    <field name="building_type"/>
+                    <field name="service_type"/>
                 </group>
 
-                <!-- Use a separate div for the location details to ensure they are distinct -->
-                <div class="oe_title">
-                    <h3><label for="area" string="تفاصيل الموقع (Location Details)"/></h3>
-                </div>
-
-                <group name="location_details_section">
-                    <group>
-                        <field name="area"/>
-                        <field name="block_no"/>
-                    </group>
-                    <group>
-                        <field name="street_no"/>
-                        <field name="plot_no"/>
-                    </group>
+                <!-- Location Details Section - Focus on forcing vertical stacking here -->
+                <group string="تفاصيل الموقع (Location Details)">
+                    <!-- Forcing each field to take a full line -->
+                    <field name="area"/>
+                    <field name="block_no"/>
+                    <field name="street_no"/>
+                    <field name="plot_no"/>
                 </group>
-
-                <!-- If there's still a problem, consider adding a generic spacer -->
-                <!-- <div style="height: 20px;"></div> -->
 
             </xpath>
         </field>
