@@ -232,11 +232,27 @@ class SaleOrder(models.Model):
     # --- WhatsApp ---
     def action_send_quotation_whatsapp(self):
         self.ensure_one()
-        customer_phone = self.partner_id.phone
-        if not customer_phone: raise UserError(_("Customer phone missing."))
+        # Prefer mobile, fallback to phone
+        customer_phone = self.partner_id.mobile or self.partner_id.phone
+        if not customer_phone: 
+            raise UserError(_("يجب إضافة رقم هاتف للعميل (Mobile/Phone missing)."))
         
+        # 1. Clean the phone number (remove + space - etc)
         cleaned_phone = ''.join(filter(str.isdigit, customer_phone))
-        message = _("Please review the attached quotation: %s" % self.name).replace(' ', '%20')
-        whatsapp_url = f"https://web.whatsapp.com/send?phone={cleaned_phone}&text={message}"
+        
+        # 2. Generate the Portal Link
+        # This creates a special access token so the customer can see the quote without logging in
+        base_url = self.get_portal_url() 
+        
+        # 3. Create the message
+        # "Hello [Name], please check quotation [Ref]. Link: [URL]"
+        msg_text = _("مرحباً %s،\nيرجى مراجعة عرض السعر %s عبر الرابط التالي:\n%s") % (self.partner_id.name or "Customer", self.name, base_url)
+        
+        # 4. Encode the text for URL (Handles spaces and Arabic characters correctly)
+        import urllib.parse
+        encoded_msg = urllib.parse.quote(msg_text)
+        
+        # 5. Open WhatsApp Web
+        whatsapp_url = f"https://web.whatsapp.com/send?phone={cleaned_phone}&text={encoded_msg}"
         
         return {'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new'}
