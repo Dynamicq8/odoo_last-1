@@ -6,7 +6,6 @@ import urllib.parse
 class EngineeringContract(models.Model):
     _name = 'engineering.contract'
     _description = 'Engineering Contract'
-    # Inherit from portal.mixin to allow secure web links
     _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin']
     _order = 'create_date desc'
 
@@ -50,19 +49,16 @@ class EngineeringContract(models.Model):
                 vals['name'] = self.env['ir.sequence'].next_by_code('engineering.contract') or _('New')
         return super().create(vals_list)
 
-    # This function tells the portal how to build the URL (e.g., /my/contract/123)
     def _compute_access_url(self):
         super(EngineeringContract, self)._compute_access_url()
         for contract in self:
             contract.access_url = f'/my/contract/{contract.id}'
 
-    # ---> THIS IS THE CRITICAL FUNCTION FROM YOUR OLD FILE THAT WAS MISSING <---
-    # It loads the template content when you change Building Type, Service Type, or Template ID manually.
-    @api.onchange('building_type', 'service_type', 'package_type', 'template_id')
+    # ---> THE FIX IS HERE: DYNAMIC TEXT REPLACEMENT <---
+    @api.onchange('building_type', 'service_type', 'package_type', 'template_id', 'partner_id', 'contract_date', 'civil_number', 'plot_no', 'block_no', 'street_no', 'area')
     def _onchange_template(self):
-        """Auto-select template and fill content."""
+        """Auto-select template and fill content dynamically."""
         if self.building_type and self.service_type and not self.template_id:
-            # Find the best template if one isn't chosen
             template = self.env['engineering.contract.template'].get_template_for_contract(
                 self.building_type, self.service_type, self.package_type
             )
@@ -70,8 +66,36 @@ class EngineeringContract(models.Model):
                 self.template_id = template
 
         if self.template_id:
-            self.contract_body = self.template_id.contract_body
-            self.terms_conditions = self.template_id.terms_conditions
+            # 1. Get the raw HTML from the template
+            body = self.template_id.contract_body or ""
+            terms = self.template_id.terms_conditions or ""
+
+            # 2. Get the actual values (or leave a blank line if missing)
+            customer_name = self.partner_id.name if self.partner_id else "__________________"
+            c_date = self.contract_date.strftime('%Y/%m/%d') if self.contract_date else "____/____/____"
+            civil = self.civil_number if self.civil_number else "__________________"
+            plot = self.plot_no if self.plot_no else "____"
+            block = self.block_no if self.block_no else "____"
+            street = self.street_no if self.street_no else "____"
+            c_area = self.area if self.area else "________________"
+            amount = str(self.contract_amount) if self.contract_amount else "____"
+
+            # 3. Replace the Placeholders in the HTML
+            body = body.replace('{{customer_name}}', customer_name)
+            body = body.replace('{{contract_date}}', c_date)
+            body = body.replace('{{civil_number}}', civil)
+            body = body.replace('{{plot_no}}', plot)
+            body = body.replace('{{block_no}}', block)
+            body = body.replace('{{street_no}}', street)
+            body = body.replace('{{area}}', c_area)
+            body = body.replace('{{amount}}', amount)
+
+            terms = terms.replace('{{customer_name}}', customer_name)
+            terms = terms.replace('{{contract_date}}', c_date)
+
+            # 4. Set the final generated HTML into the fields
+            self.contract_body = body
+            self.terms_conditions = terms
             
     @api.onchange('project_id')
     def _onchange_project_id(self):
@@ -90,13 +114,12 @@ class EngineeringContract(models.Model):
                 if order.partner_id:
                     rec.civil_number = order.partner_id.civil_number
                 
-                # ---> I ADDED THIS LINE TO ENSURE THE TEMPLATE LOADS AFTER THE PROJECT IS CHOSEN <---
+                # Triggers the replacement function
                 rec._onchange_template()
 
     # --- BUTTON ACTIONS ---
 
     def action_send_for_signature(self):
-        """Changes state to sent AND opens WhatsApp with the Portal Link."""
         self.ensure_one()
         if not self.contract_body:
             raise UserError(_("The contract body is empty! Please select a template or fill the content first."))
@@ -104,12 +127,11 @@ class EngineeringContract(models.Model):
         return self.action_send_whatsapp()
 
     def action_send_whatsapp(self):
-        """Generates the secure Portal Link and opens WhatsApp Web."""
         self.ensure_one()
         if not self.partner_id.phone and not self.partner_id.mobile:
             raise UserError(_("Customer phone number is missing."))
         
-        self._portal_ensure_token() # Create the secure access token
+        self._portal_ensure_token() 
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         full_link = f"{base_url}{self.get_portal_url()}"
         
@@ -125,8 +147,6 @@ class EngineeringContract(models.Model):
         return {'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new'}
 
     def action_print_contract(self):
-        """This function is required for the 'Print' button to work."""
-        # You will need to create a QWeb PDF report with this external ID
         return self.env.ref('engineering_contracts.action_report_engineering_contract').report_action(self)
 
     def action_mark_signed(self):
