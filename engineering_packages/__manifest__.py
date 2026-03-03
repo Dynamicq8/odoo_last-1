@@ -27,6 +27,8 @@
         'views/engineering_package_views.xml',
         'views/product_views.xml',
         'views/sale_order_views.xml',
+        'views/sale_portal_templates.xml',     # <-- ADDED THIS
+
     ],
     'license': 'LGPL-3',
     'installable': True,
