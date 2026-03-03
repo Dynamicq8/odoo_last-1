@@ -20,6 +20,8 @@
                     <field name="region"/>
                     
                     <field name="plot_no"/>
+                    <field name="street_no"/> <!-- Make sure this line exists in your XML -->
+
                     <field name="block_no"/>
                     <field name="area"/>
                 </xpath>
