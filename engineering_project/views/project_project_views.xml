@@ -1,52 +1,23 @@
 <odoo>
-    <data>
-
-        <!-- ===================== -->
-        <!-- Project Form -->
-        <!-- ===================== -->
-        <record id="edit_project_form_engineering" model="ir.ui.view">
-            <field name="name">project.project.form.engineering</field>
-            <field name="model">project.project</field>
-            <field name="inherit_id" ref="project.edit_project"/>
-            <field name="arch" type="xml">
-
-                <!-- Link quotation and engineering fields -->
-                <xpath expr="//field[@name='partner_id']" position="after">
-                    <field name="sale_order_id" readonly="1"/>
-                    <field name="building_type" readonly="1"/>
-                    <field name="service_type" readonly="1"/>
-                    
-                    <!-- Added Region Here -->
+    <record id="edit_project_form_engineering" model="ir.ui.view">
+        <field name="name">project.project.form.engineering</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="sale_order_id" readonly="1"/>
+                <group string="بيانات الموقع (Site Details)">
+                    <field name="building_type"/>
+                    <field name="service_type"/>
                     <field name="region"/>
-                    
-                    <field name="plot_no"/>
-                    <field name="street_no"/> <!-- Make sure this line exists in your XML -->
-
-                    <field name="block_no"/>
                     <field name="area"/>
-                </xpath>
-
-            </field>
-        </record>
-
-        <!-- ===================== -->
-        <!-- Task Form - Go to Project button -->
-        <!-- ===================== -->
-        <record id="edit_task_form_engineering" model="ir.ui.view">
-            <field name="name">project.task.form.engineering</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_form2"/>
-            <field name="arch" type="xml">
-                <xpath expr="//header" position="inside">
-                    <button name="action_view_parent_project"
-                            type="object"
-                            string="الذهاب للمشروع (Go to Project)"
-                            icon="fa-briefcase"
-                            class="btn-info"
-                            invisible="not project_id"/>
-                </xpath>
-            </field>
-        </record>
-
-    </data>
+                </group>
+                <group string="العنوان (Address)">
+                    <field name="plot_no"/>
+                    <field name="block_no"/>
+                    <field name="street_no"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
 </odoo>
