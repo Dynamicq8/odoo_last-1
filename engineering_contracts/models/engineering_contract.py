@@ -35,6 +35,8 @@ class EngineeringContract(models.Model):
     terms_conditions = fields.Html(string='الشروط والأحكام (Terms & Conditions)')
     
     contract_amount = fields.Monetary(string='قيمة العقد (Contract Amount)', currency_field='currency_id')
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
     currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.company.currency_id)
     
     contract_date = fields.Date(string='تاريخ العقد (Contract Date)', default=fields.Date.today)
