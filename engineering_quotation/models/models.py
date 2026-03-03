@@ -8,7 +8,6 @@ def _get_area_selection(self):
 
     # Helper to add a governorate as a separator
     def add_governorate_separator(governorate_name):
-        # The value '__separator__' is a common convention for non-selectable entries
         selection_list.append((governorate_name, '----- ' + governorate_name + ' -----'))
 
     # Helper to add individual areas
@@ -439,6 +438,10 @@ class ProjectProject(models.Model):
     
     plot_no = fields.Char(related='sale_order_id.plot_no', store=True, string="رقم القسيمة")
     block_no = fields.Char(related='sale_order_id.block_no', store=True, string="القطعة")
+
+    # --- ADDED STREET NO HERE ---
+    street_no = fields.Char(related='sale_order_id.street_no', store=True, string="الشارع")
+
     area = fields.Char(related='sale_order_id.area', store=True, string="المساحة (Area)")
 
 
