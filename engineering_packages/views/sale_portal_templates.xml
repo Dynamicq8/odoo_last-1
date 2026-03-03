@@ -1,0 +1,17 @@
+<odoo>
+    <template id="sale_order_portal_content_inherit_package_features" inherit_id="sale.sale_order_portal_content">
+        <!-- Add the "Package Features" section right before the product lines table -->
+        <xpath expr="//table[@id='sales_order_table']" position="before">
+            <t t-if="sale_order.package_features_html">
+                <div class="card mt-4 mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">مميزات الباقة (Package Features)</h4>
+                    </div>
+                    <div class="card-body">
+                        <div t-raw="sale_order.package_features_html"/>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
