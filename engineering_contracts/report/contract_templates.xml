@@ -21,19 +21,27 @@
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd; width: 30%;"><strong>الطرف الأول (المكتب الهندسي)</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-esc="doc.company_id.name or 'المكتب الهندسي'"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-esc="doc.company_id.name or 'المكتب الهندسي'"/>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>الطرف الثاني (العميل)</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.partner_id.name"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.partner_id.name"/>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>الرقم المدني</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.civil_number"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.civil_number"/>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>رقم الهاتف</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.partner_id.phone"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.partner_id.phone"/>
+                                    </td>
                                 </tr>
                             </table>
                         </div>
@@ -44,21 +52,33 @@
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd; width: 25%;"><strong>نوع المبنى</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.building_type"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.building_type"/>
+                                    </td>
                                     <td style="padding: 10px; border: 1px solid #ddd; width: 25%;"><strong>نوع الخدمة</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.service_type"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.service_type"/>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>رقم القسيمة</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.plot_no"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.plot_no"/>
+                                    </td>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>القطعة</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.block_no"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.block_no"/>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>المنطقة</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.area"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.area"/>
+                                    </td>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>الشارع</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.street_no"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.street_no"/>
+                                    </td>
                                 </tr>
                             </table>
                         </div>
@@ -69,15 +89,23 @@
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd; width: 25%;"><strong>الباقة</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.package_type"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.package_type"/>
+                                    </td>
                                     <td style="padding: 10px; border: 1px solid #ddd; width: 25%;"><strong>قيمة العقد</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.contract_amount" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.contract_amount" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>تاريخ العقد</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.contract_date"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.contract_date"/>
+                                    </td>
                                     <td style="padding: 10px; border: 1px solid #ddd;"><strong>المشروع</strong></td>
-                                    <td style="padding: 10px; border: 1px solid #ddd;" t-field="doc.project_id.name"/>
+                                    <td style="padding: 10px; border: 1px solid #ddd;">
+                                        <span t-field="doc.project_id.name"/>
+                                    </td>
                                 </tr>
                             </table>
                         </div>
@@ -86,7 +114,7 @@
                         <div style="margin: 20px 0;">
                             <h4 style="color: #2c3e50;">نطاق العمل (Scope of Work)</h4>
                             <div style="padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
-                                <t t-raw="doc.contract_body"/>
+                                <t t-out="doc.contract_body"/>
                             </div>
                         </div>
 
@@ -95,7 +123,7 @@
                             <div style="margin: 20px 0;">
                                 <h4 style="color: #2c3e50;">الشروط والأحكام (Terms &amp; Conditions)</h4>
                                 <div style="padding: 15px; border: 1px solid #ddd; background: #f9f9f9;">
-                                    <t t-raw="doc.terms_conditions"/>
+                                    <t t-out="doc.terms_conditions"/>
                                 </div>
                             </div>
                         </t>
@@ -113,7 +141,7 @@
                                     </td>
                                     <td style="width: 50%; text-align: center; padding: 20px;">
                                         <p><strong>الطرف الثاني</strong></p>
-                                        <p t-field="doc.partner_id.name"/>
+                                        <p><span t-field="doc.partner_id.name"/></p>
                                         <br/><br/>
                                         <p>التوقيع: _____________________</p>
                                         <p>التاريخ: _____________________</p>
