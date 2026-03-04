@@ -1,15 +1,17 @@
 <odoo>
+    <!-- The action now targets the TASK model -->
     <record id="action_report_initial_design_form" model="ir.actions.report">
         <field name="name">نموذج تفاصيل المشروع</field>
-        <field name="model">project.project</field>
+        <field name="model">project.task</field> <!-- CHANGED -->
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">engineering_project.report_initial_design_template</field>
         <field name="report_file">engineering_project.report_initial_design_template</field>
         <field name="print_report_name">'Project Form - %s' % (object.name)</field>
-        <field name="binding_model_id" ref="project.model_project_project"/>
+        <field name="binding_model_id" ref="project.model_project_task"/> <!-- CHANGED -->
         <field name="binding_type">report</field>
     </record>
 
+    <!-- The template now reads data from the TASK and its parent PROJECT -->
     <template id="report_initial_design_template">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
@@ -18,54 +20,35 @@
                         
                         <div class="text-center mb-4">
                             <h2 style="text-decoration: underline;">نموذج مشاريع مكتب دينامك ديزاين</h2>
+                            <h3>مهمة: <span t-field="doc.name"/></h3>
                         </div>
 
-                        <!-- Top Info Table -->
+                        <!-- Top Info Table (Data comes from the parent project) -->
                         <table class="table table-bordered" style="width: 100%; border: 2px solid black;">
                             <tr>
-                                <td style="width: 50%;"><strong>اسم المالك: </strong> <span t-field="doc.partner_id.name"/></td>
-                                <td style="width: 50%;"><strong>رقم التلفون: </strong> <span t-field="doc.partner_id.phone"/></td>
+                                <td style="width: 50%;"><strong>اسم المالك: </strong> <span t-field="doc.project_id.partner_id.name"/></td>
+                                <td style="width: 50%;"><strong>رقم التلفون: </strong> <span t-field="doc.project_id.partner_id.phone"/></td>
                             </tr>
                         </table>
 
                         <h4 class="mt-3">بيانات القسيمة:</h4>
                         <table class="table table-bordered" style="width: 100%; border: 2px solid black;">
                             <tr>
-                                <td><strong>المنطقة: </strong> <span t-field="doc.region"/></td>
-                                <td><strong>القطعة: </strong> <span t-field="doc.block_no"/></td>
-                                <td><strong>القسيمة: </strong> <span t-field="doc.plot_no"/></td>
-                                <td><strong>المساحة: </strong> <span t-field="doc.area"/></td>
+                                <td><strong>المنطقة: </strong> <span t-field="doc.project_id.region"/></td>
+                                <td><strong>القطعة: </strong> <span t-field="doc.project_id.block_no"/></td>
+                                <td><strong>القسيمة: </strong> <span t-field="doc.project_id.plot_no"/></td>
+                                <td><strong>المساحة: </strong> <span t-field="doc.project_id.area"/></td>
                             </tr>
                         </table>
 
                         <h4 class="mt-4">تفاصيل مكونات المشروع:</h4>
                         
-                        <!-- The Boxes matching your photo -->
-                        <div style="border: 2px solid black; min-height: 100px; margin-bottom: 10px; padding: 10px;">
-                            <strong>أولاً السرداب:</strong><br/>
-                            <span t-field="doc.floor_basement"/>
-                        </div>
-
-                        <div style="border: 2px solid black; min-height: 120px; margin-bottom: 10px; padding: 10px;">
-                            <strong>ثانياً الدور الأرضي:</strong><br/>
-                            <span t-field="doc.floor_ground"/>
-                        </div>
-
-                        <div style="border: 2px solid black; min-height: 120px; margin-bottom: 10px; padding: 10px;">
-                            <strong>الدور الأول:</strong><br/>
-                            <span t-field="doc.floor_first"/>
-                        </div>
-
-                        <div style="border: 2px solid black; min-height: 120px; margin-bottom: 10px; padding: 10px;">
-                            <strong>الدور الثاني:</strong><br/>
-                            <span t-field="doc.floor_second"/>
-                        </div>
-
-                        <div style="border: 2px solid black; min-height: 100px; margin-bottom: 10px; padding: 10px;">
-                            <strong>الدور السطح:</strong><br/>
-                            <span t-field="doc.floor_roof"/>
-                        </div>
-
+                        <!-- The Boxes (Data comes from the task itself) -->
+                        <div style="border: 2px solid black; min-height: 100px; padding: 10px; margin-bottom: 10px;"><strong>أولاً السرداب:</strong><br/><span t-field="doc.floor_basement"/></div>
+                        <div style="border: 2px solid black; min-height: 120px; padding: 10px; margin-bottom: 10px;"><strong>ثانياً الدور الأرضي:</strong><br/><span t-field="doc.floor_ground"/></div>
+                        <div style="border: 2px solid black; min-height: 120px; padding: 10px; margin-bottom: 10px;"><strong>الدور الأول:</strong><br/><span t-field="doc.floor_first"/></div>
+                        <div style="border: 2px solid black; min-height: 120px; padding: 10px; margin-bottom: 10px;"><strong>الدور الثاني:</strong><br/><span t-field="doc.floor_second"/></div>
+                        <div style="border: 2px solid black; min-height: 100px; padding: 10px; margin-bottom: 10px;"><strong>الدور السطح:</strong><br/><span t-field="doc.floor_roof"/></div>
                     </div>
                 </t>
             </t>
