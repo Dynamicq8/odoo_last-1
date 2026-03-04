@@ -84,3 +84,37 @@ class ProjectTask(models.Model):
         whatsapp_url = f"https://web.whatsapp.com/send?phone={cleaned_phone}&text={encoded_message}"
         
         return { 'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new' }
+     # --- NEW: MOVE TO NEXT STAGE BUTTON ---
+    def action_move_to_next_stage(self):
+        self.ensure_one()
+        if not self.project_id:
+            raise UserError(_("المهمة غير مرتبطة بمشروع!"))
+
+        # Get all stages available for this project, ordered correctly
+        project_stages = self.env['project.task.type'].search([
+            ('project_ids', 'in', self.project_id.id)
+        ], order='sequence, id')
+
+        stages_list = list(project_stages)
+        
+        if self.stage_id in stages_list:
+            current_index = stages_list.index(self.stage_id)
+            # Check if there is a stage after the current one
+            if current_index + 1 < len(stages_list):
+                next_stage = stages_list[current_index + 1]
+                self.write({'stage_id': next_stage.id})
+                
+                # Show a nice success message
+                return {
+                    'effect': {
+                        'fadeout': 'slow',
+                        'message': _('تم نقل المهمة للمرحلة التالية بنجاح!'),
+                        'type': 'rainbow_man',
+                    }
+                }
+            else:
+                raise UserError(_("هذه هي المرحلة الأخيرة، لا توجد مرحلة تالية."))
+        elif stages_list:
+            # If the task somehow has no stage, put it in the first stage
+            self.write({'stage_id': stages_list[0].id})
+        return True
