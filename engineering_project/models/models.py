@@ -61,14 +61,25 @@ class ProjectTask(models.Model):
 
     def action_send_task_form_whatsapp(self):
         self.ensure_one()
+        # Get the customer's phone from the parent project
         phone = self.project_id.partner_id.mobile or self.project_id.partner_id.phone
         if not phone:
             raise UserError("رقم الهاتف مفقود للعميل في المشروع")
         
         cleaned_phone = ''.join(filter(str.isdigit, phone))
         
-        message = _("مرحباً %s،\nتم تحديث تفاصيل المهمة '%s' الخاصة بمشروعكم. يرجى المراجعة.") % (self.project_id.partner_id.name, self.name)
+        # 1. Get the Base URL of your website
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         
+        # 2. Build the Direct PDF Download Link
+        # Format: /report/pdf/module_name.report_template_name/record_id
+        report_name = 'engineering_project.report_initial_design_template'
+        pdf_link = f"{base_url}/report/pdf/{report_name}/{self.id}"
+        
+        # 3. Create the new message
+        message = _("مرحباً %s،\nنرفق لكم نموذج مكونات المشروع للمراجعة.\nيمكنكم عرض أو تحميل النموذج (PDF) عبر الرابط التالي:\n%s") % (self.project_id.partner_id.name, pdf_link)
+        
+        import urllib.parse
         encoded_message = urllib.parse.quote(message)
         whatsapp_url = f"https://web.whatsapp.com/send?phone={cleaned_phone}&text={encoded_message}"
         
