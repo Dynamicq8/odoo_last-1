@@ -1,5 +1,7 @@
 <odoo>
-    <!-- First, remove the old fields from the Project form -->
+    <!-- ============================================= -->
+    <!--  1. ADD SITE DETAILS TO THE MAIN PROJECT FORM  -->
+    <!-- ============================================= -->
     <record id="edit_project_form_engineering" model="ir.ui.view">
         <field name="name">project.project.form.engineering</field>
         <field name="model">project.project</field>
@@ -22,16 +24,16 @@
         </field>
     </record>
 
-    <!-- ============================================= -->
-    <!--  NOW, ADD THE NEW TAB AND BUTTONS TO THE TASK FORM  -->
-    <!-- ============================================= -->
+    <!-- ====================================================== -->
+    <!--  2. ADD THE NEW TAB AND BUTTONS TO THE **TASK** FORM  -->
+    <!-- ====================================================== -->
     <record id="view_task_form2_engineering_extended" model="ir.ui.view">
         <field name="name">project.task.form.engineering.extended</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             
-            <!-- Add Buttons to the Header -->
+            <!-- Add Buttons to the Task Header -->
             <xpath expr="//header" position="inside">
                 <button name="%(engineering_project.action_report_initial_design_form)d" 
                         string="طباعة نموذج المشروع (Print PDF)" type="action" class="btn-primary"/>
@@ -41,7 +43,7 @@
                         string="الذهاب للمشروع (Go to Project)" type="object" icon="fa-briefcase"/>
             </xpath>
 
-            <!-- Create a new Tab for the Form Details -->
+            <!-- Create a new Tab for the Form Details inside the Task -->
             <xpath expr="//notebook" position="inside">
                 <page string="نموذج مكونات المشروع" name="project_details_form">
                     <group>
