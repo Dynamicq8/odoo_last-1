@@ -15,99 +15,102 @@ class ProjectProject(models.Model):
     street_no = fields.Char(string="الشارع")
     area = fields.Char(string="المساحة (Area)")
 
-    # (Kept silently to prevent database crashes)
-    floor_basement = fields.Text(string="أولاً السرداب")
-    floor_ground = fields.Text(string="ثانياً الدور الأرضي")
-    floor_first = fields.Text(string="الدور الأول")
-    floor_second = fields.Text(string="الدور الثاني")
-    floor_roof = fields.Text(string="الدور السطح")
-
     # ==========================================
-    # AUTOMATION WORKFLOW: TEAM ASSIGNMENT
+    # FULL TEAM ASSIGNMENT (10 Steps Workflow)
     # ==========================================
-    architect_id = fields.Many2one('res.users', string="المهندس المعماري (Architect)")
-    secretary_id = fields.Many2one('res.users', string="السكرتارية (Secretary)")
-    structural_id = fields.Many2one('res.users', string="المهندس الإنشائي (Structural)")
-    draftsman_id = fields.Many2one('res.users', string="الرسام (Draftsman)")
+    architect_id = fields.Many2one('res.users', string="المهندس المعماري")
+    accountant_id = fields.Many2one('res.users', string="المحاسبة")
+    structural_id = fields.Many2one('res.users', string="المهندس الإنشائي")
+    facade_draftsman_id = fields.Many2one('res.users', string="رسام الواجهات")
+    secretary_id = fields.Many2one('res.users', string="السكرتارية")
+    muni_draftsman_id = fields.Many2one('res.users', string="رسام البلدية")
+    electrical_id = fields.Many2one('res.users', string="مهندس الكهرباء")
+    draftsman_id = fields.Many2one('res.users', string="الرسام (صحي/مخططات)")
 
-    workflow_started = fields.Boolean(default=False, string="بدأ سير العمل")
+    # Prevention flags (Stops duplicate tasks if clicked twice)
+    workflow_started = fields.Boolean(default=False)
+    step_2_triggered = fields.Boolean(default=False)
+    step_3_triggered = fields.Boolean(default=False)
+    step_4_triggered = fields.Boolean(default=False)
+    step_5_triggered = fields.Boolean(default=False)
+    step_6_triggered = fields.Boolean(default=False)
+    step_8_triggered = fields.Boolean(default=False)
+    step_9_triggered = fields.Boolean(default=False)
+    step_10_triggered = fields.Boolean(default=False)
 
     def action_start_workflow(self):
-        """ This is the big button you click to start Phase 1 """
+        """ START PHASE 1 """
         self.ensure_one()
         if self.workflow_started:
-            raise UserError(_("تم بدء سير العمل مسبقاً! (Workflow already started)"))
+            raise UserError(_("تم بدء سير العمل مسبقاً!"))
         
-        if not self.architect_id or not self.secretary_id:
-            raise UserError(_("يرجى تعيين المهندس المعماري والسكرتارية أولاً! (Assign Architect and Secretary first)"))
-
-        # Get stages
         stages = self.env['project.task.type'].search([('project_ids', 'in', self.id)], order='sequence')
-        if not stages:
-            raise UserError(_("لا توجد مراحل في هذا المشروع! (No stages found)"))
-            
-        stage_1 = stages[0] # التصميم المبدئي
-        stage_2 = stages[1] if len(stages) > 1 else stage_1 # التعاقد والوثائق
+        first_stage = stages[0].id if stages else False
 
-        # 1. Create Architect Task (Phase 1)
-        self.env['project.task'].create({
-            'name': 'كروكي معماري (Architectural Sketch)',
-            'project_id': self.id,
-            'user_ids': [(4, self.architect_id.id)],
-            'stage_id': stage_1.id,
-            'workflow_step': 'phase1_architect', # This tells Odoo to listen to this task
-        })
-
-        # 2. Create Secretary Tasks
-        sec_tasks = ['جمع وثائق المشروع', 'طلب فحص تربة', 'ورقة كهرباء']
-        for task_name in sec_tasks:
-            self.env['project.task'].create({
-                'name': task_name,
-                'project_id': self.id,
-                'user_ids': [(4, self.secretary_id.id)],
-                'stage_id': stage_2.id,
-            })
-        
+        # Step 1: Architect Sketch
+        self._create_task('1. كروكي معماري', self.architect_id, first_stage, 'step_1')
         self.workflow_started = True
 
-    def _trigger_phase_2(self):
-        """ Automatically creates Phase 2 when Phase 1 is approved """
-        # We need a stage for this. Let's put it in the 3rd stage (الموافقات/التنسيق)
+    def _trigger_next_workflow_step(self, completed_step):
+        """ THE DOMINO EFFECT - Automatically runs when a task is Approved """
         stages = self.env['project.task.type'].search([('project_ids', 'in', self.id)], order='sequence')
-        target_stage = stages[2] if len(stages) > 2 else stages[0]
+        default_stage = stages[0].id if stages else False # Tasks spawn in the first column so you see them
 
-        # Task: Structural
-        if self.structural_id:
-            self.env['project.task'].create({
-                'name': 'وضع الأعمدة المناسبة (Structural Columns)',
-                'project_id': self.id,
-                'user_ids': [(4, self.structural_id.id)],
-                'stage_id': target_stage.id,
-                'workflow_step': 'phase2_structural',
-            })
-        
-        # Task: Facade
-        if self.architect_id:
-            self.env['project.task'].create({
-                'name': 'تصميم الواجهات (Facade Design)',
-                'project_id': self.id,
-                'user_ids': [(4, self.architect_id.id)],
-                'stage_id': target_stage.id,
-                'workflow_step': 'phase2_facade',
-            })
+        if completed_step == 'step_1' and not self.step_2_triggered:
+            self._create_task('2. العقد وتحصيل الدفعة الاولي', self.accountant_id, default_stage)
+            self._create_task('2. سيستم الاعمدة', self.structural_id, default_stage, 'step_2_cols')
+            self._create_task('2. الواجهات', self.facade_draftsman_id, default_stage)
+            self._create_task('2. جمع الوثائق وتعبة النماذج', self.secretary_id, default_stage)
+            self.step_2_triggered = True
+
+        elif completed_step == 'step_2_cols' and not self.step_3_triggered:
+            self._create_task('3. رسم المعماري للبلدية', self.muni_draftsman_id, default_stage, 'step_3')
+            self.step_3_triggered = True
+
+        elif completed_step == 'step_3' and not self.step_4_triggered:
+            self._create_task('4. ادخال المعاملة بلدية للاعتماد', self.secretary_id, default_stage, 'step_4')
+            self.step_4_triggered = True
+
+        elif completed_step == 'step_4' and not self.step_5_triggered:
+            self._create_task('5. اعتماد الرخصة من البلدية', self.secretary_id, default_stage, 'step_5')
+            self.step_5_triggered = True
+
+        elif completed_step == 'step_5' and not self.step_6_triggered:
+            self._create_task('6. تصميم الانشائي الكامل', self.structural_id, default_stage, 'step_6')
+            self._create_task('7. تصميم مخطط الصحي', self.draftsman_id, default_stage)
+            self._create_task('7. تصميم مخطط الكهرباء', self.electrical_id, default_stage)
+            self.step_6_triggered = True
+
+        elif completed_step == 'step_6' and not self.step_8_triggered:
+            self._create_task('8. تعهد الاشراف', self.secretary_id, default_stage, 'step_8')
+            self.step_8_triggered = True
+
+        elif completed_step == 'step_8' and not self.step_9_triggered:
+            self._create_task('9. الاشراف علي التنفيذ', self.structural_id, default_stage, 'step_9')
+            self.step_9_triggered = True
+
+        elif completed_step == 'step_9' and not self.step_10_triggered:
+            self._create_task('10. انهاء الاشراف', self.secretary_id, default_stage)
+            self.step_10_triggered = True
+
+    def _create_task(self, name, user, stage_id, workflow_step=False):
+        """ Helper function to generate tasks cleanly """
+        val = {
+            'name': name,
+            'project_id': self.id,
+            'stage_id': stage_id,
+        }
+        if user:
+            val['user_ids'] = [(4, user.id)]
+        if workflow_step:
+            val['workflow_step'] = workflow_step
+        self.env['project.task'].create(val)
 
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    # Hidden field to track the domino effect
-    workflow_step = fields.Selection([
-        ('phase1_architect', 'Phase 1: Architect'),
-        ('phase2_structural', 'Phase 2: Structural'),
-        ('phase2_facade', 'Phase 2: Facade'),
-        ('phase3_drafting', 'Phase 3: Drafting'),
-        ('phase4_licensing', 'Phase 4: Licensing'),
-    ], string="خطوة سير العمل", readonly=True)
+    workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
 
     floor_basement = fields.Text(string="أولاً السرداب")
     floor_ground = fields.Text(string="ثانياً الدور الأرضي")
@@ -115,6 +118,19 @@ class ProjectTask(models.Model):
     floor_second = fields.Text(string="الدور الثاني")
     floor_roof = fields.Text(string="الدور السطح")
     
+    # -----------------------------------------------------
+    # THE MAGIC: Listen for 'Approved' state to trigger tasks
+    # -----------------------------------------------------
+    def write(self, vals):
+        res = super(ProjectTask, self).write(vals)
+        # Check if the state changed to 'Approved' (03_approved) or 'Done' (1_done)
+        if 'state' in vals and vals['state'] in ['03_approved', '1_done']:
+            for task in self:
+                if task.workflow_step and task.project_id:
+                    # Fire the trigger!
+                    task.project_id._trigger_next_workflow_step(task.workflow_step)
+        return res
+
     def action_view_parent_project(self):
         self.ensure_one()
         return {
@@ -138,36 +154,3 @@ class ProjectTask(models.Model):
         encoded_message = urllib.parse.quote(message)
         whatsapp_url = f"https://web.whatsapp.com/send?phone={cleaned_phone}&text={encoded_message}"
         return { 'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new' }
-
-    def action_move_to_next_stage(self):
-        self.ensure_one()
-        if not self.project_id:
-            raise UserError(_("المهمة غير مرتبطة بمشروع!"))
-
-        project_stages = self.env['project.task.type'].search([('project_ids', 'in', self.project_id.id)], order='sequence, id')
-        stages_list = list(project_stages)
-        
-        if self.stage_id in stages_list:
-            current_index = stages_list.index(self.stage_id)
-            if current_index + 1 < len(stages_list):
-                next_stage = stages_list[current_index + 1]
-                self.write({'stage_id': next_stage.id})
-                
-                # ==========================================
-                # AUTOMATION LISTENER: Check if we need to trigger next phase
-                # ==========================================
-                if self.workflow_step == 'phase1_architect':
-                    self.project_id._trigger_phase_2()
-
-                return {
-                    'effect': {
-                        'fadeout': 'slow',
-                        'message': _('تم نقل المهمة للمرحلة التالية!'),
-                        'type': 'rainbow_man',
-                    }
-                }
-            else:
-                raise UserError(_("هذه هي المرحلة الأخيرة، لا توجد مرحلة تالية."))
-        elif stages_list:
-            self.write({'stage_id': stages_list[0].id})
-        return True
