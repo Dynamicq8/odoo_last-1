@@ -61,7 +61,7 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             
-            <!-- Add Buttons to the Task Header -->
+            <!-- Add Buttons to the Task Header (Removed the manual next stage button) -->
             <xpath expr="//header" position="inside">
                 <button name="%(engineering_project.action_report_initial_design_form)d" 
                         string="طباعة نموذج المشروع (Print PDF)" type="action" class="btn-primary"/>
@@ -75,6 +75,9 @@
             <xpath expr="//notebook" position="inside">
                 <page string="نموذج مكونات المشروع" name="project_details_form">
                     <group>
+                        <!-- Hidden field needed for the automation trigger -->
+                        <field name="workflow_step" invisible="1"/>
+                        
                         <field name="floor_basement" placeholder="اكتب تفاصيل السرداب هنا..."/>
                         <field name="floor_ground" placeholder="اكتب تفاصيل الدور الأرضي هنا..."/>
                         <field name="floor_first" placeholder="اكتب تفاصيل الدور الأول هنا..."/>
