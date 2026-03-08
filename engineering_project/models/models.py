@@ -110,7 +110,18 @@ class ProjectProject(models.Model):
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
+    # --- THE FIX IS HERE: Brought back Selection to stop Odoo crashing ---
+    workflow_step = fields.Selection([
+        ('step_1', 'Step 1'),
+        ('step_2_cols', 'Step 2 Cols'),
+        ('step_3', 'Step 3'),
+        ('step_4', 'Step 4'),
+        ('step_5', 'Step 5'),
+        ('step_6', 'Step 6'),
+        ('step_8', 'Step 8'),
+        ('step_9', 'Step 9'),
+        ('step_10', 'Step 10'),
+    ], string="Workflow Trigger", readonly=True)
 
     floor_basement = fields.Text(string="أولاً السرداب")
     floor_ground = fields.Text(string="ثانياً الدور الأرضي")
