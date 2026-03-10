@@ -1,9 +1,5 @@
 <odoo>
     <template id="sale_order_portal_content_inherit_engineering" inherit_id="sale.sale_order_portal_content">
-        <!-- 
-           This targets the "Sale Information" area (Date, Expiration) 
-           and adds your engineering details right next to it or below it.
-        -->
         <xpath expr="//div[@id='informations']" position="after">
             
             <div class="row mt-4 mb-4" id="engineering_details">
@@ -44,6 +40,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ADD THIS BLOCK FOR PACKAGE FEATURES -->
+            <t t-if="sale_order.package_features_html">
+                <div class="row mt-4 mb-4" id="package_features_section">
+                    <div class="col-12">
+                        <h5 class="mb-3 text-primary">مميزات الباقه (Package Features)</h5>
+                        <hr/>
+                        <div t-field="sale_order.package_features_html"/>
+                    </div>
+                </div>
+            </t>
+            <!-- END PACKAGE FEATURES BLOCK -->
+
         </xpath>
     </template>
 </odoo>
