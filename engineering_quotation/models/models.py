@@ -137,7 +137,8 @@ def _get_governorate_areas():
         ],
     }
 
-def _get_all_regions():
+# --- ADDED 'self' PARAMETER HERE ---
+def _get_all_regions(self):
     """Helper function to load ALL regions at once for the Selection field"""
     all_regions = []
     seen_regions = set()
