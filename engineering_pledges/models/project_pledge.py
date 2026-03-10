@@ -20,6 +20,7 @@ class EngineeringTaskPledge(models.Model):
 # ==========================================================
 class ProjectTask(models.Model):
     _inherit = 'project.task'
+    stage_sequence = fields.Integer(related='stage_id.sequence', readonly=True)
 
     # The One2many field is now on the Task
     pledge_ids = fields.One2many('engineering.task.pledge', 'task_id', string='تعهدات البلدية (Pledges)')
