@@ -14,14 +14,18 @@
 
                 <!-- Location Details Section - Focus on forcing vertical stacking here -->
                 <group string="تفاصيل الموقع (Location Details)">
-                    <!-- Forcing each field to take a full line -->
-                    <field name="region" required="True"/> <!-- Added required="True" for consistency -->
+                    <!-- New Governorate field -->
+                    <field name="governorate_id" required="True" options="{'no_create': True, 'no_open': True}"/>
+                    <!-- New Region field with domain to filter by selected governorate -->
+                    <field name="region_id" 
+                           domain="[('governorate_id', '=', governorate_id)]" 
+                           required="True" 
+                           options="{'no_create': True, 'no_open': True}"/>
                     <field name="area"/>
                     <field name="block_no"/>
                     <field name="street_no"/>
                     <field name="plot_no"/>
                 </group>
-
             </xpath>
         </field>
     </record>
