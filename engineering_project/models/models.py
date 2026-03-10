@@ -5,7 +5,7 @@ import datetime
 import urllib.parse
 
 # ==============================================================================
-#  HELPER FUNCTIONS FOR GOVERNORATE & REGION (Moved out of the model for cleanliness)
+#  HELPER FUNCTIONS FOR GOVERNORATE & REGION 
 # ==============================================================================
 def _get_governorate_areas():
     return {
@@ -152,7 +152,7 @@ def _get_all_regions(self):
 
 
 # ==============================================================================
-#  SALE ORDER MODEL (to create project and its stages)
+#  SALE ORDER MODEL 
 # ==============================================================================
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -248,8 +248,7 @@ class SaleOrder(models.Model):
         }
         project = self.env['project.project'].create(project_vals)
         
-        # --- CONDITIONAL STAGES LOGIC ---
-        if self.building_type == 'residential': # If 'نوع العقار' is 'سكن خاص'
+        if self.building_type == 'residential': 
             stages_to_create = [
                 'التصميم المبدئي', 
                 'التعاقد والوثائق', 
@@ -261,7 +260,7 @@ class SaleOrder(models.Model):
                 'مخططات تفصيلية', 
                 'الإشراف'
             ]
-        else: # For any other 'building_type'
+        else: 
             stages_to_create = [
                 'التصميم المبدئي', 
                 'التعاقد والوثائق', 
@@ -353,7 +352,7 @@ class EngineeringQuotationStageHistory(models.Model):
 
 
 # ==============================================================================
-#  PROJECT MODEL (Tasks and Workflow)
+#  PROJECT MODEL
 # ==============================================================================
 class ProjectProject(models.Model):
     _inherit = 'project.project'
@@ -374,7 +373,6 @@ class ProjectProject(models.Model):
         for project in self:
             gov_name = project.governorate_id.name if project.governorate_id else False
             region_name = project.region_id.name if project.region_id else False
-            
             if gov_name and region_name:
                 valid_regions = [area[0] for area in _get_governorate_areas().get(gov_name, [])]
                 if region_name not in valid_regions:
@@ -385,9 +383,6 @@ class ProjectProject(models.Model):
     street_no = fields.Char(string="الشارع")
     area = fields.Char(string="المساحة (Area)")
 
-    # ==========================================
-    # FULL TEAM ASSIGNMENT 
-    # ==========================================
     architect_id = fields.Many2one('res.users', string="المهندس المعماري")
     accountant_id = fields.Many2one('res.users', string="المحاسبة")
     structural_id = fields.Many2one('res.users', string="المهندس الإنشائي")
@@ -398,7 +393,6 @@ class ProjectProject(models.Model):
     draftsman_id = fields.Many2one('res.users', string="الرسام (صحي/مخططات)")
 
     workflow_started = fields.Boolean(default=False)
-    # Changed step numbering for residential to match new stages/tasks
     residential_step_1_triggered = fields.Boolean(default=False)
     residential_step_2_triggered = fields.Boolean(default=False)
     residential_step_3_triggered = fields.Boolean(default=False)
@@ -407,8 +401,6 @@ class ProjectProject(models.Model):
     residential_step_6_triggered = fields.Boolean(default=False)
     residential_step_7_triggered = fields.Boolean(default=False)
     residential_step_8_triggered = fields.Boolean(default=False)
-    
-    # Original steps for non-residential
     step_2_triggered = fields.Boolean(default=False)
     step_3_triggered = fields.Boolean(default=False)
     step_4_triggered = fields.Boolean(default=False)
@@ -420,16 +412,12 @@ class ProjectProject(models.Model):
 
 
     def _get_project_stages_map(self):
-        """ Helper to fetch all project stages and map them by name.
-            Returns a dictionary: {'Stage Name': Stage ID}
-        """
         self.ensure_one()
         stages = self.env['project.task.type'].search([('project_ids', 'in', self.id)], order='sequence')
         return {stage.name: stage.id for stage in stages}
 
 
     def action_start_workflow(self):
-        """ START PHASE 1 - Now conditional based on building_type """
         self.ensure_one()
         if self.workflow_started:
             raise UserError(_("تم بدء سير العمل مسبقاً!"))
@@ -437,26 +425,20 @@ class ProjectProject(models.Model):
         stages_map = self._get_project_stages_map()
 
         if self.building_type == 'residential':
-            # Residential Workflow (based on image)
-            # التصميم المبدئي
             s_initial_design = stages_map.get('التصميم المبدئي')
             self._create_task('1. كروكي', self.architect_id, s_initial_design, 'residential_task_1')
             self._create_task('1. مباني أولية', self.architect_id, s_initial_design)
         else:
-            # Normal Workflow
-            # التصميم المبدئي
             s0 = stages_map.get('التصميم المبدئي')
             self._create_task('1. كروكي معماري', self.architect_id, s0, 'step_1')
             
         self.workflow_started = True
 
     def _trigger_next_workflow_step(self, completed_step):
-        """ THE DOMINO EFFECT - Conditional based on building_type """
         self.ensure_one()
         stages_map = self._get_project_stages_map()
 
         if self.building_type == 'residential':
-            # Residential Workflow triggers
             s_initial_design = stages_map.get('التصميم المبدئي')
             s_contract_docs = stages_map.get('التعاقد والوثائق')
             s_column_system = stages_map.get('سيستم الأعمدة')
@@ -468,119 +450,91 @@ class ProjectProject(models.Model):
             s_supervision = stages_map.get('الإشراف')
 
             if completed_step == 'residential_task_1' and not self.residential_step_1_triggered:
-                # التعاقد والوثائق
                 self._create_task('2. العقد وتحصيل الدفعة الأولى', self.accountant_id, s_contract_docs, 'residential_task_2')
                 self._create_task('2. جمع الوثائق', self.secretary_id, s_contract_docs)
                 self.residential_step_1_triggered = True
 
             elif completed_step == 'residential_task_2' and not self.residential_step_3_triggered:
-                # سيستم الأعمدة
                 self._create_task('3. سيستم الأعمدة', self.structural_id, s_column_system, 'residential_task_3')
-                # الواجهات
-                self._create_task('3. 3D ELEVATION', self.facade_draftsman_id, s_facades) # From image
+                self._create_task('3. 3D ELEVATION', self.facade_draftsman_id, s_facades) 
                 self.residential_step_3_triggered = True
 
             elif completed_step == 'residential_task_3' and not self.residential_step_4_triggered:
-                # الواجهات
-                self._create_task('4. 2D ELEVATION', self.facade_draftsman_id, s_facades, 'residential_task_4') # From image
+                self._create_task('4. 2D ELEVATION', self.facade_draftsman_id, s_facades, 'residential_task_4') 
                 self.residential_step_4_triggered = True
 
             elif completed_step == 'residential_task_4' and not self.residential_step_5_triggered:
-                # رسوم البلدية
                 self._create_task('5. رسم مخطط البلدية', self.muni_draftsman_id, s_muni_fees, 'residential_task_5')
                 self.residential_step_5_triggered = True
 
             elif completed_step == 'residential_task_5' and not self.residential_step_6_triggered:
-                # مرحلة التراخيص
-                self._create_task('6. موافقة البلدية', self.secretary_id, s_licensing, 'residential_task_6_muni_approve') # From image
-                self._create_task('6. ادارية انهاءية', self.secretary_id, s_licensing, 'residential_task_6_admin_finish') # From image
+                self._create_task('6. موافقة البلدية', self.secretary_id, s_licensing, 'residential_task_6_muni_approve')
+                self._create_task('6. ادارية انهاءية', self.secretary_id, s_licensing, 'residential_task_6_admin_finish') 
                 self.residential_step_6_triggered = True
             
-            # Additional check if both licensing tasks are done to proceed to structural plan
-            # This is a bit more complex as it depends on two tasks. 
-            # For simplicity, let's assume one main task completion triggers the next stage,
-            # or you can implement a more robust check if both specific tasks are completed.
-            # For now, let's use 'residential_task_6_muni_approve' as the trigger for the next step.
             elif completed_step == 'residential_task_6_muni_approve' and self.residential_step_6_triggered and not self.residential_step_7_triggered:
-                # مخطط إنشائي
                 self._create_task('7. انشائي تفصيلي', self.structural_id, s_structural_plan, 'residential_task_7')
                 self.residential_step_7_triggered = True
 
             elif completed_step == 'residential_task_7' and not self.residential_step_8_triggered:
-                # مخططات تفصيلية
                 self._create_task('8. مخطط صحي', self.draftsman_id, s_detailed_plans)
                 self._create_task('8. مخطط كهربائي', self.electrical_id, s_detailed_plans)
                 self._create_task('8. كشف الكميات', self.accountant_id, s_detailed_plans)
                 self._create_task('8. انهاء المباني', self.architect_id, s_detailed_plans)
-                # الإشراف (if there's a specific trigger to start supervision from here)
                 self._create_task('8. عقود اشراف', self.secretary_id, s_supervision, 'residential_task_8')
                 self.residential_step_8_triggered = True
             
             elif completed_step == 'residential_task_8':
-                # الإشراف
                 self._create_task('9. اعمال الاشراف', self.structural_id, s_supervision)
 
-
         else:
-            # Normal Workflow triggers
             s0 = stages_map.get('التصميم المبدئي')
             s1 = stages_map.get('التعاقد والوثائق')
             s2 = stages_map.get('المخطط الانشائي')
             s3 = stages_map.get('الموافقات')
             s4 = stages_map.get('التصميمات التفصيلية')
             s5 = stages_map.get('الإشراف')
-            s6 = stages_map.get('إنهاء المشروع') # This one is only for non-residential
+            s6 = stages_map.get('إنهاء المشروع')
 
             if completed_step == 'step_1' and not self.step_2_triggered:
-                # Column 2 (التعاقد والوثائق)
                 self._create_task('2. العقد وتحصيل الدفعة الاولي', self.accountant_id, s1)
                 self._create_task('2. جمع الوثائق وتعبة النماذج', self.secretary_id, s1)
-                # Column 3 (المخطط الانشائي)
                 self._create_task('2. سيستم الاعمدة', self.structural_id, s2, 'step_2_cols')
-                # Column 5 (التصميمات التفصيلية)
                 self._create_task('2. الواجهات', self.facade_draftsman_id, s4)
                 self.step_2_triggered = True
 
             elif completed_step == 'step_2_cols' and not self.step_3_triggered:
-                # Column 4 (الموافقات)
                 self._create_task('3. رسم المعماري للبلدية', self.muni_draftsman_id, s3, 'step_3')
                 self.step_3_triggered = True
 
             elif completed_step == 'step_3' and not self.step_4_triggered:
-                # Column 4 (الموافقات)
                 self._create_task('4. ادخال المعاملة بلدية للاعتماد', self.secretary_id, s3, 'step_4')
                 self.step_4_triggered = True
 
             elif completed_step == 'step_4' and not self.step_5_triggered:
-                # Column 4 (الموافقات)
                 self._create_task('5. اعتماد الرخصة من البلدية', self.secretary_id, s3, 'step_5')
                 self.step_5_triggered = True
 
             elif completed_step == 'step_5' and not self.step_6_triggered:
-                # Column 5 (التصميمات التفصيلية)
                 self._create_task('6. تصميم الانشائي الكامل', self.structural_id, s4, 'step_6')
                 self._create_task('7. تصميم مخطط الصحي', self.draftsman_id, s4)
                 self._create_task('7. تصميم مخطط الكهرباء', self.electrical_id, s4)
                 self.step_6_triggered = True
 
             elif completed_step == 'step_6' and not self.step_8_triggered:
-                # Column 6 (الإشراف)
                 self._create_task('8. تعهد الاشراف', self.secretary_id, s5, 'step_8')
                 self.step_8_triggered = True
 
             elif completed_step == 'step_8' and not self.step_9_triggered:
-                # Column 6 (الإشراف)
                 self._create_task('9. الاشراف علي التنفيذ', self.structural_id, s5, 'step_9')
                 self.step_9_triggered = True
 
             elif completed_step == 'step_9' and not self.step_10_triggered:
-                # Column 7 (إنهاء المشروع)
                 self._create_task('10. انهاء الاشراف', self.secretary_id, s6)
                 self.step_10_triggered = True
 
     def _create_task(self, name, user, stage_id, workflow_step=False):
-        """ Helper function to generate tasks cleanly """
-        if not stage_id: return # Safeguard if stage not found
+        if not stage_id: return 
         val = {'name': name, 'project_id': self.id, 'stage_id': stage_id}
         if user: val['user_ids'] = [(4, user.id)]
         if workflow_step: val['workflow_step'] = workflow_step
@@ -588,109 +542,42 @@ class ProjectProject(models.Model):
 
 
 # ==============================================================================
-#  ENGINEERING TASK PLEDGE MODEL (Holds individual pledge records related to a task)
-# ==============================================================================
-class EngineeringTaskPledge(models.Model):
-    _name = 'engineering.task.pledge' 
-    _description = 'Task Municipality Pledge'
-
-    task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
-    template_id = fields.Many2one('engineering.pledge.template', string='نوع التعهد (Pledge Type)', required=True)
-    is_completed = fields.Boolean(string='متوفر / تم التوقيع (Completed)', default=False)
-    
-    # --- THE FIX IS HERE: ADDED sanitize=False ---
-    generated_html = fields.Html(string='Generated Content', sanitize=False) 
-
-# ==============================================================================
-#  PROJECT TASK MODEL (Inherited to add pledge functionality)
+#  PROJECT TASK MODEL - (FIXED: Fields added back!)
 # ==============================================================================
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    stage_sequence = fields.Integer(related='stage_id.sequence', readonly=True)
-    pledge_ids = fields.One2many('engineering.task.pledge', 'task_id', string='تعهدات البلدية (Pledges)')
+    # --- THIS WAS MISSING: The Workflow Trigger Field ---
+    workflow_step = fields.Selection([
+        ('step_1', 'Step 1'),
+        ('step_2_cols', 'Step 2 Cols'),
+        ('step_3', 'Step 3'),
+        ('step_4', 'Step 4'),
+        ('step_5', 'Step 5'),
+        ('step_6', 'Step 6'),
+        ('step_8', 'Step 8'),
+        ('step_9', 'Step 9'),
+        ('step_10', 'Step 10'),
+        ('residential_task_1', 'Residential Task 1'),
+        ('residential_task_2', 'Residential Task 2'),
+        ('residential_task_3', 'Residential Task 3'),
+        ('residential_task_4', 'Residential Task 4'),
+        ('residential_task_5', 'Residential Task 5'),
+        ('residential_task_6_muni_approve', 'Residential Task 6 Muni Approval'),
+        ('residential_task_6_admin_finish', 'Residential Task 6 Admin Finish'),
+        ('residential_task_7', 'Residential Task 7'),
+        ('residential_task_8', 'Residential Task 8'),
+    ], string="Workflow Trigger", readonly=True)
 
-    def action_load_required_pledges(self):
-        """ Loads pledges based on the project's building type """
-        for task in self:
-            building_type = task.project_id.building_type
-            if not building_type:
-                continue
+    # --- THIS WAS MISSING: Form Fields ---
+    floor_basement = fields.Text(string="أولاً السرداب")
+    floor_ground = fields.Text(string="ثانياً الدور الأرضي")
+    floor_first = fields.Text(string="الدور الأول")
+    floor_second = fields.Text(string="الدور الثاني")
+    floor_roof = fields.Text(string="الدور السطح")
 
-            domain = [('active', '=', True), ('building_type', 'in', [building_type, 'all'])]
-            templates = self.env['engineering.pledge.template'].search(domain)
-            existing_template_ids = task.pledge_ids.mapped('template_id.id')
-            
-            for template in templates:
-                if template.id not in existing_template_ids:
-                    self.env['engineering.task.pledge'].create({
-                        'task_id': task.id,
-                        'template_id': template.id,
-                    })
-
-    def action_generate_pledges_pdf(self):
-        """ 
-        1. Finds all *completed* pledges for this task.
-        2. Replaces placeholders {{...}} with real data.
-        3. Saves it to generated_html.
-        4. Calls the PDF report action.
-        """
-        self.ensure_one()
-        
-        # Get project data to fill the templates
-        project = self.project_id
-        partner_name = project.partner_id.name or "__________________"
-        date_today = datetime.date.today().strftime("%Y/%m/%d")
-        
-        # --- FIX FOR ATTRIBUTE ERROR AND PLACEHOLDER FOR EMPTY VALUES ---
-        # Accessing the .name attribute of the Many2one fields
-        governorate_name = project.governorate_id.name if project.governorate_id else "__________________"
-        region_name = project.region_id.name if project.region_id else "__________________" # Assuming region_id also holds region name
-
-        replacements = {
-            '{{partner_name}}': partner_name,
-            '{{date}}': date_today,
-            '{{governorate}}': governorate_name,
-            '{{region}}': region_name,
-            '{{block_no}}': project.block_no or "____",
-            '{{plot_no}}': project.plot_no or "____",
-            '{{street_no}}': project.street_no or "____",
-        }
-
-        # --- FILTERING FOR "متوفر" (is_completed == True) ---
-        # Only process pledges that are marked as completed/available
-        completed_pledges = self.pledge_ids.filtered(lambda p: p.is_completed)
-
-        for pledge in completed_pledges: # Iterate over filtered pledges
-            if not pledge.template_id.body_html:
-                continue
-                
-            raw_html = pledge.template_id.body_html
-            for key, value in replacements.items():
-                raw_html = raw_html.replace(key, str(value))
-                
-            pledge.generated_html = raw_html
-
-        # Trigger the PDF download. 
-        # Important: The report action should likely take `completed_pledges` as its recordset
-        # if the report template is designed to iterate over the `engineering.task.pledge` records
-        # and display their `generated_html`.
-        # You might need to adjust 'engineering_pledges.action_report_unified_pledges'
-        # to accept a recordset of `engineering.task.pledge` if it currently expects `project.task`.
-        # For now, I'll pass `completed_pledges` as the recordset if it's not empty.
-        if completed_pledges:
-            return self.env.ref('engineering_pledges.action_report_unified_pledges').report_action(completed_pledges)
-        else:
-            raise UserError(_("لا توجد تعهدات مكتملة لطباعتها."))
-
-
-    # -----------------------------------------------------
-    # THE MAGIC: Listen for 'Approved' state to trigger tasks
-    # -----------------------------------------------------
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
-        # Check if the state changed to 'Approved' (03_approved) or 'Done' (1_done)
-        # Assuming these states signify completion that triggers the next step
         if 'state' in vals and vals['state'] in ['03_approved', '1_done']:
             for task in self:
                 if task.workflow_step and task.project_id:
@@ -721,17 +608,15 @@ class ProjectTask(models.Model):
         return { 'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new' }
 
 # ==============================================================================
-#  GOVERNORATE AND REGION MODELS (Assuming these are defined elsewhere or need to be here)
+#  GOVERNORATE AND REGION MODELS 
 # ==============================================================================
 class KuwaitGovernorate(models.Model):
     _name = 'kuwait.governorate'
     _description = 'Kuwait Governorate'
-
     name = fields.Char(string='المحافظة', required=True)
 
 class KuwaitRegion(models.Model):
     _name = 'kuwait.region'
     _description = 'Kuwait Region'
-
     name = fields.Char(string='المنطقة', required=True)
     governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة", required=True)
