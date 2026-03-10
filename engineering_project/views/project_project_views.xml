@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ============================================= -->
     <!--  1. MAIN PROJECT FORM (TEAM & BUTTONS)         -->
@@ -21,9 +22,7 @@
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="sale_order_id" readonly="1"/>
                 
-                <!-- These fields must still be in the view, but they don't cause the JS error.
-                     The ParseError was due to the 'attrs' attribute on the button.
-                     Keeping them here is good practice for any potential future logic. -->
+                <!-- PREVENTS THE JS ERROR -->
                 <field name="workflow_started" invisible="1"/>
                 <field name="residential_step_1_triggered" invisible="1"/>
                 <field name="residential_step_2_triggered" invisible="1"/>
@@ -78,7 +77,7 @@
     </record>
 
     <!-- ====================================================== -->
-    <!--  2. TASK FORM (BUTTONS AND TABS)                       -->
+    <!--  2. TASK FORM (BUTTONS AND DYNAMIC CHECKLIST TABS)     -->
     <!-- ====================================================== -->
     <record id="view_task_form2_engineering_extended" model="ir.ui.view">
         <field name="name">project.task.form.engineering.extended</field>
@@ -97,15 +96,28 @@
 
             <xpath expr="//notebook" position="inside">
                 <page string="نموذج مكونات المشروع" name="project_details_form">
-                    <group>
-                        <field name="workflow_step" invisible="1"/>
-                        
-                        <field name="floor_basement" placeholder="اكتب تفاصيل السرداب هنا..."/>
-                        <field name="floor_ground" placeholder="اكتب تفاصيل الدور الأرضي هنا..."/>
-                        <field name="floor_first" placeholder="اكتب تفاصيل الدور الأول هنا..."/>
-                        <field name="floor_second" placeholder="اكتب تفاصيل الدور الثاني هنا..."/>
-                        <field name="floor_roof" placeholder="اكتب تفاصيل السطح هنا..."/>
-                    </group>
+                    <!-- HIDDEN WORKFLOW TRIGGER -->
+                    <field name="workflow_step" invisible="1"/>
+                    
+                    <div class="mb-3 mt-2">
+                        <button name="action_load_default_phases" type="object" 
+                                string="تحميل المراحل الافتراضية (Load Default Phases)" 
+                                class="btn-secondary" icon="fa-list-ol"
+                                invisible="phase_ids != []"/>
+                        <span class="text-muted ms-3">
+                            <i class="fa fa-info-circle"/> للمشاريع الاستثمارية/التجارية، يمكنك إضافة أدوار ومراحل جديدة يدوياً من الأسفل.
+                        </span>
+                    </div>
+
+                    <!-- DYNAMIC CHECKLIST TABLE -->
+                    <field name="phase_ids" context="{'default_task_id': active_id}">
+                        <tree editable="bottom" decoration-success="is_completed==True" decoration-muted="is_completed==False">
+                            <field name="sequence" widget="handle"/>
+                            <field name="floor_category" placeholder="مثال: الدور الثالث"/>
+                            <field name="name" placeholder="مثال: مرحلة أعمدة الدور الثالث"/>
+                            <field name="is_completed" widget="boolean_toggle"/>
+                        </tree>
+                    </field>
                 </page>
             </xpath>
         </field>
