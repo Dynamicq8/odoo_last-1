@@ -198,7 +198,9 @@ class ProjectProject(models.Model):
     block_no = fields.Char(string="القطعة")
     street_no = fields.Char(string="الشارع")
     area = fields.Char(string="مساحة الارض")
-
+    # NEW FIELDS
+    governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة")
+    region_id = fields.Many2one('kuwait.region', string="المنطقة")
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
