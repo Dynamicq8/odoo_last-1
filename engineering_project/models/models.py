@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
+import datetime
 import urllib.parse
 
 # ==============================================================================
@@ -587,39 +588,102 @@ class ProjectProject(models.Model):
 
 
 # ==============================================================================
-#  PROJECT TASK MODEL
+#  ENGINEERING TASK PLEDGE MODEL (Holds individual pledge records related to a task)
+# ==============================================================================
+class EngineeringTaskPledge(models.Model):
+    _name = 'engineering.task.pledge' 
+    _description = 'Task Municipality Pledge'
+
+    task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
+    template_id = fields.Many2one('engineering.pledge.template', string='نوع التعهد (Pledge Type)', required=True)
+    is_completed = fields.Boolean(string='متوفر / تم التوقيع (Completed)', default=False)
+    
+    # --- THE FIX IS HERE: ADDED sanitize=False ---
+    generated_html = fields.Html(string='Generated Content', sanitize=False) 
+
+# ==============================================================================
+#  PROJECT TASK MODEL (Inherited to add pledge functionality)
 # ==============================================================================
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    # Expanded workflow_step selection to include residential steps
-    workflow_step = fields.Selection([
-        ('step_1', 'Step 1'), # Normal Workflow
-        ('step_2_cols', 'Step 2 Cols'), # Normal Workflow
-        ('step_3', 'Step 3'), # Normal Workflow
-        ('step_4', 'Step 4'), # Normal Workflow
-        ('step_5', 'Step 5'), # Normal Workflow
-        ('step_6', 'Step 6'), # Normal Workflow
-        ('step_8', 'Step 8'), # Normal Workflow
-        ('step_9', 'Step 9'), # Normal Workflow
-        ('step_10', 'Step 10'), # Normal Workflow
-        ('residential_task_1', 'Residential Task 1'),
-        ('residential_task_2', 'Residential Task 2'),
-        ('residential_task_3', 'Residential Task 3'),
-        ('residential_task_4', 'Residential Task 4'),
-        ('residential_task_5', 'Residential Task 5'),
-        ('residential_task_6_muni_approve', 'Residential Task 6 Muni Approval'),
-        ('residential_task_6_admin_finish', 'Residential Task 6 Admin Finish'),
-        ('residential_task_7', 'Residential Task 7'),
-        ('residential_task_8', 'Residential Task 8'),
-    ], string="Workflow Trigger", readonly=True)
+    stage_sequence = fields.Integer(related='stage_id.sequence', readonly=True)
+    pledge_ids = fields.One2many('engineering.task.pledge', 'task_id', string='تعهدات البلدية (Pledges)')
 
-    floor_basement = fields.Text(string="أولاً السرداب")
-    floor_ground = fields.Text(string="ثانياً الدور الأرضي")
-    floor_first = fields.Text(string="الدور الأول")
-    floor_second = fields.Text(string="الدور الثاني")
-    floor_roof = fields.Text(string="الدور السطح")
-    
+    def action_load_required_pledges(self):
+        """ Loads pledges based on the project's building type """
+        for task in self:
+            building_type = task.project_id.building_type
+            if not building_type:
+                continue
+
+            domain = [('active', '=', True), ('building_type', 'in', [building_type, 'all'])]
+            templates = self.env['engineering.pledge.template'].search(domain)
+            existing_template_ids = task.pledge_ids.mapped('template_id.id')
+            
+            for template in templates:
+                if template.id not in existing_template_ids:
+                    self.env['engineering.task.pledge'].create({
+                        'task_id': task.id,
+                        'template_id': template.id,
+                    })
+
+    def action_generate_pledges_pdf(self):
+        """ 
+        1. Finds all *completed* pledges for this task.
+        2. Replaces placeholders {{...}} with real data.
+        3. Saves it to generated_html.
+        4. Calls the PDF report action.
+        """
+        self.ensure_one()
+        
+        # Get project data to fill the templates
+        project = self.project_id
+        partner_name = project.partner_id.name or "__________________"
+        date_today = datetime.date.today().strftime("%Y/%m/%d")
+        
+        # --- FIX FOR ATTRIBUTE ERROR AND PLACEHOLDER FOR EMPTY VALUES ---
+        # Accessing the .name attribute of the Many2one fields
+        governorate_name = project.governorate_id.name if project.governorate_id else "__________________"
+        region_name = project.region_id.name if project.region_id else "__________________" # Assuming region_id also holds region name
+
+        replacements = {
+            '{{partner_name}}': partner_name,
+            '{{date}}': date_today,
+            '{{governorate}}': governorate_name,
+            '{{region}}': region_name,
+            '{{block_no}}': project.block_no or "____",
+            '{{plot_no}}': project.plot_no or "____",
+            '{{street_no}}': project.street_no or "____",
+        }
+
+        # --- FILTERING FOR "متوفر" (is_completed == True) ---
+        # Only process pledges that are marked as completed/available
+        completed_pledges = self.pledge_ids.filtered(lambda p: p.is_completed)
+
+        for pledge in completed_pledges: # Iterate over filtered pledges
+            if not pledge.template_id.body_html:
+                continue
+                
+            raw_html = pledge.template_id.body_html
+            for key, value in replacements.items():
+                raw_html = raw_html.replace(key, str(value))
+                
+            pledge.generated_html = raw_html
+
+        # Trigger the PDF download. 
+        # Important: The report action should likely take `completed_pledges` as its recordset
+        # if the report template is designed to iterate over the `engineering.task.pledge` records
+        # and display their `generated_html`.
+        # You might need to adjust 'engineering_pledges.action_report_unified_pledges'
+        # to accept a recordset of `engineering.task.pledge` if it currently expects `project.task`.
+        # For now, I'll pass `completed_pledges` as the recordset if it's not empty.
+        if completed_pledges:
+            return self.env.ref('engineering_pledges.action_report_unified_pledges').report_action(completed_pledges)
+        else:
+            raise UserError(_("لا توجد تعهدات مكتملة لطباعتها."))
+
+
     # -----------------------------------------------------
     # THE MAGIC: Listen for 'Approved' state to trigger tasks
     # -----------------------------------------------------
