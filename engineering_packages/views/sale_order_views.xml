@@ -5,7 +5,14 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <!-- MAKE SURE THIS SAYS engineering_package_id -->
+                <!-- 
+                    The 'building_type' field is required in this view 
+                    because it's used in the domain of 'engineering_package_id'.
+                    We make it invisible to avoid showing it twice if it's already
+                    displayed by 'engineering_core'.
+                -->
+                <field name="building_type" invisible="1"/>
+                
                 <field name="engineering_package_id" 
                        options="{'no_create': True, 'no_open': True}"
                        placeholder="اختر باقة هندسية..."/>
