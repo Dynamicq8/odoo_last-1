@@ -118,7 +118,8 @@ class SaleOrder(models.Model):
             'block_no': self.block_no,
             'street_no': self.street_no,
             'area': self.area,
-            'region': self.region,
+                'governorate_id': self.governorate_id.id, # Use the new field
+    'region_id': self.region_id.id,           # Use the new field
         }
         project = self.env['project.project'].create(project_vals)
         
