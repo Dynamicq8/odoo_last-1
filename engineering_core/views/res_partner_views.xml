@@ -8,19 +8,18 @@
             <xpath expr="//field[@name='vat']" position="after">
                 <separator string="بيانات المشروع الهندسية (Engineering Info)"/>
                 <group>
-                    <!-- Left Column: Types -->
                     <group>
                         <field name="civil_number"/>
                         <field name="building_type"/>
                         <field name="service_type"/>
                     </group>
-                    
-                    <!-- Right Column: Location Details -->
                     <group>
-                        <!-- Added Governorate and Region fields here -->
                         <field name="governorate" placeholder="اختر المحافظة" />
+                        
+                        <!-- NEW ODOO 17 SYNTAX HERE -->
                         <field name="region" 
-                               attrs="{'invisible': [('governorate', '=', False)], 'required': [('governorate', '!=', False)]}" 
+                               invisible="not governorate" 
+                               required="governorate" 
                                placeholder="اختر المنطقة" />
                         
                         <field name="area"/>
