@@ -6,10 +6,10 @@
         <field name="arch" type="xml">
             
             <xpath expr="//notebook" position="inside">
-                <!-- THE NEW TAB, ONLY VISIBLE FOR THE CORRECT STAGE -->
+                <!-- THE FIX: We check for the Stage's sequence number instead of its name -->
                 <page string="تعهدات البلدية (Pledges)" 
                       name="municipality_pledges" 
-                      invisible="stage_id.name != 'التعاقد والوثائق'">
+                      invisible="stage_sequence != 2">
                     
                     <button name="action_load_required_pledges" 
                             string="تحميل التعهدات المطلوبة (Load Required Pledges)" 
