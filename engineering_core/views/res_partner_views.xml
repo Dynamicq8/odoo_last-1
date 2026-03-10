@@ -14,7 +14,6 @@
                         <field name="service_type"/>
                     </group>
                     <group>
-                        <field name="governorate" placeholder="اختر المحافظة" />
                         
                         <!-- NEW ODOO 17 SYNTAX HERE -->
                         <field name="region" 
