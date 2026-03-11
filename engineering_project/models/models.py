@@ -162,7 +162,7 @@ class SaleOrder(models.Model):
 
     plot_no = fields.Char(string="رقم القسيمة")
     block_no = fields.Char(string="القطعة")
-    street_no = fields.Char(string="الشارع")
+    street_no = fields.Char(string="الضاحيه")
     area = fields.Char(string="مساحة الارض")
 
     project_id = fields.Many2one('project.project', string='Project', copy=False)
@@ -380,7 +380,7 @@ class ProjectProject(models.Model):
 
     plot_no = fields.Char(string="رقم القسيمة")
     block_no = fields.Char(string="القطعة")
-    street_no = fields.Char(string="الشارع")
+    street_no = fields.Char(string="الضاحيه")
     area = fields.Char(string="المساحة (Area)")
 
     architect_id = fields.Many2one('res.users', string="المهندس المعماري")
