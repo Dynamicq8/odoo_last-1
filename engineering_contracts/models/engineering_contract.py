@@ -26,7 +26,7 @@ class EngineeringContract(models.Model):
 
     plot_no = fields.Char(string="رقم القسيمة (Plot)")
     block_no = fields.Char(string="القطعة (Block)")
-    street_no = fields.Char(string="الشارع (Street)")
+    street_no = fields.Char(string="الضاحيه (Street)")
     area = fields.Char(string="المنطقة (Area)")
     civil_number = fields.Char(string="الرقم المدني (Civil ID)")
 
