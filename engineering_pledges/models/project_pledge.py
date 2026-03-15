@@ -110,9 +110,9 @@ class ProjectTask(models.Model):
             sign_request = self.env['sign.request'].create({
                 'template_id': template.id,
                 'reference': f"{template.name} - {project.name}",
-                'partner_id': project.partner_id.id,
+                'approver_id': project.partner_id.id, # <--- CHANGED TO approver_id
                 'request_item_ids': sign_request_items,
-                'state': 'sent', # Mark as ready/sent
+                'state': 'sent',
             })
 
             # Link the generated document to the pledge line
