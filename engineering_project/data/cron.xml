@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Scheduled Action: Task Reminders every 10 hours -->
+        <record id="ir_cron_task_reminder_notification" model="ir.cron">
+            <field name="name">Send Periodic Task Reminders (10 Hours)</field>
+            <field name="model_id" ref="project.model_project_task"/>
+            <field name="state">code</field>
+            <!-- This calls the python function we just created -->
+            <field name="code">model._send_periodic_task_reminders()</field>
+            <field name="interval_number">10</field>
+            <field name="interval_type">hours</field>
+            <field name="numbercall">-1</field> <!-- -1 means it runs forever -->
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

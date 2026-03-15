@@ -648,6 +648,48 @@ class ProjectTask(models.Model):
         encoded_message = urllib.parse.quote(message)
         whatsapp_url = f"https://web.whatsapp.com/send?phone={cleaned_phone}&text={encoded_message}"
         return { 'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new' }
+        
+    @api.model
+    def _send_periodic_task_reminders(self):
+        """ 
+        Runs every 10 hours. 
+        Counts open tasks for each user and sends an Odoo Inbox notification. 
+        """
+        # 1. Search for all tasks that are NOT in a "folded" stage (meaning they are still open)
+        # and have at least one user assigned.
+        open_tasks = self.search([
+            ('stage_id.fold', '=', False), 
+            ('user_ids', '!=', False)
+        ])
+
+        # 2. Count how many tasks each user has
+        user_task_counts = {}
+        for task in open_tasks:
+            for user in task.user_ids:
+                if user not in user_task_counts:
+                    user_task_counts[user] = 0
+                user_task_counts[user] += 1
+
+        # 3. Send a notification to each user who has tasks
+        for user, count in user_task_counts.items():
+            if count > 0:
+                # The message they will receive
+                message = f"""
+                <div style="direction: rtl; text-align: right;">
+                    <strong>مرحباً {user.name}،</strong><br/>
+                    هذا تذكير تلقائي بأن لديك <b>{count} مهام</b> قيد التنفيذ بانتظارك.<br/>
+                    يرجى مراجعة قائمة المهام الخاصة بك وإنجازها.
+                </div>
+                """
+                
+                # Send to their Odoo Inbox (Chat bubble icon)
+                user.partner_id.message_post(
+                    body=message,
+                    subject="تذكير بالمهام (Task Reminder)",
+                    message_type='notification',
+                    subtype_xmlid='mail.mt_comment',
+                    author_id=self.env.ref('base.partner_root').id, # Sends it from the System/Admin
+                )
 
 # ==============================================================================
 #  GOVERNORATE AND REGION MODELS 
