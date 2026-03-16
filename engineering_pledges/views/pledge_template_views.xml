@@ -76,7 +76,7 @@
         <field name="res_model">sign.template</field>
         <field name="view_mode">kanban,tree,form</field>
         <!-- Domain filters to show only municipality pledges -->
-        <field name="domain" eval="[('is_municipality_pledge', '=', True)]"/>
+        <field name="domain" eval="&quot;[('is_municipality_pledge', '=', True)]&quot;"/>
         <!-- Context sets the default value when creating a NEW template from this action -->
         <field name="context" eval="{'default_is_municipality_pledge': True}"/>
     </record>
