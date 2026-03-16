@@ -10,8 +10,8 @@ class ProjectTask(models.Model):
     _inherit = 'project.task'
 
     commitment_ids = fields.One2many(
-        'engineering.task.commitment', 
-        'task_id', 
+        'engineering.task.commitment',
+        'task_id',
         string='Engineering Commitments (التعهدات)'
     )
 
@@ -20,23 +20,35 @@ class ProjectTask(models.Model):
         for task in self:
             # Assuming your project has a building_type field. If not, this acts as a safeguard.
             building_type = task.project_id.building_type if hasattr(task.project_id, 'building_type') else False
-            
+
             if not building_type:
                 domain = [('is_commitment', '=', True), ('building_type', '=', 'all')]
             else:
                 domain = [('is_commitment', '=', True), ('building_type', 'in', [building_type, 'all'])]
-            
+
             templates = self.env['sign.template'].search(domain)
             existing_template_ids = task.commitment_ids.mapped('sign_template_id.id')
-            
+
             for template in templates:
                 if template.id not in existing_template_ids:
                     self.env['engineering.task.commitment'].create({
                         'task_id': task.id,
                         'sign_template_id': template.id,
                     })
+        # Important: Reload the view to show the newly loaded commitments
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _("Commitments Loaded!"),
+                'message': _("Templates have been successfully loaded."),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
-   def action_generate_commitments_pdf(self):
+
+    def action_generate_commitments_pdf(self):
         """ Creates a Sign Request and Auto-fills the variables """
         self.ensure_one()
 
@@ -49,6 +61,7 @@ class ProjectTask(models.Model):
             raise UserError(_("The project must have a Customer to generate documents. (يجب تحديد عميل للمشروع)"))
 
         # --- AUTOFILL DICTIONARY ---
+        # The KEYS here (left side) MUST match the "Name" you give the fields inside the Odoo Sign App!
         replacements = {
             'Name': project.partner_id.name or "",
             'Date': datetime.date.today().strftime("%Y/%m/%d"),
@@ -63,10 +76,6 @@ class ProjectTask(models.Model):
         role_customer = self.env.ref('sign.sign_item_role_customer', raise_if_not_found=False)
         if not role_customer:
             raise UserError(_("Error: 'Customer' role not found in Sign application."))
-
-        # Find the Sign Item Types for auto-fill based on their internal name (e.g., 'signature', 'initials', 'text')
-        # This part might need further refinement based on how your templates are set up and named.
-        # For auto-fill, you usually link the 'name' of the field in your replacements dict to the 'name' of the sign.item on the template.
 
         generated_requests = self.env['sign.request']
 
@@ -86,8 +95,8 @@ class ProjectTask(models.Model):
                 item_vals = {
                     'partner_id': project.partner_id.id,
                     'role_id': role_customer.id,
-                    'type_id': sign_item_template.type_id.id, # Link to the sign.item.type
-                    'name': sign_item_template.name,         # Crucial for matching auto-fill fields
+                    'type_id': sign_item_template.type_id.id, # Link to the sign.item.type (e.g., Signature, Text)
+                    'name': sign_item_template.name,         # Crucial for matching auto-fill fields (e.g., "Name", "Date")
                     'x': sign_item_template.x,               # Copy position from template
                     'y': sign_item_template.y,               # Copy position from template
                     'width': sign_item_template.width,       # Copy size from template
@@ -106,13 +115,23 @@ class ProjectTask(models.Model):
                 'template_id': template.id,
                 'reference': f"{template.name} - {project.name}",
                 'request_item_ids': sign_request_items_vals,
-                'state': 'sent', # Mark as ready
+                'state': 'sent', # Mark as ready to be signed/viewed
             })
 
             # Link document to the task line
             commitment.sign_request_id = sign_request.id
             generated_requests |= sign_request
 
-        # Open the generated documents for the user to see/
-        # You'll likely want to return an action to open the sign.request list or form vi
-        # Open the generated documents for the user to see/
+        # Return an action to open the generated Sign Requests
+        if generated_requests:
+            return {
+                'name': _("Generated Commitments"),
+                'type': 'ir.actions.act_window',
+                'res_model': 'sign.request',
+                'views': [[False, 'tree'], [False, 'form']],
+                'domain': [('id', 'in', generated_requests.ids)],
+                'context': {'active_id': self.id, 'active_model': self._name}, # Optional: pass context
+                'target': 'current', # Opens in the current window (replaces task form)
+            }
+        # If no requests were generated (e.g., no required commitments), just close
+        return {'type': 'ir.actions.act_window_close'}
