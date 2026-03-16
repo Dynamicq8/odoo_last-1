@@ -78,8 +78,8 @@
         <!-- Domain filters to show only municipality pledges -->
         <field name="domain">[('is_municipality_pledge', '=', True)]</field>
         <!-- Context sets the default value when creating a NEW template from this action -->
-        <!-- CORRECTED: Changed single quotes to double quotes for the context value -->
-        <field name="context">{"default_is_municipality_pledge": True}</field>
+        <!-- CORRECTED: Using 'eval' for passing Python dictionary to context -->
+        <field name="context" eval='{"default_is_municipality_pledge": True}'/>
     </record>
 
     <menuitem id="menu_project_pledge_sign_templates"
@@ -96,8 +96,8 @@
         <field name="view_mode">form</field> <!-- Force form view for creation -->
         <field name="target">new</field> <!-- Open in a wizard/modal -->
         <!-- Context automatically sets 'is_municipality_pledge' to True when creating -->
-        <!-- CORRECTED: Changed single quotes to double quotes for the context value -->
-        <field name="context">{"default_is_municipality_pledge": True}</field>
+        <!-- CORRECTED: Using 'eval' for passing Python dictionary to context -->
+        <field name="context" eval='{"default_is_municipality_pledge": True}'/>
     </record>
 
     <!-- NEW Menu Item: Link to create a new template directly -->
