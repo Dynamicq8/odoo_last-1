@@ -46,12 +46,10 @@ class ProjectTask(models.Model):
         if not project.partner_id:
             raise UserError(_("The project must have a Customer to generate documents. (يجب تحديد عميل للمشروع)"))
 
-        # Find the default 'Customer' role for signing
         role_customer = self.env.ref('sign.sign_item_role_customer', raise_if_not_found=False)
         if not role_customer:
             raise UserError(_("Error: The 'Customer' role could not be found in the Sign application. Please check its configuration."))
 
-        # --- AUTOFILL DICTIONCTIONARY ---
         replacements = {
             'Name': project.partner_id.name or "",
             'Date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
@@ -70,42 +68,58 @@ class ProjectTask(models.Model):
                 continue
 
             template = commitment.sign_template_id
+            
+            _logger.info(f"Processing commitment for template: {template.name} (ID: {template.id})")
+            _logger.info(f"Number of sign items on template before creating request: {len(template.sign_item_ids)}")
+
             if not template.sign_item_ids:
-                _logger.warning(f"Template '{template.name}' has no sign items defined and will be skipped.")
+                _logger.warning(f"Template '{template.name}' has no sign items defined. This commitment will be skipped.")
                 continue
 
-            # --- CORRECTED APPROACH FOR ODOO 14/15 ---
-
-            # 1. Create the Sign Request from the template. This auto-creates the items.
-            #    NOTE: We REMOVED the 'signer_ids' key from this create call.
+            # 1. Create the Sign Request from the template.
             sign_request = self.env['sign.request'].create({
                 'template_id': template.id,
                 'reference': f"{template.name} - {project.name}",
             })
+            
+            _logger.info(f"Created sign request {sign_request.id} from template {template.name}.")
+            _logger.info(f"Number of request items on the NEWLY CREATED sign request: {len(sign_request.request_item_ids)}")
 
-            # 2. Assign the partner to the newly created items that have the 'Customer' role.
+            # --- CRITICAL CHECK FOR THIS ERROR ---
+            if not sign_request.request_item_ids:
+                _logger.error(
+                    f"Validation Error: Sign request {sign_request.id} (from template '{template.name}') "
+                    f"has NO items after creation. This will cause the 'A valid sign request needs at least one sign request item' error. "
+                    f"Please double-check the template's PDF attachment and fields in the Sign app. "
+                    f"Deleting the empty sign request and skipping this commitment."
+                )
+                sign_request.unlink() # Clean up the empty request
+                continue # Skip to the next commitment
+
+            # 2. Assign the partner to the items with the 'Customer' role.
             customer_items = sign_request.request_item_ids.filtered(
                 lambda item: item.role_id.id == role_customer.id
             )
             if customer_items:
                 customer_items.write({'partner_id': project.partner_id.id})
+            else:
+                _logger.warning(f"No customer-assigned items found for sign request {sign_request.id}.")
 
-            # 3. Loop through the items again to fill in the values.
+            # 3. Loop through items to fill values.
             for item in sign_request.request_item_ids:
                 if item.name and item.name in replacements:
                     item.write({'value': replacements[item.name]})
 
-            # 4. Now that values and signers are set, send the request.
+            # 4. Send the request.
             sign_request.action_sent()
 
-            # Link document to the task line
             commitment.sign_request_id = sign_request.id
             generated_requests |= sign_request
 
         if not generated_requests:
+            _logger.info("No sign requests were generated.")
             return True
 
-        # Return an action to open the generated documents for the user
         action = self.env['ir.actions.actions']._for_xml_id('sign.sign_request_action')
         
         if len(generated_requests) == 1:
@@ -117,4 +131,5 @@ class ProjectTask(models.Model):
         else:
             action['domain'] = [('id', 'in', generated_requests.ids)]
         
+        _logger.info(f"Returning action for generated requests: {generated_requests.ids}")
         return action
