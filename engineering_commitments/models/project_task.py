@@ -48,7 +48,7 @@ class ProjectTask(models.Model):
         }
 
 
-    def action_generate_commitments_pdf(self):
+   def action_generate_commitments_pdf(self):
         """ Creates a Sign Request and Auto-fills the variables """
         self.ensure_one()
 
@@ -97,11 +97,7 @@ class ProjectTask(models.Model):
                     'role_id': role_customer.id,
                     'type_id': sign_item_template.type_id.id, # Link to the sign.item.type (e.g., Signature, Text)
                     'name': sign_item_template.name,         # Crucial for matching auto-fill fields (e.g., "Name", "Date")
-                    'x': sign_item_template.x,               # Copy position from template
-                    'y': sign_item_template.y,               # Copy position from template
-                    'width': sign_item_template.width,       # Copy size from template
-                    'height': sign_item_template.height,     # Copy size from template
-                    'page': sign_item_template.page,         # Copy page number
+                    # REMOVED x, y, width, height, page as they are no longer direct attributes of sign.item
                 }
 
                 # If the field Name in the Sign App matches our dictionary, inject the data!
@@ -130,8 +126,8 @@ class ProjectTask(models.Model):
                 'res_model': 'sign.request',
                 'views': [[False, 'tree'], [False, 'form']],
                 'domain': [('id', 'in', generated_requests.ids)],
-                'context': {'active_id': self.id, 'active_model': self._name}, # Optional: pass context
-                'target': 'current', # Opens in the current window (replaces task form)
+                'context': {'active_id': self.id, 'active_model': self._name},
+                'target': 'current',
             }
         # If no requests were generated (e.g., no required commitments), just close
         return {'type': 'ir.actions.act_window_close'}
