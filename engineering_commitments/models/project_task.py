@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from odoo import models, fields, _, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError # Import ValidationError too
 
 _logger = logging.getLogger(__name__)
 
@@ -35,8 +35,9 @@ class ProjectTask(models.Model):
                     })
 
     def action_generate_commitments_pdf(self):
-        """ Attempts to create Sign Requests by creating the request first, then adding items. """
+        """ Creates Sign Requests by directly injecting items during creation (Odoo 17 fix) """
         self.ensure_one()
+        _logger.info("Starting action_generate_commitments_pdf...")
 
         required_commitments = self.commitment_ids.filtered(lambda p: p.is_required)
         if not required_commitments:
@@ -48,7 +49,9 @@ class ProjectTask(models.Model):
 
         role_customer = self.env.ref('sign.sign_item_role_customer', raise_if_not_found=False)
         if not role_customer:
-            raise UserError(_("Error: The 'Customer' role could not be found in the Sign application."))
+            raise UserError(_("Error: The 'Customer' role could not be found in the Sign application. Please check its configuration."))
+        _logger.info(f"Customer role ID: {role_customer.id if role_customer else 'Not found'}")
+
 
         # --- AUTOFILL DICTIONARY ---
         replacements = {
@@ -60,45 +63,45 @@ class ProjectTask(models.Model):
             'Plot': project.plot_no or "" if hasattr(project, 'plot_no') else "",
             'Street': project.street_no or "" if hasattr(project, 'street_no') else "",
         }
+        _logger.info(f"Autofill replacements prepared: {replacements}")
 
         generated_requests = self.env['sign.request']
 
         for commitment in required_commitments:
+            _logger.info(f"Processing commitment for template: {commitment.sign_template_id.name} (ID: {commitment.sign_template_id.id})")
+            
             # Skip if already generated and not canceled
             if commitment.sign_request_id and commitment.sign_request_id.state != 'canceled':
                 generated_requests |= commitment.sign_request_id
+                _logger.info(f"Skipping, request already exists: {commitment.sign_request_id.id}")
                 continue
 
             template = commitment.sign_template_id
             if not template.sign_item_ids:
                 raise UserError(_(f"Template '{template.name}' has no fields/signature configured. Please add them in the Sign app."))
+            
+            _logger.info(f"Template '{template.name}' has {len(template.sign_item_ids)} sign items.")
 
-            _logger.info(f"Attempting to create sign.request for template: {template.name} (ID: {template.id}) - Strategy: Create request, then add items.")
-
-            # ====================================================================
-            # EXPERIMENTAL STRATEGY: Create sign.request first (without items),
-            # then add items via write.
-            # ====================================================================
-            sign_request = self.env['sign.request'].create({
-                'template_id': template.id,
-                'reference': f"{template.name} - {project.name}",
-                # Do NOT include 'request_item_ids' here yet
-            })
-            _logger.info(f"Successfully created empty sign request: {sign_request.id}.")
-
-            # Now, prepare the items to add
+            # ==========================================
+            # Build items BEFORE creating the sign.request
+            # ==========================================
             request_item_vals_list = []
+            
             for template_item in template.sign_item_ids:
-                partner_id = project.partner_id.id if template_item.responsible_id.id == role_customer.id else False
+                _logger.info(f"  - Processing template item: {template_item.name} (ID: {template_item.id})")
+                
+                # 1. Check if this specific item is assigned to the Customer role
+                item_responsible_id = template_item.responsible_id.id if template_item.responsible_id else False
+                partner_id = project.partner_id.id if item_responsible_id == role_customer.id else False
+                
+                # 2. Check if we have an auto-fill value for this field name
                 value = replacements.get(template_item.name, "") if template_item.name else ""
 
-                # Using 'sign_item_type_id' again here, as it's the most standard
-                # If this fails, we NEED to know the actual field name from developer tools.
-                item_vals = {
-                    'sign_item_type_id': template_item.type_id.id, # <--- Re-attempting this standard field name
+                item_create_vals = {
+                    'sign_item_type_id': template_item.type_id.id, # <--- Using 'sign_item_type_id' again for Odoo 17
                     'name': template_item.name,
                     'required': template_item.required,
-                    'responsible_id': template_item.responsible_id.id,
+                    'responsible_id': item_responsible_id, # Ensure responsible_id is always present if it exists
                     'partner_id': partner_id,
                     'page': template_item.page,
                     'posX': template_item.posX,
@@ -106,38 +109,50 @@ class ProjectTask(models.Model):
                     'width': template_item.width,
                     'height': template_item.height,
                     'value': str(value),
+                    # IMPORTANT: For Odoo 17.0, do NOT include 'template_item_id' directly here unless
+                    # you are absolutely certain your custom 'sign.request.item' model accepts it.
+                    # It's usually inferred from template_id on the parent request, or through sign_item_type_id.
                 }
-                _logger.info(f"Prepared item values for write: {item_vals}")
-                request_item_vals_list.append((0, 0, item_vals))
+                _logger.info(f"    - Prepared item create values: {item_create_vals}")
+                request_item_vals_list.append((0, 0, item_create_vals))
 
-            # Attempt to write the items to the newly created sign_request
-            _logger.info(f"Attempting to write request_item_ids to sign_request {sign_request.id}")
+            if not request_item_vals_list:
+                raise UserError(_(f"After processing template items, no valid request items were prepared for '{template.name}'. This indicates a template configuration issue or an error in processing its items."))
+
+            # ==========================================
+            # Create the request WITH the items included
+            # ==========================================
+            sign_request_create_vals = {
+                'template_id': template.id,
+                'reference': f"{template.name} - {project.name}",
+                'request_item_ids': request_item_vals_list, # Injecting items here is the goal
+            }
+            _logger.info(f"Attempting to create sign.request with values: {sign_request_create_vals}")
+            
             try:
-                sign_request.write({'request_item_ids': request_item_vals_list})
-                _logger.info(f"Successfully wrote request_item_ids to sign_request {sign_request.id}")
+                sign_request = self.env['sign.request'].create(sign_request_create_vals)
+                _logger.info(f"Successfully created sign request: {sign_request.id}")
+            except ValidationError as e:
+                _logger.error(f"Validation Error during sign request creation: {e}")
+                raise UserError(_(f"Failed to create sign request due to validation error: {e.args[0]}"))
             except Exception as e:
-                _logger.error(f"Failed to write request_item_ids to sign_request {sign_request.id}: {e}")
-                sign_request.unlink() # Clean up the request if item creation failed
-                raise UserError(_(f"Failed to add items to the sign request. This usually means a field name for the sign item type is incorrect, or a required field is missing. Original error: {e}"))
-
-
-            # After creation, iterate through the *newly created* request items
-            # to apply the autofill values. (This loop is technically redundant now
-            # since we set values during write, but kept for consistency)
-            # for item in sign_request.request_item_ids:
-            #     if item.name and item.name in replacements:
-            #         item.write({'value': replacements[item.name]})
+                _logger.error(f"Unexpected Error during sign request creation: {e}", exc_info=True)
+                raise UserError(_(f"An unexpected error occurred while creating the sign request. Please check server logs for details. Error: {e}"))
 
             # Send the request
             sign_request.action_sent()
+            _logger.info(f"Sign request {sign_request.id} sent.")
 
             # Link document to the task line
             commitment.sign_request_id = sign_request.id
             generated_requests |= sign_request
+            _logger.info(f"Commitment {commitment.id} linked to sign request {sign_request.id}")
 
         if not generated_requests:
+            _logger.warning("No sign requests were generated.")
             return True
 
+        _logger.info(f"Total generated requests: {generated_requests.ids}")
         # Open the generated documents for the user to see
         action = self.env['ir.actions.actions']._for_xml_id('sign.sign_request_action')
         if len(generated_requests) == 1:
