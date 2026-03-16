@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="engineering_commitments.SignTemplateCommitmentFields" owl="1">
+        <t t-if="props.record.data.is_commitment">
+            <div class="o_field_widget o_field_selection">
+                <label for="o_field_input_building_type">Building Type (نوع المبنى)</label>
+                <Field name="building_type" record="props.record"/>
+            </div>
+        </t>
+    </t>
+</templates>
