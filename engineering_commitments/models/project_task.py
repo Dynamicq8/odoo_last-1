@@ -87,7 +87,7 @@ class ProjectTask(models.Model):
 
                 # 3. Add to our creation payload
                 request_item_vals_list.append((0, 0, {
-                    'type_id': template_item.type_id.id,
+                    'sign_item_type_id': template_item.type_id.id, # <--- CORRECTED FIELD NAME
                     'name': template_item.name,
                     'required': template_item.required,
                     'responsible_id': template_item.responsible_id.id,
