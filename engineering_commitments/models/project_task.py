@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from odoo import models, fields, _, api
-from odoo.exceptions import UserError, ValidationError # Import ValidationError too for robustness
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -16,8 +16,6 @@ class ProjectTask(models.Model):
 
     def action_load_commitments(self):
         """ Loads Sign templates based on the project's building type """
-        # This method remains unchanged.
-        # It's not directly used by the TEST code below, but kept for completeness.
         for task in self:
             building_type = task.project_id.building_type if hasattr(task.project_id, 'building_type') else False
             
@@ -37,12 +35,12 @@ class ProjectTask(models.Model):
                     })
 
     def action_generate_commitments_pdf(self):
-        """ 
-        TEMPORARY WORKAROUND VERSION: 
-        Attempts to create a single Sign Request. If the core Odoo Sign module fails,
-        it catches the error and provides a user-friendly message for the meeting.
-        """
+        """ Creates Sign Requests by directly injecting items during creation (Odoo 17 fix) """
         self.ensure_one()
+
+        required_commitments = self.commitment_ids.filtered(lambda p: p.is_required)
+        if not required_commitments:
+            raise UserError(_("Please mark at least one commitment as 'Required' first. (يرجى تحديد تعهد واحد على الأقل كمطلوب)"))
 
         project = self.project_id
         if not project.partner_id:
@@ -50,10 +48,11 @@ class ProjectTask(models.Model):
 
         role_customer = self.env.ref('sign.sign_item_role_customer', raise_if_not_found=False)
         if not role_customer:
-            raise UserError(_("Error: The 'Customer' role could not be found in the Sign application. Please check its configuration."))
+            raise UserError(_("Error: The 'Customer' role could not be found in the Sign application."))
 
+        # --- AUTOFILL DICTIONARY ---
         replacements = {
-            'Name': project.partner_id.name or "Test Customer",
+            'Name': project.partner_id.name or "",
             'Date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
             'Governorate': project.governorate_id.name if hasattr(project, 'governorate_id') and project.governorate_id else "",
             'Region': project.region_id.name if hasattr(project, 'region_id') and project.region_id else "",
@@ -62,83 +61,73 @@ class ProjectTask(models.Model):
             'Street': project.street_no or "" if hasattr(project, 'street_no') else "",
         }
 
-        # --- TEST-SPECIFIC CODE: Use the Odoo Native PDF Template ---
-        test_template_name = '__TEST__ Odoo Native PDF Template' # Ensure this matches your template name
-        template = self.env['sign.template'].search([('name', '=', test_template_name)], limit=1)
-        if not template:
-            raise UserError(_(f"TEST FAILED: Template '{test_template_name}' not found! "
-                              f"Please ensure it's created as per instructions."))
+        generated_requests = self.env['sign.request']
 
-        _logger.info(f"Processing TEST commitment for template: {template.name} (ID: {template.id})")
-        _logger.info(f"Number of sign items on TEST template before creating request: {len(template.sign_item_ids)}")
+        for commitment in required_commitments:
+            # Skip if already generated and not canceled
+            if commitment.sign_request_id and commitment.sign_request_id.state != 'canceled':
+                generated_requests |= commitment.sign_request_id
+                continue
 
-        if not template.sign_item_ids:
-            _logger.warning(f"TEST FAILED: Template '{template.name}' has no sign items defined. "
-                            f"Please ensure you dragged at least ONE Signature field onto it. Skipping.")
-            return True # Indicates the test template itself is misconfigured
+            template = commitment.sign_template_id
+            if not template.sign_item_ids:
+                raise UserError(_(f"Template '{template.name}' has no fields/signature configured. Please add them in the Sign app."))
 
+            # ==========================================
+            # THE FIX: Build items BEFORE creation
+            # ==========================================
+            request_item_vals_list = []
+            
+            for template_item in template.sign_item_ids:
+                # 1. Check if this specific item is assigned to the Customer role
+                partner_id = project.partner_id.id if template_item.responsible_id.id == role_customer.id else False
+                
+                # 2. Check if we have an auto-fill value for this field name
+                value = replacements.get(template_item.name, "") if template_item.name else ""
 
-        # --- CATCH THE ERROR HERE FOR THE MEETING ---
-        try:
-            # 1. Create the Sign Request from the template.
+                # 3. Add to our creation payload
+                request_item_vals_list.append((0, 0, {
+                    'type_id': template_item.type_id.id,
+                    'name': template_item.name,
+                    'required': template_item.required,
+                    'responsible_id': template_item.responsible_id.id,
+                    'partner_id': partner_id,
+                    'page': template_item.page,
+                    'posX': template_item.posX,
+                    'posY': template_item.posY,
+                    'width': template_item.width,
+                    'height': template_item.height,
+                    'value': str(value),
+                }))
+
+            # ==========================================
+            # Create the request WITH the items included
+            # ==========================================
             sign_request = self.env['sign.request'].create({
                 'template_id': template.id,
-                'reference': f"{template.name} - {project.name} (TEST REQUEST)",
+                'reference': f"{template.name} - {project.name}",
+                'request_item_ids': request_item_vals_list, # Injecting items here prevents the Validation Error!
             })
-            
-            _logger.info(f"Created sign request {sign_request.id} from TEST template {template.name}.")
-            _logger.info(f"Number of request items on the NEWLY CREATED TEST sign request: {len(sign_request.request_item_ids)}")
 
-            # This check will likely not be hit, as the error occurs *during* the create call itself
-            if not sign_request.request_item_ids:
-                _logger.error(
-                    f"TEST FAILED UNEXPECTEDLY: Sign request {sign_request.id} (from TEST template '{template.name}') "
-                    f"has NO items after creation, but no direct UserError was raised. This is highly unusual. "
-                    f"Deleting the empty sign request."
-                )
-                sign_request.unlink()
-                raise UserError(_("A critical error occurred while preparing the document (no items generated). Please contact support."))
-
-
-            # 2. Assign the partner to the items with the 'Customer' role.
-            customer_items = sign_request.request_item_ids.filtered(
-                lambda item: item.role_id.id == role_customer.id
-            )
-            if customer_items:
-                customer_items.write({'partner_id': project.partner_id.id})
-            else:
-                _logger.warning(f"No customer-assigned items found for TEST sign request {sign_request.id}. (Ensure Signature field is assigned to Customer role)")
-
-            # 3. Loop through items to fill values (only if they match a replacement key).
-            for item in sign_request.request_item_ids:
-                if item.name and item.name in replacements:
-                    item.write({'value': replacements[item.name]})
-
-            # 4. Send the request.
+            # Send the request
             sign_request.action_sent()
-            
-            # Return an action to open the generated TEST document for the user
-            action = self.env['ir.actions.actions']._for_xml_id('sign.sign_request_action')
+
+            # Link document to the task line
+            commitment.sign_request_id = sign_request.id
+            generated_requests |= sign_request
+
+        if not generated_requests:
+            return True
+
+        # Open the generated documents for the user to see
+        action = self.env['ir.actions.actions']._for_xml_id('sign.sign_request_action')
+        if len(generated_requests) == 1:
             action.update({
                 'view_mode': 'form',
-                'res_id': sign_request.id,
+                'res_id': generated_requests.id,
                 'views': [(False, 'form')],
             })
-            _logger.info(f"Returning action for generated TEST request: {sign_request.id}")
-            return action
-
-        except (UserError, ValidationError) as e:
-            # Catch the specific error text
-            if "A valid sign request needs at least one sign request item" in str(e):
-                _logger.error(
-                    f"Critical Odoo Sign module error encountered during sign request creation for template '{template.name}': {e}. "
-                    f"This indicates a core system issue with PDF rendering. Please contact Odoo.sh support immediately."
-                )
-                # Present a user-friendly message for the meeting
-                raise UserError(_(
-                    "Document generation service is temporarily unavailable due to a system configuration error. "
-                    "Please inform your administrator. (Code: SG-001)"
-                ))
-            else:
-                # Re-raise any other UserErrors that might occur
-                raise
+        else:
+            action['domain'] = [('id', 'in', generated_requests.ids)]
+        
+        return action
