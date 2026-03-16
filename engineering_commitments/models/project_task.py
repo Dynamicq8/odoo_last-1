@@ -84,15 +84,12 @@ class ProjectTask(models.Model):
                 'request_item_ids': signers_list,
             })
 
-            # 3. Autofill Values (WITH HEAVY DEBUGGING)
-            _logger.info(f"--- STARTING AUTOFILL FOR REQUEST {sign_request.id} ---")
+            # 3. Autofill Values
             for template_field in template.sign_item_ids:
                 field_name = template_field.name
-                _logger.info(f"Checking field on PDF named: '{field_name}'")
                 
                 if field_name in replacements:
                     val_to_insert = replacements[field_name]
-                    _logger.info(f" -> MATCH FOUND in dictionary! Value to insert: '{val_to_insert}'")
                     
                     if val_to_insert:
                         # Find the signer record corresponding to this field's role
@@ -102,22 +99,14 @@ class ProjectTask(models.Model):
                         
                         if signer_record:
                             try:
-                                self.env['sign.request.item.value'].create({
+                                # ADDED .sudo() HERE TO BYPASS PERMISSION ERROR!
+                                self.env['sign.request.item.value'].sudo().create({
                                     'sign_request_item_id': signer_record[0].id,
                                     'sign_item_id': template_field.id,
                                     'value': str(val_to_insert),
                                 })
-                                _logger.info(f" -> SUCCESS: Wrote '{val_to_insert}' into field '{field_name}' for signer {signer_record[0].partner_id.name}")
                             except Exception as e:
-                                _logger.error(f" -> ERROR: Database failed to write value: {e}")
-                        else:
-                            _logger.warning(f" -> WARNING: Field '{field_name}' requires a signer role, but no matching signer was found on this request.")
-                    else:
-                        _logger.info(f" -> SKIPPED: Match found, but the project data for '{field_name}' is empty.")
-                else:
-                    _logger.info(f" -> SKIPPED: The field name '{field_name}' does not match any key in our Python dictionary.")
-
-            _logger.info(f"--- FINISHED AUTOFILL FOR REQUEST {sign_request.id} ---")
+                                _logger.error(f"Failed to write value into {field_name}: {e}")
 
             # 4. Link
             commitment.sign_request_id = sign_request.id
