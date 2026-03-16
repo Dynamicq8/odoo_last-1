@@ -54,7 +54,7 @@ class ProjectTask(models.Model):
         replacements = {
             'Name': project.partner_id.name or "",
             'Date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
-            'Governorate': project.governorate_id.name if hasattr(project, 'governorate_id') and project.govergorate_id else "",
+            'Governorate': project.governorate_id.name if hasattr(project, 'governorate_id') and project.governorate_id else "", # FIXED TYPO HERE
             'Region': project.region_id.name if hasattr(project, 'region_id') and project.region_id else "",
             'Block': project.block_no or "" if hasattr(project, 'block_no') else "",
             'Plot': project.plot_no or "" if hasattr(project, 'plot_no') else "",
@@ -75,10 +75,6 @@ class ProjectTask(models.Model):
 
             _logger.info(f"Attempting to create sign request for template: {template.name} (ID: {template.id}) using template.create_sign_request()")
             
-            # ====================================================================
-            # THE NEW FIX: Use the template's own method to create the sign request
-            # This handles item creation and linking internally.
-            # ====================================================================
             sign_request = template.create_sign_request(
                 signer_ids=[
                     {
@@ -87,10 +83,6 @@ class ProjectTask(models.Model):
                     }
                 ],
                 reference=f"{template.name} - {project.name}",
-                # Additional context that Odoo might pick up for auto-filling
-                # The 'sign.template.create_sign_request' method's parameters
-                # can vary slightly by Odoo version, but 'signer_ids' and 'reference'
-                # are generally standard.
             )
             
             _logger.info(f"Successfully created sign request: {sign_request.id} using template.create_sign_request().")
