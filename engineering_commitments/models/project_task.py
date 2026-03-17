@@ -45,9 +45,7 @@ class ProjectTask(models.Model):
 
         role_customer = self.env.ref('sign.sign_item_role_customer', raise_if_not_found=False)
 
-        # ==========================================
-        # 1. GET VALUES FROM PROJECT (with debug fallbacks)
-        # ==========================================
+        # 1. GET VALUES FROM PROJECT
         replacements = {
             'Name': project.partner_id.name or "NO NAME",
             'Date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
@@ -65,42 +63,46 @@ class ProjectTask(models.Model):
                 continue
 
             template = commitment.sign_template_id
-            if not template.sign_item_ids:
-                raise UserError(_(f"Template '{template.name}' has no fields configured."))
-
-            # 2. Define the Signers
-            roles = template.sign_item_ids.mapped('responsible_id')
-            signers_list = []
-            for role in roles:
-                partner_id = project.partner_id.id if (role_customer and role.id == role_customer.id) else self.env.user.partner_id.id
-                signers_list.append({'role_id': role.id, 'partner_id': partner_id})
-
+            
             # ==========================================
-            # 3. CREATE THE REQUEST AND THEN FILL IT
-            # This is the most compatible way.
+            # 2. BUILD THE ENTIRE DOCUMENT IN ONE SHOT
+            # This is the most basic and compatible method.
             # ==========================================
-            sign_request = template.with_context(
-                sign_directly_without_mail=True
-            ).create_request(
-                {'request_item_ids': [(0, 0, s) for s in signers_list]},
-                without_mail=True
-            )
+            
+            # Group fields by who is responsible for them (by role)
+            fields_by_role = {}
+            for field in template.sign_item_ids:
+                role_id = field.responsible_id.id
+                if role_id not in fields_by_role:
+                    fields_by_role[role_id] = []
+                fields_by_role[role_id].append(field)
 
-            # 4. Loop through the created signers and fill in their fields
-            for signer in sign_request.request_item_ids:
-                for field in template.sign_item_ids:
-                    # Match the signer's role to the field's role
-                    if signer.role_id.id == field.responsible_id.id:
-                        field_name = field.name
-                        if field_name in replacements:
-                            value_to_insert = replacements[field_name]
-                            
-                            # Find the specific input box for this signer and this field
-                            item_value = sign_request.request_item_value_ids.filtered(
-                                lambda v: v.sign_item_id.id == field.id and v.sign_request_item_id.id == signer.id
-                            )
-                            if item_value:
-                                item_value.write({'value': value_to_insert})
+            # Prepare the list of signers and their pre-filled values
+            request_item_ids_vals = []
+            for role_id, fields_in_role in fields_by_role.items():
+                partner_id = project.partner_id.id if (role_customer and role_id == role_customer.id) else self.env.user.partner_id.id
+                
+                # For each signer, define which values to fill
+                value_ids_vals = []
+                for field in fields_in_role:
+                    if field.name in replacements:
+                        value_ids_vals.append((0, 0, {
+                            'sign_item_id': field.id,
+                            'value': replacements[field.name],
+                        }))
+
+                request_item_ids_vals.append((0, 0, {
+                    'role_id': role_id,
+                    'partner_id': partner_id,
+                    'request_item_value_ids': value_ids_vals, # Nest the values inside the signer
+                }))
+
+            # 3. Create the sign request with all data pre-loaded
+            sign_request = self.env['sign.request'].create({
+                'template_id': template.id,
+                'reference': f"{template.name} - {project.name}",
+                'request_item_ids': request_item_ids_vals,
+            })
 
             commitment.sign_request_id = sign_request.id
             generated_requests |= sign_request
@@ -108,7 +110,7 @@ class ProjectTask(models.Model):
         if not generated_requests:
             return True
 
-        # 5. Open the document(s)
+        # 4. Open the document(s)
         action = self.env['ir.actions.actions']._for_xml_id('sign.sign_request_action')
         if len(generated_requests) == 1:
             action.update({'view_mode': 'form', 'res_id': generated_requests.id, 'views': [(False, 'form')]})
