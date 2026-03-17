@@ -5,11 +5,20 @@
         <field name="model">sign.template</field>
         <field name="inherit_id" ref="sign.sign_template_view_form"/>
         <field name="arch" type="xml">
+            
+            <!-- Add our custom Rename button to the header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_rename_template_fields" 
+                        type="object" 
+                        string="Rename Fields for Autofill" 
+                        class="oe_highlight"
+                        groups="base.group_system"/>
+            </xpath>
+
             <xpath expr="//sheet" position="inside">
                 <group string="Engineering Commitment Settings (إعدادات التعهد الهندسي)">
                     <group>
                         <field name="is_commitment"/>
-                        <!-- Remove attrs. Visibility will be handled in JS or using the new 'setup' component. -->
                         <field name="building_type"/>
                     </group>
                 </group>
