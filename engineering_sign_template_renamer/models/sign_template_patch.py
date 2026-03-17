@@ -30,13 +30,13 @@ class SignTemplatePatch(models.Model):
                 if item.name != new_name:
                     item.write({'name': new_name})
                     updated_fields_count += 1
-                    self.env.user.notify_info(f"Renamed field '{item.name}' to '{new_name}'")
-                else:
-                    self.env.user.notify_warning(f"Field '{item.name}' already has the desired name.")
-            else:
-                self.env.user.notify_warning(f"Field '{item.name}' not in replacement map. No change.")
+                    # Removed: self.env.user.notify_info(f"Renamed field '{item.name}' to '{new_name}'")
+                # Removed: else:
+                    # Removed: self.env.user.notify_warning(f"Field '{item.name}' already has the desired name.")
+            # Removed: else:
+                # Removed: self.env.user.notify_warning(f"Field '{item.name}' not in replacement map. No change.")
 
-        self.env.user.notify_info(f"Field renaming complete. {updated_fields_count} fields updated.")
+        # Removed: self.env.user.notify_info(f"Field renaming complete. {updated_fields_count} fields updated.")
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
