@@ -3,7 +3,7 @@
     <record id="action_report_project_commitment" model="ir.actions.report">
         <field name="name">Project Commitment Document</field>
         <field name="model">project.task</field>
-        <field name="report_type">qweb-pdf</s_asset>
+        <field name="report_type">qweb-pdf</field> <!-- THIS LINE WAS THE PROBLEM -->
         <field name="report_name">engineering_commitments.report_project_commitment_document</field>
         <field name="report_file">engineering_commitments.report_project_commitment_document</field>
         <field name="binding_model_id" ref="project.model_project_task"/>
