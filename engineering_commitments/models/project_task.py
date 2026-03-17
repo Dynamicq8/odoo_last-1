@@ -83,19 +83,15 @@ class ProjectTask(models.Model):
                 }))
 
             # --- FIX STARTS HERE ---
-            # Removed 'mail_sent': False as it's not a valid field.
-            # We also set the initial state to 'draft' or no state, and then immediately sign.
-            # Setting 'state': 'sent' at creation can sometimes trigger email activities directly.
+            # Removed 'signer_ids' field from create, as it's not directly settable in your Odoo version.
+            # Odoo's sign module should derive these from 'request_item_ids'.
             sign_request = self.env['sign.request'].create({
                 'template_id': template.id,
                 'reference': f"{template.name} - {project.name}",
                 'request_item_ids': signers_list_vals,
-                # 'state': 'sent', # Removed initial state to avoid potential email trigger logic
-                'signer_ids': [(6, 0, [item[2]['partner_id'] for item in signers_list_vals if item[2].get('partner_id')])]
             })
 
-            # AFTER CREATION, if any mail activities were generated, delete them immediately
-            # This is a robust way to prevent unwanted emails if the 'create' method itself triggers mail.
+            # Delete any mail activities generated immediately after creation
             sign_request.activity_ids.unlink() 
             # --- FIX ENDS HERE ---
 
@@ -116,7 +112,7 @@ class ProjectTask(models.Model):
                         })
 
             for request_item in sign_request.request_item_ids:
-                # Always force set to signed state, regardless of initial 'sent' state.
+                # Always force set to signed state.
                 request_item.write({
                     'state': 'signed',
                     'signed_by': request_item.partner_id.id, 
