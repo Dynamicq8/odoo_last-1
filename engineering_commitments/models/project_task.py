@@ -6,6 +6,9 @@ from odoo.exceptions import UserError
 _logger = logging.getLogger(__name__)
 
 
+# =========================================================
+# PROJECT TASK
+# =========================================================
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
@@ -38,14 +41,14 @@ class ProjectTask(models.Model):
                     })
 
     # ---------------------------
-    # GENERATE REQUESTS
+    # GENERATE + AUTOFILL
     # ---------------------------
     def action_generate_commitments_pdf(self):
         self.ensure_one()
 
-        required_commitments = self.commitment_ids.filtered(lambda p: p.is_required)
+        required_commitments = self.commitment_ids.filtered(lambda c: c.is_required)
         if not required_commitments:
-            raise UserError(_("Please mark at least one commitment as 'Required' first."))
+            raise UserError(_("Please mark at least one commitment as Required."))
 
         if not self.project_id.partner_id:
             raise UserError(_("Project must have a customer."))
@@ -53,16 +56,13 @@ class ProjectTask(models.Model):
         role_customer = self.env.ref('sign.sign_item_role_customer', raise_if_not_found=False)
         current_partner = self.env.user.partner_id
 
-        replacements = {
-            'Name': self.project_id.partner_id.name or "NO NAME",
-            'Date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
-        }
-
         for commitment in required_commitments:
 
+            # Skip signed
             if commitment.sign_request_id and commitment.sign_request_id.state == 'signed':
                 continue
 
+            # Cancel old
             if commitment.sign_request_id and commitment.sign_request_id.state != 'canceled':
                 commitment.sign_request_id.cancel()
                 commitment.sign_request_id = False
@@ -83,23 +83,36 @@ class ProjectTask(models.Model):
             if not signers:
                 raise UserError(_("Template has no signers."))
 
+            # ✅ CREATE REQUEST
             sign_request = self.env['sign.request'].create({
                 'template_id': template.id,
                 'reference': f"{template.name} - {self.name}",
                 'request_item_ids': signers,
             })
 
-            # Fill fields
+            # 🔥 AUTOFILL (CORRECT WAY)
+            replacements = {
+                'Name': self.project_id.partner_id.name or '',
+                'Date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
+                'Customer Signature Text': self.project_id.partner_id.name or '',
+                'Company Signature Text': self.env.company.name or '',
+            }
+
             for item in template.sign_item_ids:
                 if item.name in replacements:
+                    value = replacements[item.name]
+
                     signer = sign_request.request_item_ids.filtered(
                         lambda r: r.role_id.id == item.responsible_id.id
                     )
+
                     if signer:
                         self.env['sign.request.item.value'].sudo().create({
+                            'sign_request_id': sign_request.id,  # 🔥 CRITICAL
                             'sign_request_item_id': signer[0].id,
                             'sign_item_id': item.id,
-                            'value': replacements[item.name],
+                            'value': value,
+                            'value_text': value,  # 🔥 IMPORTANT
                         })
 
             commitment.sign_request_id = sign_request.id
@@ -108,7 +121,7 @@ class ProjectTask(models.Model):
 
 
 # =========================================================
-# COMMITMENT MODEL BUTTON (IMPORTANT)
+# COMMITMENT MODEL
 # =========================================================
 class EngineeringTaskCommitment(models.Model):
     _name = 'engineering.task.commitment'
@@ -119,32 +132,29 @@ class EngineeringTaskCommitment(models.Model):
     sign_request_id = fields.Many2one('sign.request')
     is_required = fields.Boolean("Required")
 
+    # 🔥 SIGN BUTTON (ADMIN + SECRETARY OVERRIDE)
     def action_sign_now(self):
         self.ensure_one()
-    
+
         if not self.sign_request_id:
             raise UserError(_("No generated document yet."))
-    
+
         request = self.sign_request_id
         user = self.env.user
-    
-        # ✅ Check permissions
+
         is_admin = user.has_group('base.group_system')
         is_secretary = bool(getattr(user, 'secretary_id', False))
-    
+
         if is_admin or is_secretary:
-            # 🔥 Allow signing ANY document → take first signer
             request_item = request.request_item_ids[:1]
-    
         else:
-            # Normal behavior
             request_item = request.request_item_ids.filtered(
                 lambda r: r.partner_id.id == user.partner_id.id
             )
-    
+
         if not request_item:
             raise UserError(_("You are not assigned to sign this document."))
-    
+
         return {
             'type': 'ir.actions.act_url',
             'url': f'/sign/document/{request.id}/{request_item.access_token}',
