@@ -6,7 +6,6 @@ import urllib.parse
 
 # ==============================================================================
 #  WORKFLOW TEMPLATES (خرائط سير العمل)
-#  This dictionary defines the tasks and stages for each project type.
 # ==============================================================================
 WORKFLOW_TEMPLATES = {
     # 1. سكن خاص + بناء جديد
@@ -113,6 +112,20 @@ WORKFLOW_TEMPLATES = {
 
         {'code': 'nra_5_1', 'name': '1- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
         {'code': 'nra_5_2', 'name': '3- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+    ],
+    
+    # 5. هدم (لكل أنواع المباني) NEW WORKFLOW ADDED
+    'demolition':[
+        {'code': 'dem_1_1', 'name': '1- تجميع المستندات والوثائق', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'dem_1_2', 'name': '2- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id'},
+        {'code': 'dem_1_3', 'name': '3- توقيع نماذج البلدية', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'dem_1_4', 'name': '4- كتاب المواصفات وكتاب قطع تربة', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        
+        {'code': 'dem_2_1', 'name': '1- إرسال للبلدية', 'stage': 'المرحلة الثانية', 'role': 'secretary_id'},
+        {'code': 'dem_2_2', 'name': '2- اعتماد البلدية', 'stage': 'المرحلة الثانية', 'role': 'secretary_id'},
+        
+        {'code': 'dem_3_1', 'name': '1- الإشراف على الهدم', 'stage': 'المرحلة الثالثة', 'role': 'structural_id'},
+        {'code': 'dem_3_2', 'name': '2- إنهاء الإشراف', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
     ]
 }
 
@@ -130,7 +143,6 @@ class SaleOrder(models.Model):
     street_no = fields.Char(string="الضاحيه")
     area = fields.Char(string="مساحة الارض")
     
-    # These fields are needed to pass location data to the project
     governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة")
     region_id = fields.Many2one('kuwait.region', string="المنطقة")
 
@@ -156,7 +168,7 @@ class SaleOrder(models.Model):
             docs += "<li>البطاقة المدنية للمالك (Civil ID Copy)</li>"
             if order.service_type == 'new_construction':
                 docs += "<li>وثيقة الملكية</li><li>كتاب التخصيص</li><li>مخطط المساحة</li>"
-            elif order.service_type in ['modification', 'addition', 'addition_modification']:
+            elif order.service_type in['modification', 'addition', 'addition_modification']:
                 docs += "<li>رخصة البناء الأصلية</li><li>المخططات المرخصة</li><li>وثيقة البيت</li>"
             elif order.service_type == 'demolition':
                 docs += "<li>كتاب براءة ذمة من الكهرباء والماء</li><li>رخصة البناء القديمة</li>"
@@ -200,7 +212,6 @@ class SaleOrder(models.Model):
             'target': 'current',
         }
 
-    # THIS IS THE CORRECT METHOD THAT MATCHES YOUR WORKFLOW TEMPLATES
     def _create_engineering_project(self):
         self.ensure_one()
         project_vals = {
@@ -218,15 +229,7 @@ class SaleOrder(models.Model):
         }
         project = self.env['project.project'].create(project_vals)
 
-        # Create the five main stages. The names here MUST match the 'stage'
-        # values in your WORKFLOW_TEMPLATES dictionary. This is the key to fixing the issue.
-        stages_to_create =[
-            'المرحلة الأولى',
-            'المرحلة الثانية',
-            'المرحلة الثالثة',
-            'المرحلة الرابعة',
-            'المرحلة الخامسة'
-        ]
+        stages_to_create =['المرحلة الأولى', 'المرحلة الثانية', 'المرحلة الثالثة', 'المرحلة الرابعة', 'المرحلة الخامسة']
 
         for index, stage_name in enumerate(stages_to_create):
             self.env['project.task.type'].create({
@@ -345,7 +348,12 @@ class ProjectProject(models.Model):
 
     def _get_workflow_key(self):
         self.ensure_one()
-        is_addition = self.service_type in['addition', 'modification', 'addition_modification']
+        # 1. Check for Demolition First
+        if self.service_type == 'demolition':
+            return 'demolition'
+            
+        # 2. Check for Others
+        is_addition = self.service_type in ['addition', 'modification', 'addition_modification']
         if self.building_type == 'residential':
             return 'res_add' if is_addition else 'res_new'
         else:
@@ -376,7 +384,6 @@ class ProjectProject(models.Model):
 
         for i, step in enumerate(workflow):
             if step['code'] == completed_code:
-                # إنشاء المهمة التالية مباشرة في حال الانتهاء من الحالية
                 if i + 1 < len(workflow):
                     next_step = workflow[i + 1]
                     if next_step['code'] not in triggered:
@@ -388,12 +395,19 @@ class ProjectProject(models.Model):
         stages_map = self._get_project_stages_map()
         stage_id = stages_map.get(step_data['stage'])
         if not stage_id:
-            # This is where the error was happening. If it can't find the stage, it stops.
-            # You can add a log here for debugging if you want.
-            # import logging
-            # _logger = logging.getLogger(__name__)
-            # _logger.warning(f"Workflow could not find stage '{step_data['stage']}' for project {self.name}")
             return
+
+        # --- FIX: Calculate task Sequence to force 1, 2, 3, 4 sorting from Top to Bottom ---
+        wf_key = self._get_workflow_key()
+        workflow = WORKFLOW_TEMPLATES.get(wf_key, [])
+        tasks_in_current_stage =[t for t in workflow if t['stage'] == step_data['stage']]
+        
+        task_sequence = 10
+        for index, t in enumerate(tasks_in_current_stage):
+            if t['code'] == step_data['code']:
+                task_sequence = index + 1 # gives sequence 1, 2, 3, 4 to keep order correct.
+                break
+        # ----------------------------------------------------------------------------------
 
         user_id = getattr(self, step_data['role']).id if hasattr(self, step_data['role']) and getattr(self, step_data['role']) else False
 
@@ -401,7 +415,8 @@ class ProjectProject(models.Model):
             'name': step_data['name'],
             'project_id': self.id,
             'stage_id': stage_id,
-            'workflow_step': step_data['code']
+            'workflow_step': step_data['code'],
+            'sequence': task_sequence # This forces Odoo Kanban to place 1 at the top
         }
         if user_id:
             val['user_ids'] = [(4, user_id)]
@@ -420,13 +435,9 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
-        # Check if the task is being moved to a "done" stage.
-        # You may need to adjust these stage names if your "done" stages in Odoo are different.
-        # Find the XML IDs of your done/approved stages to be sure.
-        done_stage_id = self.env.ref('project.project_stage_3', raise_if_not_found=False) # Default Odoo "Done" stage
+        done_stage_id = self.env.ref('project.project_stage_3', raise_if_not_found=False)
         
-        # Check if the stage is being changed TO the done stage
-        if 'stage_id' in vals and vals['stage_id'] == done_stage_id.id:
+        if 'stage_id' in vals and done_stage_id and vals['stage_id'] == done_stage_id.id:
             for task in self:
                 if task.workflow_step and task.project_id:
                     task.project_id._trigger_next_workflow_step(task.workflow_step)
@@ -441,7 +452,6 @@ class ProjectTask(models.Model):
             'view_mode': 'form',
             'target': 'current',
         }
-
 
 # ==============================================================================
 #  GOVERNORATE AND REGION MODELS
