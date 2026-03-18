@@ -187,7 +187,7 @@ class SaleOrder(models.Model):
             docs += "<li>البطاقة المدنية للمالك (Civil ID Copy)</li>"
             if order.service_type == 'new_construction':
                 docs += "<li>وثيقة الملكية</li><li>كتاب التخصيص</li><li>مخطط المساحة</li>"
-            elif order.service_type in['modification', 'addition', 'addition_modification']:
+            elif order.service_type in ['modification', 'addition', 'addition_modification']:
                 docs += "<li>رخصة البناء الأصلية</li><li>المخططات المرخصة</li><li>وثيقة البيت</li>"
             elif order.service_type == 'demolition':
                 docs += "<li>كتاب براءة ذمة من الكهرباء والماء</li><li>رخصة البناء القديمة</li>"
@@ -259,7 +259,7 @@ class SaleOrder(models.Model):
         for index, stage_name in enumerate(stages_to_create):
             self.env['project.task.type'].create({
                 'name': stage_name, 
-                'project_ids': [(4, project.id)], 
+                'project_ids':[(4, project.id)], 
                 'sequence': index + 1
             })
             
@@ -390,7 +390,7 @@ class ProjectProject(models.Model):
         if self.service_type == 'demolition':
             return 'demo'
             
-        is_addition = self.service_type in ['addition', 'modification', 'addition_modification']
+        is_addition = self.service_type in['addition', 'modification', 'addition_modification']
         if self.building_type == 'residential':
             return 'res_add' if is_addition else 'res_new'
         else:
@@ -441,10 +441,10 @@ class ProjectProject(models.Model):
             'project_id': self.id, 
             'stage_id': stage_id,
             'workflow_step': step_data['code'],
-            'sequence': step_data.get('seq', 10) # Ensures task #1 is at top, #2 below it, etc.
+            'sequence': step_data.get('seq', 10)
         }
         if user_id: 
-            val['user_ids'] = [(4, user_id)]
+            val['user_ids'] =[(4, user_id)]
             
         self.env['project.task'].create(val)
 
@@ -457,17 +457,14 @@ class ProjectTask(models.Model):
 
     workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
 
-    # حقل التصاريح: هل المستخدم الحالي من ضمن فريق هذه المهمة؟
     is_assigned_to_me = fields.Boolean(compute='_compute_is_assigned_to_me')
     
-    # حقول نموذج المكونات الجديدة بديلة الجدول
     project_details_text = fields.Text(string="تفاصيل ومكونات المشروع")
     project_details_completed = fields.Boolean(string="تم الانتهاء من المكونات؟")
 
     @api.depends('user_ids')
     def _compute_is_assigned_to_me(self):
         for task in self:
-            # تعتبر مخصصة لي إذا: (أنا مدير نظام) أو (المهمة ليس لها موظف) أو (أنا ضمن الموظفين المعينين لها)
             if self.env.is_admin() or not task.user_ids or self.env.user in task.user_ids:
                 task.is_assigned_to_me = True
             else:
@@ -475,15 +472,12 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         for task in self:
-            # نظام حماية قوي: إذا كان المستخدم العادي يحاول تعديل مهمة ليس مكلفاً بها
             if not task.is_assigned_to_me and not self.env.is_admin():
-                # السماح له فقط لو كان يقوم بتعيين نفسه على المهمة
                 if 'user_ids' not in vals:
                     raise UserError(_("ليس لديك صلاحية لتعديل هذه المهمة لأنك غير مكلف بها."))
                     
         res = super(ProjectTask, self).write(vals)
         
-        # تحريك الورك فلو في حال الاعتماد
         if 'state' in vals and vals['state'] in['03_approved', '1_done']:
             for task in self:
                 if task.workflow_step and task.project_id:
