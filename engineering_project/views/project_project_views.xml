@@ -22,24 +22,11 @@
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="sale_order_id" readonly="1"/>
                 
-                <!-- PREVENTS THE JS ERROR -->
+                <!-- This field is now required for the button's visibility -->
                 <field name="workflow_started" invisible="1"/>
-                <field name="residential_step_1_triggered" invisible="1"/>
-                <field name="residential_step_2_triggered" invisible="1"/>
-                <field name="residential_step_3_triggered" invisible="1"/>
-                <field name="residential_step_4_triggered" invisible="1"/>
-                <field name="residential_step_5_triggered" invisible="1"/>
-                <field name="residential_step_6_triggered" invisible="1"/>
-                <field name="residential_step_7_triggered" invisible="1"/>
-                <field name="residential_step_8_triggered" invisible="1"/>
-                <field name="step_2_triggered" invisible="1"/>
-                <field name="step_3_triggered" invisible="1"/>
-                <field name="step_4_triggered" invisible="1"/>
-                <field name="step_5_triggered" invisible="1"/>
-                <field name="step_6_triggered" invisible="1"/>
-                <field name="step_8_triggered" invisible="1"/>
-                <field name="step_9_triggered" invisible="1"/>
-                <field name="step_10_triggered" invisible="1"/>
+                
+                <!-- The new field to track progress (can be left hidden) -->
+                <field name="triggered_steps" invisible="1"/>
                 
                 <group string="فريق العمل (Project Team)">
                     <group>
