@@ -5,11 +5,122 @@ import datetime
 import urllib.parse
 
 # ==============================================================================
+#  WORKFLOW TEMPLATES (خرائط سير العمل)
+# ==============================================================================
+WORKFLOW_TEMPLATES = {
+    # 1. سكن خاص + بناء جديد
+    'res_new':[
+        {'code': 'rn_1_1', 'name': '1- تصميم الكروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        {'code': 'rn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'rn_1_3', 'name': '3- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id'},
+        {'code': 'rn_1_4', 'name': '4- تجهيز النماذج والتعهدات والتوقيع', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'rn_1_5', 'name': '5- فحص التربة - كتاب الكهرباء', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        
+        {'code': 'rn_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id'},
+        {'code': 'rn_2_2', 'name': '2- الواجهات', 'stage': 'المرحلة الثانية', 'role': 'facade_draftsman_id'},
+        {'code': 'rn_2_3', 'name': '3- رسم مخطط البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id'},
+        
+        {'code': 'rn_3_1', 'name': '1- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'rn_3_2', 'name': '2- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'rn_3_3', 'name': '3- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id'},
+        
+        {'code': 'rn_4_1', 'name': '1- تصميم المخطط الإنشائي', 'stage': 'المرحلة الرابعة', 'role': 'structural_id'},
+        {'code': 'rn_4_2', 'name': '2- تصميم مخطط الصحي', 'stage': 'المرحلة الرابعة', 'role': 'draftsman_id'},
+        {'code': 'rn_4_3', 'name': '3- تصميم مخطط الكهرباء', 'stage': 'المرحلة الرابعة', 'role': 'electrical_id'},
+        {'code': 'rn_4_4', 'name': '4- تصميم مخطط الفرش', 'stage': 'المرحلة الرابعة', 'role': 'architect_id'},
+        {'code': 'rn_4_5', 'name': '5- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id'},
+        
+        {'code': 'rn_5_1', 'name': '1- إصدار تعهد الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+        {'code': 'rn_5_2', 'name': '2- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
+        {'code': 'rn_5_3', 'name': '3- كتب البنك', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+        {'code': 'rn_5_4', 'name': '4- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+    ],
+    
+    # 2. غير سكني (استثماري، صناعي، إلخ) + بناء جديد
+    'non_res_new':[
+        {'code': 'nrn_1_1', 'name': '1- تصميم الكروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        {'code': 'nrn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'nrn_1_3', 'name': '3- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id'},
+        {'code': 'nrn_1_4', 'name': '4- تجهيز النماذج والتعهدات والتوقيع', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'nrn_1_5', 'name': '5- فحص التربة - كتاب الكهرباء', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        
+        {'code': 'nrn_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id'},
+        {'code': 'nrn_2_2', 'name': '2- الواجهات', 'stage': 'المرحلة الثانية', 'role': 'facade_draftsman_id'},
+        {'code': 'nrn_2_3', 'name': '3- رسم مخطط البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id'},
+        
+        {'code': 'nrn_3_1', 'name': '1- إرسال للمطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nrn_3_2', 'name': '2- اعتماد المطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nrn_3_3', 'name': '3- إرسال للتنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nrn_3_4', 'name': '4- اعتماد التنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nrn_3_5', 'name': '5- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nrn_3_6', 'name': '6- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nrn_3_7', 'name': '7- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id'},
+        
+        {'code': 'nrn_4_1', 'name': '1- تصميم المخطط الإنشائي', 'stage': 'المرحلة الرابعة', 'role': 'structural_id'},
+        {'code': 'nrn_4_2', 'name': '2- تصميم مخطط الصحي', 'stage': 'المرحلة الرابعة', 'role': 'draftsman_id'},
+        {'code': 'nrn_4_3', 'name': '5- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id'},
+        
+        {'code': 'nrn_5_1', 'name': '1- إصدار تعهد الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+        {'code': 'nrn_5_2', 'name': '2- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
+        {'code': 'nrn_5_3', 'name': '4- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+    ],
+    
+    # 3. سكن خاص + تعديل واضافة
+    'res_add':[
+        {'code': 'ra_1_1', 'name': '1- دراسة المخطط الإنشائي القديم', 'stage': 'المرحلة الأولى', 'role': 'structural_id'},
+        {'code': 'ra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        {'code': 'ra_1_3', 'name': '3- كروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        {'code': 'ra_1_4', 'name': '4- جمع الوثائق والمستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'ra_1_5', 'name': '5- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id'},
+        
+        {'code': 'ra_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id'},
+        {'code': 'ra_2_2', 'name': '2- رسم البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id'},
+        
+        {'code': 'ra_3_1', 'name': '1- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'ra_3_2', 'name': '2- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'ra_3_3', 'name': '3- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id'},
+        
+        {'code': 'ra_4_1', 'name': '1- مخطط إنشائي كامل', 'stage': 'المرحلة الرابعة', 'role': 'structural_id'},
+        {'code': 'ra_4_2', 'name': '2- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id'},
+        
+        {'code': 'ra_5_1', 'name': '1- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
+        {'code': 'ra_5_2', 'name': '2- كتب البنك', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+        {'code': 'ra_5_3', 'name': '3- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+    ],
+    
+    # 4. غير سكني (استثماري، صناعي، إلخ) + تعديل واضافة
+    'non_res_add':[
+        {'code': 'nra_1_1', 'name': '1- دراسة المخطط الإنشائي القديم', 'stage': 'المرحلة الأولى', 'role': 'structural_id'},
+        {'code': 'nra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        {'code': 'nra_1_3', 'name': '3- كروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        {'code': 'nra_1_4', 'name': '4- جمع الوثائق والمستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'nra_1_5', 'name': '5- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id'},
+        
+        {'code': 'nra_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id'},
+        {'code': 'nra_2_2', 'name': '2- رسم البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id'},
+        
+        {'code': 'nra_3_1', 'name': '1- إرسال للمطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nra_3_2', 'name': '2- اعتماد المطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nra_3_3', 'name': '3- إرسال للتنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nra_3_4', 'name': '4- اعتماد التنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nra_3_5', 'name': '5- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nra_3_6', 'name': '6- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
+        {'code': 'nra_3_7', 'name': '7- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id'},
+        
+        {'code': 'nra_4_1', 'name': '1- مخطط إنشائي كامل', 'stage': 'المرحلة الرابعة', 'role': 'structural_id'},
+        {'code': 'nra_4_2', 'name': '2- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id'},
+        
+        {'code': 'nra_5_1', 'name': '1- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
+        {'code': 'nra_5_2', 'name': '3- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+    ]
+}
+
+# ==============================================================================
 #  HELPER FUNCTIONS FOR GOVERNORATE & REGION 
 # ==============================================================================
 def _get_governorate_areas():
     return {
-        'محافظة العاصمة': [
+        'محافظة العاصمة':[
             ('جابر الاحمد', 'جابر الاحمد'), ('القبلة', 'القبلة'), ('الشرق', 'الشرق'),
             ('المرقاب', 'المرقاب'), ('الصالحية', 'الصالحية'), ('دسمان', 'دسمان'),
             ('الدعية', 'الدعية'), ('الدسمة', 'الدسمة'), ('كيفان', 'كيفان'),
@@ -30,7 +141,7 @@ def _get_governorate_areas():
             ('معسكرات المباركيه – جيوان', 'معسكرات المباركيه – جيوان'),
             ('شاليهات الدوحة', 'شاليهات الدوحة'), ('السره', 'السره'),
         ],
-        'محافظة حولي': [
+        'محافظة حولي':[
             ('حولي', 'حولي'), ('السالمية', 'السالمية'), ('الرميثية', 'الرميثية'),
             ('الجابرية', 'الجابرية'), ('بيان', 'بيان'), ('مشرف', 'مشرف'),
             ('سلوى', 'سلوى'), ('ميدان حولي', 'ميدان حولي'), ('الزهراء', 'الزهراء'),
@@ -40,7 +151,7 @@ def _get_governorate_areas():
             ('الضاحيه الدبلوماسيه', 'الضاحيه الدبلوماسيه'),
             ('المباركيه قطعة 15 بيان', 'المباركيه قطعة 15 بيان'), ('البدع', 'البدع'),
         ],
-        'محافظة الفروانية': [
+        'محافظة الفروانية':[
             ('الفروانية', 'الفروانية'), ('خيطان', 'خيطان'), ('العمرية', 'العمرية'),
             ('الرحاب', 'الرحاب'), ('الرقعى', 'الرقعى'), ('الشدادية', 'الشدادية'),
             ('الضجيج', 'الضجيج'), ('المطار', 'المطار'),
@@ -58,7 +169,7 @@ def _get_governorate_areas():
             ('جنوب عبد الله المبارك السكنى', 'جنوب عبد الله المبارك السكنى'),
             ('العباسية', 'العباسية'),
         ],
-        'محافظة الأحمدي': [
+        'محافظة الأحمدي':[
             ('الأحمدي', 'الأحمدي'), ('الفحيحيل', 'الفحيحيل'), ('المنقف', 'المنقف'),
             ('أبو حليفة', 'أبو حليفة'), ('الصباحية', 'الصباحية'), ('الرقة', 'الرقة'),
             ('هدية', 'هدية'), ('الفنطاس', 'الفنطاس'), ('المهبولة', 'المهبولة'),
@@ -94,7 +205,7 @@ def _get_governorate_areas():
             ('الزور وصوله', 'الزور وصوله'), ('ام حجول', 'ام حجول'),
             ('ام قدير', 'ام قدير'), ('ابو خرجين والصبيحية', 'ابو خرجين والصبيحية'),
         ],
-        'محافظة الجهراء': [
+        'محافظة الجهراء':[
             ('الجهراء', 'الجهراء'), ('القصر', 'القصر'), ('النسيم', 'النسيم'),
             ('الواحة', 'الواحة'), ('النعيم', 'النعيم'), ('تيماء', 'تيماء'),
             ('سعد العبدالله', 'سعد العبدالله'), ('الصليبية', 'الصليبية'),
@@ -129,7 +240,7 @@ def _get_governorate_areas():
             ('معسكرات الجهراء', 'معسكرات الجهراء'), ('مقبرة', 'مقبرة'),
             ('مناطق نائية -الجهراء', 'مناطق نائية -الجهراء'),
         ],
-        'محافظة مبارك الكبير': [
+        'محافظة مبارك الكبير':[
             ('مبارك الكبير', 'مبارك الكبير'), ('العدان', 'العدان'),
             ('القرين', 'القرين'), ('القصور', 'القصور'), ('المسيلة', 'المسيلة'),
             ('غرب أبو فطيرة', 'غرب أبو فطيرة'), ('الفنيطيس', 'الفنيطيس'),
@@ -141,7 +252,7 @@ def _get_governorate_areas():
     }
 
 def _get_all_regions(self):
-    all_regions = []
+    all_regions =[]
     seen_regions = set()
     for areas in _get_governorate_areas().values():
         for area_val, area_label in areas:
@@ -248,28 +359,14 @@ class SaleOrder(models.Model):
         }
         project = self.env['project.project'].create(project_vals)
         
-        if self.building_type == 'residential': 
-            stages_to_create = [
-                'التصميم المبدئي', 
-                'التعاقد والوثائق', 
-                'سيستم الأعمدة', 
-                'الواجهات', 
-                'رسوم البلدية', 
-                'مرحلة التراخيص', 
-                'مخطط إنشائي', 
-                'مخططات تفصيلية', 
-                'الإشراف'
-            ]
-        else: 
-            stages_to_create = [
-                'التصميم المبدئي', 
-                'التعاقد والوثائق', 
-                'المخطط الانشائي', 
-                'الموافقات', 
-                'التصميمات التفصيلية', 
-                'الإشراف', 
-                'إنهاء المشروع'
-            ]
+        # إنشاء المراحل الخمس الأساسية لجميع أنواع المشاريع الجديدة
+        stages_to_create =[
+            'المرحلة الأولى', 
+            'المرحلة الثانية', 
+            'المرحلة الثالثة', 
+            'المرحلة الرابعة', 
+            'المرحلة الخامسة'
+        ]
 
         for index, stage_name in enumerate(stages_to_create):
             self.env['project.task.type'].create({
@@ -305,7 +402,7 @@ class SaleOrder(models.Model):
             'move_type': 'out_invoice',
             'partner_id': self.partner_id.id,
             'invoice_date': fields.Date.today(),
-            'invoice_line_ids': [(0, 0, {'product_id': product_fee.id, 'quantity': 1, 'price_unit': 50.0, 'name': 'رسوم فتح ملف وتصميم مبدئي'})],
+            'invoice_line_ids':[(0, 0, {'product_id': product_fee.id, 'quantity': 1, 'price_unit': 50.0, 'name': 'رسوم فتح ملف وتصميم مبدئي'})],
         }
         invoice = self.env['account.move'].create(invoice_vals)
         return {'name': _('Open Invoice'), 'view_mode': 'form', 'res_model': 'account.move', 'res_id': invoice.id, 'type': 'ir.actions.act_window'}
@@ -374,7 +471,7 @@ class ProjectProject(models.Model):
             gov_name = project.governorate_id.name if project.governorate_id else False
             region_name = project.region_id.name if project.region_id else False
             if gov_name and region_name:
-                valid_regions = [area[0] for area in _get_governorate_areas().get(gov_name, [])]
+                valid_regions = [area[0] for area in _get_governorate_areas().get(gov_name,[])]
                 if region_name not in valid_regions:
                     raise ValidationError(_("المنطقة المختارة '%s' لا تتبع للمحافظة '%s'.") % (region_name, gov_name))
 
@@ -393,181 +490,82 @@ class ProjectProject(models.Model):
     draftsman_id = fields.Many2one('res.users', string="الرسام (صحي/مخططات)")
 
     workflow_started = fields.Boolean(default=False)
-    residential_step_1_triggered = fields.Boolean(default=False)
-    residential_step_2_triggered = fields.Boolean(default=False)
-    residential_step_3_triggered = fields.Boolean(default=False)
-    residential_step_4_triggered = fields.Boolean(default=False)
-    residential_step_5_triggered = fields.Boolean(default=False)
-    residential_step_6_triggered = fields.Boolean(default=False)
-    residential_step_7_triggered = fields.Boolean(default=False)
-    residential_step_8_triggered = fields.Boolean(default=False)
-    step_2_triggered = fields.Boolean(default=False)
-    step_3_triggered = fields.Boolean(default=False)
-    step_4_triggered = fields.Boolean(default=False)
-    step_5_triggered = fields.Boolean(default=False)
-    step_6_triggered = fields.Boolean(default=False)
-    step_8_triggered = fields.Boolean(default=False)
-    step_9_triggered = fields.Boolean(default=False)
-    step_10_triggered = fields.Boolean(default=False)
-
+    triggered_steps = fields.Text(string="المهام المنفذة", default="")
 
     def _get_project_stages_map(self):
         self.ensure_one()
         stages = self.env['project.task.type'].search([('project_ids', 'in', self.id)], order='sequence')
         return {stage.name: stage.id for stage in stages}
 
+    def _get_workflow_key(self):
+        self.ensure_one()
+        is_addition = self.service_type in['addition', 'modification', 'addition_modification']
+        if self.building_type == 'residential':
+            return 'res_add' if is_addition else 'res_new'
+        else:
+            return 'non_res_add' if is_addition else 'non_res_new'
 
     def action_start_workflow(self):
         self.ensure_one()
         if self.workflow_started:
             raise UserError(_("تم بدء سير العمل مسبقاً!"))
         
-        stages_map = self._get_project_stages_map()
-
-        if self.building_type == 'residential':
-            s_initial_design = stages_map.get('التصميم المبدئي')
-            self._create_task('1. كروكي', self.architect_id, s_initial_design, 'residential_task_1')
-            self._create_task('1. مباني أولية', self.architect_id, s_initial_design)
-        else:
-            s0 = stages_map.get('التصميم المبدئي')
-            self._create_task('1. كروكي معماري', self.architect_id, s0, 'step_1')
+        wf_key = self._get_workflow_key()
+        workflow = WORKFLOW_TEMPLATES.get(wf_key,[])
+        if not workflow:
+            raise UserError(_("لا توجد خطة مهام مطابقة لنوع الخدمة والمبنى."))
             
+        first_step = workflow[0]
+        self._create_task_for_step(first_step)
+        
         self.workflow_started = True
+        self.triggered_steps = first_step['code'] + ","
 
-    def _trigger_next_workflow_step(self, completed_step):
+    def _trigger_next_workflow_step(self, completed_code):
         self.ensure_one()
+        wf_key = self._get_workflow_key()
+        workflow = WORKFLOW_TEMPLATES.get(wf_key,[])
+        
+        triggered = self.triggered_steps or ""
+        
+        for i, step in enumerate(workflow):
+            if step['code'] == completed_code:
+                # إنشاء المهمة التالية مباشرة في حال الانتهاء من الحالية
+                if i + 1 < len(workflow):
+                    next_step = workflow[i + 1]
+                    if next_step['code'] not in triggered:
+                        self._create_task_for_step(next_step)
+                        self.triggered_steps = triggered + next_step['code'] + ","
+                break
+
+    def _create_task_for_step(self, step_data):
         stages_map = self._get_project_stages_map()
-
-        if self.building_type == 'residential':
-            s_initial_design = stages_map.get('التصميم المبدئي')
-            s_contract_docs = stages_map.get('التعاقد والوثائق')
-            s_column_system = stages_map.get('سيستم الأعمدة')
-            s_facades = stages_map.get('الواجهات')
-            s_muni_fees = stages_map.get('رسوم البلدية')
-            s_licensing = stages_map.get('مرحلة التراخيص')
-            s_structural_plan = stages_map.get('مخطط إنشائي')
-            s_detailed_plans = stages_map.get('مخططات تفصيلية')
-            s_supervision = stages_map.get('الإشراف')
-
-            if completed_step == 'residential_task_1' and not self.residential_step_1_triggered:
-                self._create_task('2. العقد وتحصيل الدفعة الأولى', self.accountant_id, s_contract_docs, 'residential_task_2')
-                self._create_task('2. جمع الوثائق', self.secretary_id, s_contract_docs)
-                self.residential_step_1_triggered = True
-
-            elif completed_step == 'residential_task_2' and not self.residential_step_3_triggered:
-                self._create_task('3. سيستم الأعمدة', self.structural_id, s_column_system, 'residential_task_3')
-                self._create_task('3. 3D ELEVATION', self.facade_draftsman_id, s_facades) 
-                self.residential_step_3_triggered = True
-
-            elif completed_step == 'residential_task_3' and not self.residential_step_4_triggered:
-                self._create_task('4. 2D ELEVATION', self.facade_draftsman_id, s_facades, 'residential_task_4') 
-                self.residential_step_4_triggered = True
-
-            elif completed_step == 'residential_task_4' and not self.residential_step_5_triggered:
-                self._create_task('5. رسم مخطط البلدية', self.muni_draftsman_id, s_muni_fees, 'residential_task_5')
-                self.residential_step_5_triggered = True
-
-            elif completed_step == 'residential_task_5' and not self.residential_step_6_triggered:
-                self._create_task('6. موافقة البلدية', self.secretary_id, s_licensing, 'residential_task_6_muni_approve')
-                self._create_task('6. ادارية انهاءية', self.secretary_id, s_licensing, 'residential_task_6_admin_finish') 
-                self.residential_step_6_triggered = True
+        stage_id = stages_map.get(step_data['stage'])
+        if not stage_id: 
+            return 
+        
+        user_id = getattr(self, step_data['role']).id if hasattr(self, step_data['role']) and getattr(self, step_data['role']) else False
+        
+        val = {
+            'name': step_data['name'], 
+            'project_id': self.id, 
+            'stage_id': stage_id,
+            'workflow_step': step_data['code']
+        }
+        if user_id: 
+            val['user_ids'] = [(4, user_id)]
             
-            elif completed_step == 'residential_task_6_muni_approve' and self.residential_step_6_triggered and not self.residential_step_7_triggered:
-                self._create_task('7. انشائي تفصيلي', self.structural_id, s_structural_plan, 'residential_task_7')
-                self.residential_step_7_triggered = True
-
-            elif completed_step == 'residential_task_7' and not self.residential_step_8_triggered:
-                self._create_task('8. مخطط صحي', self.draftsman_id, s_detailed_plans)
-                self._create_task('8. مخطط كهربائي', self.electrical_id, s_detailed_plans)
-                self._create_task('8. كشف الكميات', self.accountant_id, s_detailed_plans)
-                self._create_task('8. انهاء المباني', self.architect_id, s_detailed_plans)
-                self._create_task('8. عقود اشراف', self.secretary_id, s_supervision, 'residential_task_8')
-                self.residential_step_8_triggered = True
-            
-            elif completed_step == 'residential_task_8':
-                self._create_task('9. اعمال الاشراف', self.structural_id, s_supervision)
-
-        else:
-            s0 = stages_map.get('التصميم المبدئي')
-            s1 = stages_map.get('التعاقد والوثائق')
-            s2 = stages_map.get('المخطط الانشائي')
-            s3 = stages_map.get('الموافقات')
-            s4 = stages_map.get('التصميمات التفصيلية')
-            s5 = stages_map.get('الإشراف')
-            s6 = stages_map.get('إنهاء المشروع')
-
-            if completed_step == 'step_1' and not self.step_2_triggered:
-                self._create_task('2. العقد وتحصيل الدفعة الاولي', self.accountant_id, s1)
-                self._create_task('2. جمع الوثائق وتعبة النماذج', self.secretary_id, s1)
-                self._create_task('2. سيستم الاعمدة', self.structural_id, s2, 'step_2_cols')
-                self._create_task('2. الواجهات', self.facade_draftsman_id, s4)
-                self.step_2_triggered = True
-
-            elif completed_step == 'step_2_cols' and not self.step_3_triggered:
-                self._create_task('3. رسم المعماري للبلدية', self.muni_draftsman_id, s3, 'step_3')
-                self.step_3_triggered = True
-
-            elif completed_step == 'step_3' and not self.step_4_triggered:
-                self._create_task('4. ادخال المعاملة بلدية للاعتماد', self.secretary_id, s3, 'step_4')
-                self.step_4_triggered = True
-
-            elif completed_step == 'step_4' and not self.step_5_triggered:
-                self._create_task('5. اعتماد الرخصة من البلدية', self.secretary_id, s3, 'step_5')
-                self.step_5_triggered = True
-
-            elif completed_step == 'step_5' and not self.step_6_triggered:
-                self._create_task('6. تصميم الانشائي الكامل', self.structural_id, s4, 'step_6')
-                self._create_task('7. تصميم مخطط الصحي', self.draftsman_id, s4)
-                self._create_task('7. تصميم مخطط الكهرباء', self.electrical_id, s4)
-                self.step_6_triggered = True
-
-            elif completed_step == 'step_6' and not self.step_8_triggered:
-                self._create_task('8. تعهد الاشراف', self.secretary_id, s5, 'step_8')
-                self.step_8_triggered = True
-
-            elif completed_step == 'step_8' and not self.step_9_triggered:
-                self._create_task('9. الاشراف علي التنفيذ', self.structural_id, s5, 'step_9')
-                self.step_9_triggered = True
-
-            elif completed_step == 'step_9' and not self.step_10_triggered:
-                self._create_task('10. انهاء الاشراف', self.secretary_id, s6)
-                self.step_10_triggered = True
-
-    def _create_task(self, name, user, stage_id, workflow_step=False):
-        if not stage_id: return 
-        val = {'name': name, 'project_id': self.id, 'stage_id': stage_id}
-        if user: val['user_ids'] = [(4, user.id)]
-        if workflow_step: val['workflow_step'] = workflow_step
         self.env['project.task'].create(val)
 
 
 # ==============================================================================
-#  PROJECT TASK MODEL - (FIXED: Fields added back!)
+#  PROJECT TASK MODEL
 # ==============================================================================
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    # --- THIS WAS MISSING: The Workflow Trigger Field ---
-    workflow_step = fields.Selection([
-        ('step_1', 'Step 1'),
-        ('step_2_cols', 'Step 2 Cols'),
-        ('step_3', 'Step 3'),
-        ('step_4', 'Step 4'),
-        ('step_5', 'Step 5'),
-        ('step_6', 'Step 6'),
-        ('step_8', 'Step 8'),
-        ('step_9', 'Step 9'),
-        ('step_10', 'Step 10'),
-        ('residential_task_1', 'Residential Task 1'),
-        ('residential_task_2', 'Residential Task 2'),
-        ('residential_task_3', 'Residential Task 3'),
-        ('residential_task_4', 'Residential Task 4'),
-        ('residential_task_5', 'Residential Task 5'),
-        ('residential_task_6_muni_approve', 'Residential Task 6 Muni Approval'),
-        ('residential_task_6_admin_finish', 'Residential Task 6 Admin Finish'),
-        ('residential_task_7', 'Residential Task 7'),
-        ('residential_task_8', 'Residential Task 8'),
-    ], string="Workflow Trigger", readonly=True)
+    # تحويل الحقل إلى نص لجعله ديناميكياً ودعم كل رموز المهام الجديدة
+    workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
 
     phase_ids = fields.One2many('project.task.phase', 'task_id', string='مراحل التنفيذ (Phases)')
 
@@ -575,10 +573,10 @@ class ProjectTask(models.Model):
         """ Loads the default checklist based on building type """
         for task in self:
             if task.phase_ids:
-                continue # Don't overwrite if they already loaded it
+                continue 
 
             seq = 10
-            phases_data = [
+            phases_data =[
                 ('مرحله الحفر', 'عام (General)'),
                 ('مرحله القواعد والشناجات', 'عام (General)'),
                 ('مرحله حوائط السرداب', 'السرداب (Basement)'),
@@ -593,7 +591,7 @@ class ProjectTask(models.Model):
                 ('مرحله صب سقف السطح', 'السطح (Roof)'),
             ]
 
-            phases_to_create = []
+            phases_to_create =[]
             for name, category in phases_data:
                 phases_to_create.append((0, 0, {
                     'name': name,
@@ -609,7 +607,6 @@ class ProjectTask(models.Model):
         self.ensure_one()
         completed_phases = self.phase_ids.filtered(lambda p: p.is_completed)
         
-        # Group by floor_category while preserving order
         grouped = {}
         for phase in completed_phases:
             cat = phase.floor_category
@@ -620,6 +617,7 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         res = super(ProjectTask, self).write(vals)
+        # إذا تم تحديث حالة المهمة لتصبح منجزة (قم بتعديل '1_done' أو '03_approved' لتطابق حالات سيستمك)
         if 'state' in vals and vals['state'] in ['03_approved', '1_done']:
             for task in self:
                 if task.workflow_step and task.project_id:
@@ -651,18 +649,12 @@ class ProjectTask(models.Model):
         
     @api.model
     def _send_periodic_task_reminders(self):
-        """ 
-        Runs every 10 hours. 
-        Counts open tasks for each user and sends an Odoo Inbox notification. 
-        """
-        # 1. Search for all tasks that are NOT in a "folded" stage (meaning they are still open)
-        # and have at least one user assigned.
+        """ Runs every 10 hours """
         open_tasks = self.search([
             ('stage_id.fold', '=', False), 
             ('user_ids', '!=', False)
         ])
 
-        # 2. Count how many tasks each user has
         user_task_counts = {}
         for task in open_tasks:
             for user in task.user_ids:
@@ -670,10 +662,8 @@ class ProjectTask(models.Model):
                     user_task_counts[user] = 0
                 user_task_counts[user] += 1
 
-        # 3. Send a notification to each user who has tasks
         for user, count in user_task_counts.items():
             if count > 0:
-                # The message they will receive
                 message = f"""
                 <div style="direction: rtl; text-align: right;">
                     <strong>مرحباً {user.name}،</strong><br/>
@@ -681,14 +671,12 @@ class ProjectTask(models.Model):
                     يرجى مراجعة قائمة المهام الخاصة بك وإنجازها.
                 </div>
                 """
-                
-                # Send to their Odoo Inbox (Chat bubble icon)
                 user.partner_id.message_post(
                     body=message,
                     subject="تذكير بالمهام (Task Reminder)",
                     message_type='notification',
                     subtype_xmlid='mail.mt_comment',
-                    author_id=self.env.ref('base.partner_root').id, # Sends it from the System/Admin
+                    author_id=self.env.ref('base.partner_root').id,
                 )
 
 # ==============================================================================
