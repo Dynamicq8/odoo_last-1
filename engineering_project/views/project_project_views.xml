@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
     <!-- ============================================= -->
     <!--  1. MAIN PROJECT FORM (TEAM & BUTTONS)         -->
     <!-- ============================================= -->
@@ -59,6 +60,7 @@
         </field>
     </record>
 
+
     <!-- ====================================================== -->
     <!--  2. TASK FORM (BUTTONS AND DYNAMIC CHECKLIST TABS)     -->
     <!-- ====================================================== -->
@@ -70,15 +72,25 @@
             
             <xpath expr="//header" position="inside">
                 <button name="%(engineering_project.action_report_initial_design_form)d" 
-                        string="طباعة نموذج المشروع (Print PDF)" type="action" class="btn-primary"/>
+                        string="طباعة نموذج المشروع (Print PDF)" 
+                        type="action" 
+                        class="btn-primary"/>
+
                 <button name="action_send_task_form_whatsapp" 
-                        string="إرسال واتساب (WhatsApp)" type="object" class="btn-success" icon="fa-whatsapp"/>
+                        string="إرسال واتساب (WhatsApp)" 
+                        type="object" 
+                        class="btn-success" 
+                        icon="fa-whatsapp"/>
+
                 <button name="action_view_parent_project"
-                        string="الذهاب للمشروع (Go to Project)" type="object" icon="fa-briefcase"/>
+                        string="الذهاب للمشروع (Go to Project)" 
+                        type="object" 
+                        icon="fa-briefcase"/>
             </xpath>
 
             <xpath expr="//notebook" position="inside">
                 <page string="نموذج مكونات المشروع" name="project_details_form">
+                    
                     <field name="workflow_step" invisible="1"/>
                     
                     <group>
@@ -86,15 +98,21 @@
                             <field name="project_components_completed" widget="boolean_toggle"/>
                         </group>
                     </group>
+
                     <group string="تفاصيل ومكونات المشروع">
-                        <field name="project_components_text" widget="text" nolabel="1" 
+                        <field name="project_components_text" 
+                               widget="text" 
+                               nolabel="1" 
                                placeholder="اكتب مكونات وتفاصيل المشروع هنا بوضوح..." 
                                style="min-height: 250px; font-size: 15px;"/>
                     </group>
+
                 </page>
             </xpath>
+
         </field>
     </record>
+
 
     <!-- ====================================================== -->
     <!--  3. TASK KANBAN (DISABLE UNASSIGNED TASKS)             -->
@@ -104,14 +122,24 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
-            <!-- تعريف الحقل قبل جزء القوالب ليتم قراءته في واجهة كانبان -->
-            <xpath expr="//templates" position="before">
+
+            <!-- Add field to kanban -->
+            <xpath expr="//kanban" position="inside">
                 <field name="is_current_user_assigned"/>
             </xpath>
-            <!-- استهداف العنصر الأب في Odoo 17 مباشرة بدون البحث عن الكلاس -->
-            <xpath expr="//t[@t-name='kanban-box']/div" position="attributes">
-                <attribute name="t-attf-style">#{record.is_current_user_assigned.raw_value ? '' : 'pointer-events: none; opacity: 0.6;'}</attribute>
+
+            <!-- Define style condition -->
+            <xpath expr="//kanban/templates/t[@t-name='kanban-box']" position="inside">
+                <t t-set="disabled_style"
+                   t-value="'' if record.is_current_user_assigned.raw_value else 'pointer-events: none; opacity: 0.6;'"/>
             </xpath>
+
+            <!-- Apply to main card -->
+            <xpath expr="//kanban/templates/t[@t-name='kanban-box']//div[contains(@class, 'o_kanban_record')]" position="attributes">
+                <attribute name="t-att-style">disabled_style</attribute>
+            </xpath>
+
         </field>
     </record>
+
 </odoo>
