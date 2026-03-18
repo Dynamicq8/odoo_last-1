@@ -1,4 +1,4 @@
-man something wrong is happening here the workflow doesn't start at all no matter what i have did everything when i create project and click start workflow it should create teh first task based on the type an service type that doesn't happen ti doesn't create hte stages or the tasks :  # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 import datetime
