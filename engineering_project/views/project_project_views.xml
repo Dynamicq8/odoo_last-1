@@ -10,22 +10,18 @@
         <field name="arch" type="xml">
             
             <xpath expr="//header" position="inside">
-                <!-- ODOO 17 SYNTAX: Use 'invisible' attribute directly -->
                 <button name="action_start_workflow" 
                         string="بدء سير العمل (Start Workflow)" 
                         type="object" 
                         class="btn-primary" 
                         invisible="workflow_started == True or id == False"
-                        help="Creates the initial tasks for this project's workflow."/>
+                        help="Creates all tasks for this project's workflow."/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="sale_order_id" readonly="1"/>
                 
-                <!-- This field is now required for the button's visibility -->
                 <field name="workflow_started" invisible="1"/>
-                
-                <!-- The new field to track progress (can be left hidden) -->
                 <field name="triggered_steps" invisible="1"/>
                 
                 <group string="فريق العمل (Project Team)">
@@ -73,31 +69,43 @@
         <field name="arch" type="xml">
             
             <xpath expr="//header" position="inside">
+                <!-- إخفاء الأزرار إذا كانت المهمة مقفلة -->
                 <button name="%(engineering_project.action_report_initial_design_form)d" 
-                        string="طباعة نموذج المشروع (Print PDF)" type="action" class="btn-primary"/>
+                        string="طباعة نموذج المشروع (Print PDF)" type="action" class="btn-primary"
+                        invisible="is_disabled"/>
                 <button name="action_send_task_form_whatsapp" 
-                        string="إرسال واتساب (WhatsApp)" type="object" class="btn-success" icon="fa-whatsapp"/>
+                        string="إرسال واتساب (WhatsApp)" type="object" class="btn-success" icon="fa-whatsapp"
+                        invisible="is_disabled"/>
                 <button name="action_view_parent_project"
                         string="الذهاب للمشروع (Go to Project)" type="object" icon="fa-briefcase"/>
             </xpath>
 
+            <!-- رسالة تنبيه للمهمة المقفلة -->
+            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+                <field name="is_disabled" invisible="1"/>
+                <div class="alert alert-danger text-center" role="alert" invisible="not is_disabled" style="margin-bottom: 10px;">
+                    <i class="fa fa-lock fa-2x"/> <br/>
+                    <strong>هذه المهمة مقفلة (Disabled)!</strong><br/>
+                    يرجى الانتهاء من المهام السابقة في سير العمل حتى يتم تفعيل هذه المهمة تلقائياً.
+                </div>
+            </xpath>
+
             <xpath expr="//notebook" position="inside">
                 <page string="نموذج مكونات المشروع" name="project_details_form">
-                    <!-- HIDDEN WORKFLOW TRIGGER -->
                     <field name="workflow_step" invisible="1"/>
                     
                     <div class="mb-3 mt-2">
+                        <!-- زر تحميل المراحل مخفي إذا كانت المهمة مقفلة -->
                         <button name="action_load_default_phases" type="object" 
                                 string="تحميل المراحل الافتراضية (Load Default Phases)" 
                                 class="btn-secondary" icon="fa-list-ol"
-                                invisible="phase_ids != []"/>
+                                invisible="phase_ids != [] or is_disabled"/>
                         <span class="text-muted ms-3">
                             <i class="fa fa-info-circle"/> للمشاريع الاستثمارية/التجارية، يمكنك إضافة أدوار ومراحل جديدة يدوياً من الأسفل.
                         </span>
                     </div>
 
-                    <!-- DYNAMIC CHECKLIST TABLE -->
-                    <field name="phase_ids" context="{'default_task_id': active_id}">
+                    <field name="phase_ids" context="{'default_task_id': active_id}" readonly="is_disabled">
                         <tree editable="bottom" decoration-success="is_completed==True" decoration-muted="is_completed==False">
                             <field name="sequence" widget="handle"/>
                             <field name="floor_category" placeholder="مثال: الدور الثالث"/>
@@ -106,6 +114,28 @@
                         </tree>
                     </field>
                 </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ====================================================== -->
+    <!--  3. TASK KANBAN (إظهار علامة القفل للمهام المعطلة)      -->
+    <!-- ====================================================== -->
+    <record id="view_task_kanban_engineering" model="ir.ui.view">
+        <field name="name">project.task.kanban.engineering</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <!-- جلب حقل is_disabled للواجهة لاستخدامه -->
+            <xpath expr="//templates//field[@name='name']" position="after">
+                <field name="is_disabled" invisible="1"/>
+            </xpath>
+            
+            <!-- إضافة علامة القفل والنص بجوار عنوان المهمة -->
+            <xpath expr="//div[hasclass('o_kanban_record_title')]" position="after">
+                <div invisible="not is_disabled" class="text-danger mt-1" style="font-weight: bold; font-size: 11px;">
+                    <i class="fa fa-lock"/> مقفلة (بانتظار المهام السابقة)
+                </div>
             </xpath>
         </field>
     </record>
