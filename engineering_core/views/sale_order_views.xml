@@ -5,18 +5,21 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
+
                 <!-- Project Details Section -->
                 <group string="بيانات المشروع (Project Details)">
-                    <!-- Each field gets its own sub-group or direct field placement to force vertical -->
                     <field name="building_type"/>
                     <field name="service_type"/>
+                    
+                    <!-- THIS IS THE NEW POSITION FOR THE PACKAGE FIELD -->
+                    <field name="engineering_package_id" 
+                           options="{'no_create': True, 'no_open': True}"
+                           placeholder="اختر باقة هندسية..."/>
                 </group>
 
-                <!-- Location Details Section - Focus on forcing vertical stacking here -->
+                <!-- Location Details Section -->
                 <group string="تفاصيل الموقع (Location Details)">
-                    <!-- New Governorate field -->
                     <field name="governorate_id" required="True" options="{'no_create': True, 'no_open': True}"/>
-                    <!-- New Region field with domain to filter by selected governorate -->
                     <field name="region_id" 
                            domain="[('governorate_id', '=', governorate_id)]" 
                            required="True" 
@@ -26,7 +29,14 @@
                     <field name="street_no"/>
                     <field name="plot_no"/>
                 </group>
+                
             </xpath>
         </field>
     </record>
+
+    <!-- 
+      IMPORTANT:
+      You can now DELETE the other record 'view_order_form_inherit_engineering_package'.
+      If it was in its own XML file, you can delete that entire file.
+    -->
 </odoo>
