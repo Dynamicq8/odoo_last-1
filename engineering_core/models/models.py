@@ -16,6 +16,20 @@ class KuwaitRegion(models.Model):
     name = fields.Char(string="المنطقة", required=True)
     governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة", ondelete='cascade')
 
+# ==============================================================================
+#  NEW MODEL FOR ENGINEERING PACKAGE
+# ==============================================================================
+class EngineeringPackage(models.Model):
+    _name = 'engineering.package'
+    _description = 'Engineering Package'
+
+    name = fields.Char(string="اسم الباقة الهندسية", required=True)
+    code = fields.Char(string="كود الباقة", copy=False, default='جديد') # Example: Add a code
+    # You can add other fields relevant to an engineering package here, e.g.:
+    # description = fields.Text(string="وصف الباقة")
+    # price = fields.Float(string="السعر")
+    # active = fields.Boolean(string="نشط", default=True)
+
 
 # ==============================================================================
 #  RES PARTNER (Customer Profile)
@@ -59,6 +73,16 @@ class SaleOrder(models.Model):
     governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة", store=True)
     region_id = fields.Many2one('kuwait.region', string="المنطقة (Region)", store=True)
 
+    # ADD THIS FIELD:
+    engineering_package_id = fields.Many2one(
+        'engineering.package',  # This links to the new model defined above
+        string="Engineering Package",
+        help="Select the engineering package for this sale order",
+        index=True,
+        ondelete='restrict', # Consider 'set null' if a package can be deleted without breaking sales
+        store=True,
+    )
+
     # Automatically pull these details from the Customer when creating a Quotation
     @api.onchange('partner_id')
     def _onchange_partner_id_engineering_fields(self):
@@ -71,3 +95,5 @@ class SaleOrder(models.Model):
             self.area = self.partner_id.area
             self.governorate_id = self.partner_id.governorate_id
             self.region_id = self.partner_id.region_id
+            # You might also want to set a default engineering_package_id here
+            # if there's a logic for that, but it's optional.
