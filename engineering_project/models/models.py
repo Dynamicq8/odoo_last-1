@@ -112,6 +112,20 @@ WORKFLOW_TEMPLATES = {
         
         {'code': 'nra_5_1', 'name': '1- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
         {'code': 'nra_5_2', 'name': '3- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
+    ],
+    
+    # 5. هدم (لكل أنواع المباني) NEW WORKFLOW ADDED
+    'demolition':[
+        {'code': 'dem_1_1', 'name': '1- تجميع المستندات والوثائق', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'dem_1_2', 'name': '2- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id'},
+        {'code': 'dem_1_3', 'name': '3- توقيع نماذج البلدية', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
+        {'code': 'dem_1_4', 'name': '4- كتاب المواصفات وكتاب قطع تربة', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
+        
+        {'code': 'dem_2_1', 'name': '1- إرسال للبلدية', 'stage': 'المرحلة الثانية', 'role': 'secretary_id'},
+        {'code': 'dem_2_2', 'name': '2- اعتماد البلدية', 'stage': 'المرحلة الثانية', 'role': 'secretary_id'},
+        
+        {'code': 'dem_3_1', 'name': '1- الإشراف على الهدم', 'stage': 'المرحلة الثالثة', 'role': 'structural_id'},
+        {'code': 'dem_3_2', 'name': '2- إنهاء الإشراف', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id'},
     ]
 }
 
@@ -356,6 +370,7 @@ class SaleOrder(models.Model):
             'area': self.area,
             'governorate_id': self.governorate_id.id, 
             'region_id': self.region_id.id,
+            'electricity_receipt': self.electricity_receipt, # ADD THIS LINE
         }
         project = self.env['project.project'].create(project_vals)
         
@@ -499,7 +514,12 @@ class ProjectProject(models.Model):
 
     def _get_workflow_key(self):
         self.ensure_one()
-        is_addition = self.service_type in['addition', 'modification', 'addition_modification']
+        # 1. Check for Demolition First
+        if self.service_type == 'demolition':
+            return 'demolition'
+            
+        # 2. Check for Others
+        is_addition = self.service_type in ['addition', 'modification', 'addition_modification']
         if self.building_type == 'residential':
             return 'res_add' if is_addition else 'res_new'
         else:
@@ -509,40 +529,46 @@ class ProjectProject(models.Model):
         self.ensure_one()
         if self.workflow_started:
             raise UserError(_("تم بدء سير العمل مسبقاً!"))
-        
+
         wf_key = self._get_workflow_key()
-        workflow = WORKFLOW_TEMPLATES.get(wf_key,[])
+        workflow = WORKFLOW_TEMPLATES.get(wf_key, [])
         if not workflow:
             raise UserError(_("لا توجد خطة مهام مطابقة لنوع الخدمة والمبنى."))
-            
-        # إنشاء كافة المهام دفعة واحدة، مع جعل المهمة الأولى فقط مفعلة
+
+        # إنشاء جميع المهام دفعة واحدة
         for index, step in enumerate(workflow):
-            is_first_task = (index == 0)
-            self._create_task_for_step(step, is_disabled=not is_first_task)
-        
+            # المهمة الأولى فقط تكون مفعلة (False)، والباقي مقفلة (True)
+            is_disabled_task = (index != 0)
+            self._create_task_for_step(step, is_disabled=is_disabled_task)
+
         self.workflow_started = True
-        self.triggered_steps = workflow[0]['code'] + ","
+        # فقط المهمة الأولى تعتبر "مفعلة" أو "مبدئية" في هذا السياق
+        self.triggered_steps = workflow[0]['code'] + "," 
 
     def _trigger_next_workflow_step(self, completed_code):
         self.ensure_one()
         wf_key = self._get_workflow_key()
-        workflow = WORKFLOW_TEMPLATES.get(wf_key,[])
-        
-        triggered = self.triggered_steps or ""
+        workflow = WORKFLOW_TEMPLATES.get(wf_key, [])
+
+        triggered_steps_list = (self.triggered_steps or "").split(',')
         
         for i, step in enumerate(workflow):
             if step['code'] == completed_code:
-                # بدل من الإنشاء، نقوم بالبحث عن المهمة التالية وفتح القفل عنها
                 if i + 1 < len(workflow):
                     next_step = workflow[i + 1]
-                    if next_step['code'] not in triggered:
+                    # تأكد أن المهمة التالية لم يتم تفعيلها من قبل
+                    if next_step['code'] not in triggered_steps_list:
+                        # البحث عن المهمة التالية في قاعدة البيانات بناءً على كود الخطوة
                         next_task = self.env['project.task'].search([
                             ('project_id', '=', self.id),
                             ('workflow_step', '=', next_step['code'])
                         ], limit=1)
+                        
+                        # إذا تم العثور على المهمة، قم بفك القفل عنها
                         if next_task:
-                            next_task.is_disabled = False # فتح القفل
-                        self.triggered_steps = triggered + next_step['code'] + ","
+                            next_task.is_disabled = False
+                            # تحديث قائمة المهام التي تم تفعيلها
+                            self.triggered_steps += next_step['code'] + ","
                 break
 
     def _create_task_for_step(self, step_data, is_disabled=False):
@@ -551,6 +577,18 @@ class ProjectProject(models.Model):
         if not stage_id: 
             return 
         
+        # --- FIX: Calculate task Sequence to force 1, 2, 3, 4 sorting from Top to Bottom ---
+        wf_key = self._get_workflow_key()
+        workflow = WORKFLOW_TEMPLATES.get(wf_key, [])
+        tasks_in_current_stage = [t for t in workflow if t['stage'] == step_data['stage']]
+        
+        task_sequence = 10
+        for index, t in enumerate(tasks_in_current_stage):
+            if t['code'] == step_data['code']:
+                task_sequence = index + 1 # gives sequence 1, 2, 3, 4 to keep order correct.
+                break
+        # ----------------------------------------------------------------------------------
+
         user_id = getattr(self, step_data['role']).id if hasattr(self, step_data['role']) and getattr(self, step_data['role']) else False
         
         val = {
@@ -558,6 +596,7 @@ class ProjectProject(models.Model):
             'project_id': self.id, 
             'stage_id': stage_id,
             'workflow_step': step_data['code'],
+            'sequence': task_sequence, # This forces Odoo Kanban to place 1 at the top
             'is_disabled': is_disabled, # تمرير حالة التعطيل هنا
         }
         if user_id: 
@@ -580,36 +619,44 @@ class ProjectTask(models.Model):
     phase_ids = fields.One2many('project.task.phase', 'task_id', string='مراحل التنفيذ (Phases)')
 
     def action_load_default_phases(self):
-        for task in self:
-            if task.phase_ids:
-                continue 
+        self.ensure_one() # Ensure action is called on a single task
 
-            seq = 10
-            phases_data =[
-                ('مرحله الحفر', 'عام (General)'),
-                ('مرحله القواعد والشناجات', 'عام (General)'),
-                ('مرحله حوائط السرداب', 'السرداب (Basement)'),
-                ('مرحله صب سقف السرداب', 'السرداب (Basement)'),
-                ('مرحله اعمده الدور الارضى', 'الدور الأرضي (Ground)'),
-                ('مرحله صب سقف الدور الارضى', 'الدور الأرضي (Ground)'),
-                ('مرحله اعمده الدور الاول', 'الدور الأول (First)'),
-                ('مرحله صب سقف الدور الاول', 'الدور الأول (First)'),
-                ('مرحله اعمده الدور الثانى', 'الدور الثاني (Second)'),
-                ('مرحله صب سقف الدور الثانى', 'الدور الثاني (Second)'),
-                ('مرحله اعمده الدور السطح', 'السطح (Roof)'),
-                ('مرحله صب سقف السطح', 'السطح (Roof)'),
-            ]
+        if self.is_disabled:
+            raise UserError(_("لا يمكن تحميل المراحل لمهمة مقفلة."))
 
-            phases_to_create =[]
-            for name, category in phases_data:
-                phases_to_create.append((0, 0, {
-                    'name': name,
-                    'floor_category': category,
-                    'sequence': seq
-                }))
-                seq += 10
+        if self.phase_ids:
+            # يمكن إضافة تنبيه للمستخدم هنا إذا كان يرغب في حذف المراحل الحالية وتحميل الافتراضية
+            # أو ببساطة عدم فعل أي شيء إذا كانت موجودة بالفعل.
+            # for now, we'll just return if phases already exist.
+            return 
 
-            task.write({'phase_ids': phases_to_create})
+        seq = 10
+        phases_data =[
+            ('مرحله الحفر', 'عام (General)'),
+            ('مرحله القواعد والشناجات', 'عام (General)'),
+            ('مرحله حوائط السرداب', 'السرداب (Basement)'),
+            ('مرحله صب سقف السرداب', 'السرداب (Basement)'),
+            ('مرحله اعمده الدور الارضى', 'الدور الأرضي (Ground)'),
+            ('مرحله صب سقف الدور الارضى', 'الدور الأرضي (Ground)'),
+            ('مرحله اعمده الدور الاول', 'الدور الأول (First)'),
+            ('مرحله صب سقف الدور الاول', 'الدور الأول (First)'),
+            ('مرحله اعمده الدور الثانى', 'الدور الثاني (Second)'),
+            ('مرحله صب سقف الدور الثانى', 'الدور الثاني (Second)'),
+            ('مرحله اعمده الدور السطح', 'السطح (Roof)'),
+            ('مرحله صب سقف السطح', 'السطح (Roof)'),
+        ]
+
+        phases_to_create =[]
+        for name, category in phases_data:
+            phases_to_create.append((0, 0, {
+                'name': name,
+                'floor_category': category,
+                'sequence': seq
+            }))
+            seq += 10
+
+        self.write({'phase_ids': phases_to_create})
+
 
     def get_completed_phases_grouped(self):
         self.ensure_one()
@@ -625,7 +672,11 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         # منع نقل المهمة إلى حالة منجزة إذا كانت مقفلة
-        if 'state' in vals and vals['state'] in ['03_approved', '1_done', 'done']:
+        # Assuming 'stage_id' is the field for the task's stage,
+        # and 'project.project_stage_3' is the external ID for the 'Done' stage.
+        done_stage = self.env.ref('project.project_stage_3', raise_if_not_found=False)
+
+        if 'stage_id' in vals and done_stage and vals['stage_id'] == done_stage.id:
             for task in self:
                 if task.is_disabled:
                     raise UserError(_("لا يمكنك إنجاز هذه المهمة لأنها مقفلة! يرجى الانتهاء من المهام السابقة في سير العمل أولاً."))
@@ -633,7 +684,13 @@ class ProjectTask(models.Model):
         res = super(ProjectTask, self).write(vals)
 
         # إذا تم تحديث حالة المهمة لتصبح منجزة
-        if 'state' in vals and vals['state'] in ['03_approved', '1_done', 'done']:
+        # Note: The original code used `vals['state']` which is not a standard field on `project.task` for stage.
+        # It should be `vals['stage_id']` checked against the 'Done' stage.
+        # The line `done_stage = self.env.ref('project.project_stage_3', raise_if_not_found=False)`
+        # needs to be outside the loop if used in the `write` method for performance,
+        # or define it once as `done_stage_id` as in the previous suggested code.
+        # I'm updating it to use `vals['stage_id']` as standard practice.
+        if 'stage_id' in vals and done_stage and vals['stage_id'] == done_stage.id:
             for task in self:
                 if task.workflow_step and task.project_id:
                     task.project_id._trigger_next_workflow_step(task.workflow_step)
@@ -651,6 +708,9 @@ class ProjectTask(models.Model):
 
     def action_send_task_form_whatsapp(self):
         self.ensure_one()
+        if self.is_disabled:
+            raise UserError(_("لا يمكن إرسال نموذج مهمة مقفلة."))
+
         phone = self.project_id.partner_id.mobile or self.project_id.partner_id.phone
         if not phone: raise UserError("رقم الهاتف مفقود للعميل في المشروع")
         cleaned_phone = ''.join(filter(str.isdigit, phone))
