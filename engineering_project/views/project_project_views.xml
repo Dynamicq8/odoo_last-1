@@ -132,7 +132,7 @@
             </xpath>
             
             <!-- إضافة علامة القفل والنص بجوار عنوان المهمة -->
-            <xpath expr="//div[hasclass('o_kanban_record_title')]" position="after">
+            <xpath expr="//strong[hasclass('o_kanban_record_title')]" position="after">
                 <div invisible="not is_disabled" class="text-danger mt-1" style="font-weight: bold; font-size: 11px;">
                     <i class="fa fa-lock"/> مقفلة (بانتظار المهام السابقة)
                 </div>
