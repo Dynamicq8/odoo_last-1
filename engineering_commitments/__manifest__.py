@@ -8,13 +8,12 @@
         'base',
         'sign',
         'project',
-        'engineering_project', # Assuming your custom project fields are here
+        'engineering_project_enhancements', # Pointing to the main module name
     ],
     'data': [
         'security/ir.model.access.csv',
         'views/sign_template_views.xml',
-                'reports/project_commitment_report.xml', # <-- NEW FILE
-
+        'reports/project_commitment_report.xml',
         'views/project_task_views.xml',
     ],
      'assets': {
