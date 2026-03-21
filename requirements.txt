@@ -1,4 +1,5 @@
 # Python dependencies for Engineering Office ERP modules
 # Odoo.sh will install these automatically
 
-# No additional dependencies required - uses standard Odoo 17 libraries
+arabic-reshaper
+python-bidi
