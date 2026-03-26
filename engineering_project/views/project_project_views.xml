@@ -99,7 +99,7 @@
                         <button name="action_load_default_phases" type="object" 
                                 string="تحميل المراحل الافتراضية (Load Default Phases)" 
                                 class="btn-secondary" icon="fa-list-ol"
-                                invisible="phase_ids != [] or is_disabled"/>
+                                invisible="phase_ids !=[] or is_disabled"/>
                         <span class="text-muted ms-3">
                             <i class="fa fa-info-circle"/> للمشاريع الاستثمارية/التجارية، يمكنك إضافة أدوار ومراحل جديدة يدوياً من الأسفل.
                         </span>
@@ -109,7 +109,10 @@
                         <tree editable="bottom" decoration-success="is_completed==True" decoration-muted="is_completed==False">
                             <field name="sequence" widget="handle"/>
                             <field name="floor_category" placeholder="مثال: الدور الثالث"/>
-                            <field name="name" placeholder="مثال: مرحلة أعمدة الدور الثالث"/>
+                            
+                            <!-- ⬇️ التعديل تم هنا: إضافة widget="text" ⬇️ -->
+                            <field name="name" widget="text" placeholder="مثال: مرحلة أعمدة الدور الثالث"/>
+                            
                             <field name="is_completed" widget="boolean_toggle"/>
                         </tree>
                     </field>
