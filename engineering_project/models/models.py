@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _, http
 from odoo.exceptions import UserError, ValidationError
 import datetime
 import urllib.parse
+import base64
+import io
+from PIL import Image
 
 # ==============================================================================
 #  WORKFLOW TEMPLATES (خرائط سير العمل)
@@ -625,8 +628,16 @@ class ProjectTask(models.Model):
     is_disabled = fields.Boolean(string="مقفلة (Disabled)", default=False)
     phase_ids = fields.One2many('project.task.phase', 'task_id', string='مراحل التنفيذ (Phases)')
 
-    # --- NEW FIELDS ADDED HERE ---
-    sketch_image = fields.Image(string="Sketch / رسم كروكي")
+    # --- NEW SKETCH-RELATED FIELDS ADDED HERE ---
+    sketch_ids = fields.One2many('project.task.sketch', 'task_id', string="Sketches")
+    sketch_count = fields.Integer(compute='_compute_sketch_count', string="Number of Sketches")
+
+    @api.depends('sketch_ids')
+    def _compute_sketch_count(self):
+        for task in self:
+            task.sketch_count = len(task.sketch_ids)
+    # --- END OF NEW SKETCH-RELATED FIELDS ---
+
     proof_attachment_ids = fields.Many2many(
         'ir.attachment',
         'project_task_ir_attachments_rel', # Explicit join table name
@@ -634,7 +645,6 @@ class ProjectTask(models.Model):
         'attachment_id', 
         string="اثباتات (Attachments)"
     )
-    # --- END OF NEW FIELDS ---
 
     def action_load_default_phases(self):
         self.ensure_one() 
@@ -776,6 +786,20 @@ class ProjectTask(models.Model):
                 )
 
 # ==============================================================================
+#  NEW MODEL: project.task.sketch
+# ==============================================================================
+class ProjectTaskSketch(models.Model):
+    _name = 'project.task.sketch'
+    _description = 'Project Task Sketch'
+    _order = 'create_date desc'
+
+    task_id = fields.Many2one('project.task', string='Task', ondelete='cascade', required=True)
+    name = fields.Char(string='Sketch Name', required=True, default=lambda self: _('New Sketch %s') % datetime.datetime.now().strftime('%Y-%m-%d %H:%M'))
+    sketch_image = fields.Binary(string="Sketch Image", attachment=True)
+    created_by_id = fields.Many2one('res.users', string='Created By', default=lambda self: self.env.user, readonly=True)
+    create_date = fields.Datetime(string='Creation Date', readonly=True)
+
+# ==============================================================================
 #  IR ATTACHMENT MODEL (NEW)
 # ==============================================================================
 class IrAttachment(models.Model):
@@ -836,5 +860,8 @@ class ProjectTaskPhase(models.Model):
     task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
     sequence = fields.Integer(string='التسلسل', default=10)
     floor_category = fields.Char(string='الدور (Floor)', required=True)
-    name = fields.Char(string='المرحلة (Phase)', required=True)
+    
+    # *** CHANGE THIS LINE ***
+    name = fields.Text(string='المرحلة (Phase)', required=True) 
+    
     is_completed = fields.Boolean(string='تم (Completed)', default=False)

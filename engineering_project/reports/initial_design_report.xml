@@ -77,6 +77,22 @@
                                 </div>
                             </t>
 
+                            <!-- Add Sketches to PDF Report -->
+                            <t t-if="doc.sketch_ids">
+                                <h4 class="mt-4">الرسومات الكروكية:</h4>
+                                <t t-foreach="doc.sketch_ids" t-as="sketch">
+                                    <div style="border: 2px solid black; padding: 10px; margin-bottom: 10px; page-break-inside: avoid;">
+                                        <h5 style="text-align: center; margin-bottom: 10px;"><span t-field="sketch.name"/></h5>
+                                        <t t-if="sketch.sketch_image">
+                                            <img t-attf-src="data:image/png;base64,{{sketch.sketch_image}}" style="max-width: 100%; height: auto; display: block; margin: 0 auto;"/>
+                                        </t>
+                                        <t t-else="">
+                                            <p style="text-align: center; color: gray;">لا يوجد رسم كروكي لهذا الإدخال.</p>
+                                        </t>
+                                    </div>
+                                </t>
+                            </t>
+
                         </div>
                     </div>
                 </t>

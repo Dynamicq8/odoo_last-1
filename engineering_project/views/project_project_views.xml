@@ -115,14 +115,34 @@
                     </field>
                 </page>
 
-                <!-- ================== NEW TAB 1: SKETCH PAD ================== -->
-                <page string="رسم كروكي (Sketch Pad)" name="sketch_pad">
-                    <!-- تم تصحيح اسم الويدجت ليطابق ملف الجافاسكريبت -->
-                    <field name="sketch_image" widget="sketch_pad"/>
+                <!-- ================== NEW TAB 1: SKETCHES (One2Many) ================== -->
+                <page string="رسومات كروكي (Sketches)" name="sketches">
+                    <field name="sketch_ids" nolabel="1" readonly="is_disabled">
+                        <tree>
+                            <field name="name"/>
+                            <field name="create_date" string="تاريخ الإنشاء"/>
+                            <field name="created_by_id"/>
+                            <button name="action_open_sketch_editor" type="object" icon="fa-pencil" string="تعديل" help="Open Sketch Editor"/>
+                        </tree>
+                        <form>
+                            <sheet>
+                                <group>
+                                    <field name="name"/>
+                                    <field name="created_by_id" readonly="1"/>
+                                    <field name="create_date" readonly="1"/>
+                                </group>
+                                <separator string="Sketch Pad"/>
+                                <!-- The new sketch_pad widget points to the sketch_image field of the current sketch record -->
+                                <field name="sketch_image" widget="sketch_pad_editor" style="width: 100%; height: 500px;"/>
+                            </sheet>
+                        </form>
+                    </field>
+                    <button name="action_create_new_sketch" type="object" string="إضافة رسم كروكي جديد" class="oe_highlight" icon="fa-plus-circle" invisible="is_disabled"/>
+                    <field name="sketch_count" invisible="1"/>
                 </page>
 
                 <!-- ================== NEW TAB 2: ATTACHMENTS ================= -->
-                <page string="اثباتات (Proofs)" name="proofs_attachments">
+                <page string="مرفقات" name="proofs_attachments">
                     <p class="text-muted">
                         قم برفع صور، ملفات PDF، أو أي مستندات أخرى كإثباتات للمهمة. (اضغط على إضافة سطر للرفع)
                     </p>
@@ -143,6 +163,14 @@
                 </page>
             </xpath>
         </field>
+    </record>
+
+    <!-- ACTION TO OPEN SKETCH EDITOR FORM -->
+    <record id="action_project_task_sketch_form" model="ir.actions.act_window">
+        <field name="name">Sketch Editor</field>
+        <field name="res_model">project.task.sketch</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
     </record>
 
     <!-- ====================================================== -->
