@@ -442,7 +442,7 @@ class ProjectTask(models.Model):
     _inherit = 'project.task'
 
     # 1. هذا السطر يقوم بإزالة خيار 'Done' من القائمة المنسدلة نهائياً
-    state = fields.Selection(selection_add=[('1_done', None)])
+    state = fields.Selection(selection_remove=['1_done'])
 
     workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
     is_disabled = fields.Boolean(string="مقفلة (Disabled)", default=False)
