@@ -16,21 +16,19 @@ try:
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.pdfgen import canvas as reportlab_canvas
 
-    # Ensure the path is correct. Assuming this python file is inside 'models/' folder.
+    # Ensure this path points exactly to your new Arial or Tahoma font!
     current_dir = os.path.dirname(__file__)
     module_dir = os.path.dirname(current_dir)
-    font_path = os.path.join(module_dir, 'static', 'src', 'fonts', 'Amiri-Regular.ttf')
+    font_path = os.path.join(module_dir, 'static', 'src', 'fonts', 'arial.ttf')
 
     if os.path.exists(font_path):
-        pdfmetrics.registerFont(TTFont('Amiri', font_path))
-        _logger.info("✅ ARABIC FIX: Amiri font loaded perfectly.")
+        # We register it as 'ArabicFont' to make it universal
+        pdfmetrics.registerFont(TTFont('ArabicFont', font_path))
+        _logger.info("✅ ARABIC FIX: Arial/Tahoma font loaded perfectly.")
         _ARABIC_ENABLED = True
     else:
-        # If you see this in your Odoo log, you MUST fix the font file location!
         _logger.error(f"❌ ARABIC FIX: Font NOT found! Looked here: {font_path}")
 
-except ImportError:
-    _logger.error("❌ ARABIC FIX: Missing libraries! Please run: pip install arabic-reshaper python-bidi")
 except Exception as e:
     _logger.error(f"❌ ARABIC FIX: Error during setup: {e}")
 
@@ -39,6 +37,14 @@ except Exception as e:
 # 🔥 PATCH REPORTLAB DIRECTLY FOR RTL ARABIC
 # ================================
 if _ARABIC_ENABLED:
+    # We configure the reshaper explicitly to FORCE ligatures (connected letters)
+    reshaper_config = {
+        'delete_harakat': True,
+        'support_ligatures': True,
+        'use_unshaped_instead_of_isolated': False,
+    }
+    reshaper = arabic_reshaper.ArabicReshaper(configuration=reshaper_config)
+
     try:
         original_drawString = reportlab_canvas.Canvas.drawString
         original_drawRightString = reportlab_canvas.Canvas.drawRightString
@@ -48,52 +54,50 @@ if _ARABIC_ENABLED:
             if not text or not isinstance(text, str):
                 return text, False
 
-            # Detect if text contains Arabic letters
+            # Detect Arabic letters
             is_arabic = any('\u0600' <= c <= '\u06FF' for c in text)
-
             if not is_arabic:
                 return text, False
 
-            # 1. Connect the letters properly
-            reshaped = arabic_reshaper.reshape(text)
-            # 2. Reverse the string so ReportLab (which draws Left-to-Right) prints it correctly RTL
+            # 1. Clean hidden formatting characters Odoo might inject
+            clean_text = text.replace('\u200e', '').replace('\u200f', '').replace('\u202a', '').replace('\u202b', '').replace('\u202c', '')
+
+            # 2. Reshape to connect the letters physically
+            reshaped = reshaper.reshape(clean_text)
+
+            # 3. Apply Bidi to reverse for ReportLab's Left-To-Right drawing
             bidi_text = get_display(reshaped)
             
             return bidi_text, True
 
         # Patch left-aligned drawString
         def drawString_patched(self, x, y, text, *args, **kwargs):
-            text, is_arabic = _process_arabic_text(text)
-
+            text_to_draw, is_arabic = _process_arabic_text(text)
             if is_arabic:
-                # Safely get current font size, default to 12 if not found
                 current_size = getattr(self, '_fontsize', 12) or 12
-                self.setFont('Amiri', current_size)
-                
-                # BUG FIX: DO NOT use drawRightString here. 
-                # bidi_text is already reversed. Drawing it normally (left to right)
-                # will naturally output the Arabic word in the correct visual order!
-                return original_drawString(self, x, y, text, *args, **kwargs)
-
+                self.setFont('ArabicFont', current_size)
+                return original_drawString(self, x, y, text_to_draw, *args, **kwargs)
             return original_drawString(self, x, y, text, *args, **kwargs)
 
         # Patch right-aligned drawRightString
         def drawRightString_patched(self, x, y, text, *args, **kwargs):
-            text, is_arabic = _process_arabic_text(text)
+            text_to_draw, is_arabic = _process_arabic_text(text)
             if is_arabic:
                 current_size = getattr(self, '_fontsize', 12) or 12
-                self.setFont('Amiri', current_size)
+                self.setFont('ArabicFont', current_size)
+                return original_drawRightString(self, x, y, text_to_draw, *args, **kwargs)
             return original_drawRightString(self, x, y, text, *args, **kwargs)
 
         # Patch centered text
         def drawCentredString_patched(self, x, y, text, *args, **kwargs):
-            text, is_arabic = _process_arabic_text(text)
+            text_to_draw, is_arabic = _process_arabic_text(text)
             if is_arabic:
                 current_size = getattr(self, '_fontsize', 12) or 12
-                self.setFont('Amiri', current_size)
+                self.setFont('ArabicFont', current_size)
+                return original_drawCentredString(self, x, y, text_to_draw, *args, **kwargs)
             return original_drawCentredString(self, x, y, text, *args, **kwargs)
 
-        # Apply the patches to Reportlab globally
+        # Apply the patches
         reportlab_canvas.Canvas.drawString = drawString_patched
         reportlab_canvas.Canvas.drawRightString = drawRightString_patched
         reportlab_canvas.Canvas.drawCentredString = drawCentredString_patched
@@ -103,9 +107,6 @@ if _ARABIC_ENABLED:
     except Exception as e:
         _logger.error(f"❌ ARABIC FIX: Failed to patch canvas: {e}")
 
-else:
-    _logger.warning("⚠️ ARABIC FIX: Patch skipped because font was not found or libraries are missing.")
-
-# Required dummy model for Odoo (Keep your existing one)
+# Required dummy model for Odoo
 class SignRequestItem(models.Model):
     _inherit = 'sign.request.item'
