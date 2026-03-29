@@ -117,27 +117,25 @@
 
                 <!-- ================== NEW TAB 1: SKETCH PAD ================== -->
                 <page string="رسم كروكي (Sketch Pad)" name="sketch_pad">
-                    <!-- This field uses the custom Javascript widget we created -->
-                    <field name="sketch_image" widget="sketch_pad_widget"/>
+                    <!-- تم تصحيح اسم الويدجت ليطابق ملف الجافاسكريبت -->
+                    <field name="sketch_image" widget="sketch_pad"/>
                 </page>
 
                 <!-- ================== NEW TAB 2: ATTACHMENTS ================= -->
                 <page string="اثباتات (Proofs)" name="proofs_attachments">
                     <p class="text-muted">
-                        قم برفع صور، ملفات PDF، أو أي مستندات أخرى كإثباتات للمهمة.
+                        قم برفع صور، ملفات PDF، أو أي مستندات أخرى كإثباتات للمهمة. (اضغط على إضافة سطر للرفع)
                     </p>
-                    <!-- This widget provides a nice drag-and-drop area for uploading files -->
-                    <field name="proof_attachment_ids" widget="many2many_binary" string="Upload Files"/>
-                    
-                    <!-- This list view shows the uploaded files and adds our custom WhatsApp button -->
-                    <field name="proof_attachment_ids" mode="tree" nolabel="1">
-                         <tree>
-                            <field name="name"/>
-                            <field name="mimetype"/>
-                            <field name="create_date"/>
+                    <!-- تم دمج الحقل ليكون عبارة عن جدول يعرض الملفات ويحتوي على زر الواتساب -->
+                    <field name="proof_attachment_ids" nolabel="1">
+                         <tree editable="bottom">
+                            <field name="name" string="اسم الملف"/>
+                            <field name="mimetype" readonly="1" optional="hide"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="datas" filename="name" widget="binary" string="رفع الملف (Upload)"/>
                             <button name="action_send_attachment_whatsapp" 
                                     type="object" 
-                                    string="WhatsApp" 
+                                    string="إرسال واتساب" 
                                     icon="fa-whatsapp" 
                                     class="btn-success"/>
                          </tree>

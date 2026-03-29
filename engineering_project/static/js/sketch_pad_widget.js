@@ -2,17 +2,19 @@
 
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { ImageField } from "@web/views/fields/image/image_field";
-import { onMounted, onWillUpdateProps, onWillUnmount, useRef } from "@odoo/owl";
+import { Component, onMounted, onWillUpdateProps, onWillUnmount, useRef } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
-import { fabric } from "fabric";
+import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
-export class SketchPadWidget extends ImageField {
+// لا تقم بعمل import لـ fabric، لأنه متاح في الـ window بفضل الـ manifest
+
+export class SketchPadWidget extends Component {
     static template = "engineering_project.SketchPadWidget";
+    static props = {
+        ...standardFieldProps,
+    };
 
     setup() {
-        super.setup();
-
         this.canvasRef = useRef("canvas");
         this.colorRef = useRef("colorPicker");
         this.sizeRef = useRef("sizePicker");
@@ -25,8 +27,12 @@ export class SketchPadWidget extends ImageField {
         });
 
         onWillUpdateProps((nextProps) => {
-            if (nextProps.value && nextProps.value !== this.props.value && this.fabricCanvas) {
-                this.loadImageFromValue(nextProps.value);
+            // طريقة Odoo 17 للحصول على قيمة الحقل
+            const currentValue = this.props.record.data[this.props.name];
+            const nextValue = nextProps.record.data[nextProps.name];
+
+            if (nextValue && nextValue !== currentValue && this.fabricCanvas) {
+                this.loadImageFromValue(nextValue);
             }
         });
 
@@ -41,7 +47,8 @@ export class SketchPadWidget extends ImageField {
     initializeCanvas() {
         if (!this.canvasRef.el || !this.canvasRef.el.parentElement) return;
 
-        this.fabricCanvas = new fabric.Canvas(this.canvasRef.el, {
+        // استخدام window.fabric
+        this.fabricCanvas = new window.fabric.Canvas(this.canvasRef.el, {
             isDrawingMode: true,
             backgroundColor: "#ffffff",
             width: this.canvasRef.el.parentElement.clientWidth - 2,
@@ -49,7 +56,10 @@ export class SketchPadWidget extends ImageField {
         });
 
         this.setPenMode();
-        this.loadImageFromValue(this.props.value);
+        
+        // جلب القيمة الأولية للحقل
+        const initialValue = this.props.record.data[this.props.name];
+        this.loadImageFromValue(initialValue);
     }
 
     loadImageFromValue(value) {
@@ -59,7 +69,7 @@ export class SketchPadWidget extends ImageField {
         this.fabricCanvas.backgroundColor = "#ffffff";
 
         if (value) {
-            fabric.Image.fromURL("data:image/png;base64," + value, (img) => {
+            window.fabric.Image.fromURL("data:image/png;base64," + value, (img) => {
                 if (img.width > 0 && img.height > 0) {
                     const canvasWidth = this.fabricCanvas.width;
                     const canvasHeight = this.fabricCanvas.height;
@@ -86,7 +96,7 @@ export class SketchPadWidget extends ImageField {
         if (!this.fabricCanvas) return;
 
         this.fabricCanvas.isDrawingMode = true;
-        this.fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(this.fabricCanvas);
+        this.fabricCanvas.freeDrawingBrush = new window.fabric.PencilBrush(this.fabricCanvas);
 
         const color = this.colorRef.el ? this.colorRef.el.value : "#000000";
         const size = this.sizeRef.el ? parseInt(this.sizeRef.el.value, 10) : 5;
@@ -99,14 +109,10 @@ export class SketchPadWidget extends ImageField {
         if (!this.fabricCanvas) return;
 
         this.fabricCanvas.isDrawingMode = true;
-
-        // Fallback if EraserBrush is not available
-        if (fabric.EraserBrush) {
-            this.fabricCanvas.freeDrawingBrush = new fabric.EraserBrush(this.fabricCanvas);
-        } else {
-            this.fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(this.fabricCanvas);
-            this.fabricCanvas.freeDrawingBrush.color = "#ffffff";
-        }
+        
+        // المسّاحة في Fabric عبارة عن فرشاة عادية بلون أبيض
+        this.fabricCanvas.freeDrawingBrush = new window.fabric.PencilBrush(this.fabricCanvas);
+        this.fabricCanvas.freeDrawingBrush.color = "#ffffff";
 
         const size = this.sizeRef.el ? parseInt(this.sizeRef.el.value, 10) : 5;
         this.fabricCanvas.freeDrawingBrush.width = size + 10;
@@ -136,9 +142,10 @@ export class SketchPadWidget extends ImageField {
         const dataURL = this.fabricCanvas.toDataURL({ format: "png" });
         const base64Data = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
 
-        await this.props.update(base64Data);
+        // الطريقة الصحيحة لحفظ قيمة الحقل في Odoo 17
+        await this.props.record.update({ [this.props.name]: base64Data });
 
-        this.notification.add(_t("Sketch Saved!"), { type: "success" });
+        this.notification.add(_t("Sketch Saved Successfully!"), { type: "success" });
     }
 
     downloadCanvas() {
@@ -151,4 +158,10 @@ export class SketchPadWidget extends ImageField {
     }
 }
 
-registry.category("fields").add("sketch_pad_widget", SketchPadWidget);
+// الطريقة الصحيحة لتسجيل Widget في Odoo 17
+export const sketchPadField = {
+    component: SketchPadWidget,
+    supportedTypes: ["binary"],
+};
+
+registry.category("fields").add("sketch_pad", sketchPadField);
