@@ -60,7 +60,7 @@
     </record>
 
     <!-- ====================================================== -->
-    <!--  2. TASK FORM (BUTTONS AND DYNAMIC CHECKLIST TABS)     -->
+    <!--  2. TASK FORM (EDITED WITH NEW TABS)                   -->
     <!-- ====================================================== -->
     <record id="view_task_form2_engineering_extended" model="ir.ui.view">
         <field name="name">project.task.form.engineering.extended</field>
@@ -109,12 +109,38 @@
                         <tree editable="bottom" decoration-success="is_completed==True" decoration-muted="is_completed==False">
                             <field name="sequence" widget="handle"/>
                             <field name="floor_category" placeholder="مثال: الدور الثالث"/>
-                            
-                            <!-- ⬇️ التعديل تم هنا: إضافة widget="text" ⬇️ -->
                             <field name="name" widget="text" placeholder="مثال: مرحلة أعمدة الدور الثالث"/>
-                            
                             <field name="is_completed" widget="boolean_toggle"/>
                         </tree>
+                    </field>
+                </page>
+
+                <!-- ================== NEW TAB 1: SKETCH PAD ================== -->
+                <page string="رسم كروكي (Sketch Pad)" name="sketch_pad">
+                    <!-- This field uses the custom Javascript widget we created -->
+                    <field name="sketch_image" widget="sketch_pad_widget"/>
+                </page>
+
+                <!-- ================== NEW TAB 2: ATTACHMENTS ================= -->
+                <page string="اثباتات (Proofs)" name="proofs_attachments">
+                    <p class="text-muted">
+                        قم برفع صور، ملفات PDF، أو أي مستندات أخرى كإثباتات للمهمة.
+                    </p>
+                    <!-- This widget provides a nice drag-and-drop area for uploading files -->
+                    <field name="proof_attachment_ids" widget="many2many_binary" string="Upload Files"/>
+                    
+                    <!-- This list view shows the uploaded files and adds our custom WhatsApp button -->
+                    <field name="proof_attachment_ids" mode="tree" nolabel="1">
+                         <tree>
+                            <field name="name"/>
+                            <field name="mimetype"/>
+                            <field name="create_date"/>
+                            <button name="action_send_attachment_whatsapp" 
+                                    type="object" 
+                                    string="WhatsApp" 
+                                    icon="fa-whatsapp" 
+                                    class="btn-success"/>
+                         </tree>
                     </field>
                 </page>
             </xpath>
@@ -122,7 +148,7 @@
     </record>
 
     <!-- ====================================================== -->
-    <!--  3. TASK KANBAN (التحكم بالشفافية ومنع النقر للمهام المعطلة) -->
+    <!--  3. TASK KANBAN (NO CHANGES HERE)                      -->
     <!-- ====================================================== -->
     <record id="view_task_kanban_engineering" model="ir.ui.view">
         <field name="name">project.task.kanban.engineering</field>
@@ -130,21 +156,14 @@
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
             
-            <!-- تعريف الحقل لجلب قيمته في واجهة كانبان بنجاح -->
             <xpath expr="//templates" position="before">
                 <field name="is_disabled" invisible="1"/>
             </xpath>
 
-            <!-- 
-                 هنا السحر! نقوم باستهداف الإطار الخارجي لبطاقة المهمة في الكانبان.
-                 إذا كانت is_disabled = True، نقلل الشفافية (opacity) إلى 0.4،
-                 ونمنع أي نقرة للماوس (pointer-events: none).
-            -->
             <xpath expr="//t[@t-name='kanban-box']/div" position="attributes">
                 <attribute name="t-attf-style">opacity: #{record.is_disabled.raw_value ? '0.4' : '1.0'}; pointer-events: #{record.is_disabled.raw_value ? 'none' : 'auto'};</attribute>
             </xpath>
             
-            <!-- إضافة علامة القفل والنص بجوار عنوان المهمة -->
             <xpath expr="//strong[hasclass('o_kanban_record_title')]" position="after">
                 <div t-if="record.is_disabled.raw_value" class="text-danger mt-1" style="font-weight: bold; font-size: 11px;">
                     <i class="fa fa-lock"/> مقفلة (بانتظار المهام السابقة)

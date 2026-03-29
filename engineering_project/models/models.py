@@ -625,6 +625,17 @@ class ProjectTask(models.Model):
     is_disabled = fields.Boolean(string="مقفلة (Disabled)", default=False)
     phase_ids = fields.One2many('project.task.phase', 'task_id', string='مراحل التنفيذ (Phases)')
 
+    # --- NEW FIELDS ADDED HERE ---
+    sketch_image = fields.Image(string="Sketch / رسم كروكي")
+    proof_attachment_ids = fields.Many2many(
+        'ir.attachment',
+        'project_task_ir_attachments_rel', # Explicit join table name
+        'task_id', 
+        'attachment_id', 
+        string="اثباتات (Attachments)"
+    )
+    # --- END OF NEW FIELDS ---
+
     def action_load_default_phases(self):
         self.ensure_one() 
 
@@ -764,6 +775,44 @@ class ProjectTask(models.Model):
                     author_id=self.env.ref('base.partner_root').id,
                 )
 
+# ==============================================================================
+#  IR ATTACHMENT MODEL (NEW)
+# ==============================================================================
+class IrAttachment(models.Model):
+    _inherit = 'ir.attachment'
+
+    def action_send_attachment_whatsapp(self):
+        self.ensure_one()
+        # Find the related task
+        task = self.env['project.task'].search([
+            ('proof_attachment_ids', 'in', self.ids)
+        ], limit=1)
+        
+        if not task:
+             raise UserError(_("لا يمكن إيجاد المهمة المرتبطة بهذا المرفق."))
+
+        partner = task.project_id.partner_id
+        if not partner:
+            raise UserError(_("لا يوجد عميل مرتبط بالمشروع."))
+            
+        phone = partner.mobile or partner.phone
+        if not phone: 
+            raise UserError(_("لا يوجد رقم هاتف للعميل: %s") % partner.name)
+
+        # Generate a public URL for the attachment
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        download_url = f"{base_url}/web/content/{self.id}?download=true"
+        
+        message = _("مرحباً %s,\n\nيرجى الإطلاع على المرفق الجديد الخاص بمشروعكم:\n%s\n\nالملف: %s") % (partner.name, download_url, self.name)
+        
+        encoded_message = urllib.parse.quote(message)
+        whatsapp_url = f"https://web.whatsapp.com/send?phone={phone}&text={encoded_message}"
+        
+        return {
+            'type': 'ir.actions.act_url',
+            'url': whatsapp_url,
+            'target': 'new',
+        }
 
 # ==============================================================================
 #  GOVERNORATE AND REGION MODELS 

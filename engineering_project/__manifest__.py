@@ -21,6 +21,11 @@
     'assets': {
         'web.assets_backend': [
             'engineering_project/static/src/css/task_state.css',
+                 'engineering_project/static/lib/fabric/fabric.min.js',
+            # 2. Load our custom JS widget
+            'engineering_project/static/src/js/sketch_pad_widget.js',
+            # 3. Load our custom OWL template
+            'engineering_project/static/src/xml/sketch_pad_widget.xml',
         ],
     },
     'license': 'LGPL-3',

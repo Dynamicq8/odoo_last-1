@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="engineering_project.SketchPadWidget" owl="1">
+        <div class="o_sketch_pad_wrapper border bg-light">
+            <!-- Toolbar -->
+            <div class="d-flex align-items-center p-2 border-bottom" style="gap: 15px;">
+                <!-- Tools -->
+                <button class="btn btn-secondary btn-sm" t-on-click="setPenMode" title="Pen">
+                    <i class="fa fa-pencil"/> Pen
+                </button>
+                <button class="btn btn-secondary btn-sm" t-on-click="setEraserMode" title="Eraser">
+                    <i class="fa fa-eraser"/> Eraser
+                </button>
+
+                <!-- Color Picker -->
+                <div class="d-flex align-items-center">
+                    <label t-att-for="'colorPicker' + props.id" class="me-2">Color:</label>
+                    <input type="color" t-att-id="'colorPicker' + props.id" class="form-control form-control-color" value="#000000" t-on-input="changeColor"/>
+                </div>
+
+                <!-- Size Picker -->
+                <div class="d-flex align-items-center">
+                    <label t-att-for="'sizePicker' + props.id" class="me-2">Size:</label>
+                    <input type="range" t-att-id="'sizePicker' + props.id" class="form-range" min="1" max="50" value="5" t-on-input="changeBrushSize"/>
+                </div>
+
+                <!-- Actions -->
+                <div class="ms-auto d-flex" style="gap: 10px;">
+                    <button class="btn btn-danger btn-sm" t-on-click="clearCanvas" title="Clear All">
+                        <i class="fa fa-trash"/> Clear
+                    </button>
+                    <button class="btn btn-primary btn-sm" t-on-click="saveCanvas" title="Save Sketch to Odoo">
+                        <i class="fa fa-save"/> Save
+                    </button>
+                    <button class="btn btn-success btn-sm" t-on-click="downloadCanvas" title="Download as PNG">
+                        <i class="fa fa-download"/> Download
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="o_sketch_pad_canvas_container p-1">
+                <canvas t-ref="canvas" class="border" style="box-shadow: 0 0 5px rgba(0,0,0,0.1);"/>
+            </div>
+        </div>
+    </t>
+
+</templates>
