@@ -99,7 +99,7 @@
                         <button name="action_load_default_phases" type="object" 
                                 string="تحميل المراحل الافتراضية (Load Default Phases)" 
                                 class="btn-secondary" icon="fa-list-ol"
-                                invisible="phase_ids !=[] or is_disabled"/>
+                                invisible="phase_ids != [] or is_disabled"/>
                         <span class="text-muted ms-3">
                             <i class="fa fa-info-circle"/> للمشاريع الاستثمارية/التجارية، يمكنك إضافة أدوار ومراحل جديدة يدوياً من الأسفل.
                         </span>
@@ -122,24 +122,35 @@
     </record>
 
     <!-- ====================================================== -->
-    <!--  3. TASK KANBAN (إظهار علامة القفل للمهام المعطلة)      -->
+    <!--  3. TASK KANBAN (التحكم بالشفافية ومنع النقر للمهام المعطلة) -->
     <!-- ====================================================== -->
     <record id="view_task_kanban_engineering" model="ir.ui.view">
         <field name="name">project.task.kanban.engineering</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
-            <!-- جلب حقل is_disabled للواجهة لاستخدامه -->
-            <xpath expr="//templates//field[@name='name']" position="after">
+            
+            <!-- تعريف الحقل لجلب قيمته في واجهة كانبان بنجاح -->
+            <xpath expr="//templates" position="before">
                 <field name="is_disabled" invisible="1"/>
+            </xpath>
+
+            <!-- 
+                 هنا السحر! نقوم باستهداف الإطار الخارجي لبطاقة المهمة في الكانبان.
+                 إذا كانت is_disabled = True، نقلل الشفافية (opacity) إلى 0.4،
+                 ونمنع أي نقرة للماوس (pointer-events: none).
+            -->
+            <xpath expr="//t[@t-name='kanban-box']/div" position="attributes">
+                <attribute name="t-attf-style">opacity: #{record.is_disabled.raw_value ? '0.4' : '1.0'}; pointer-events: #{record.is_disabled.raw_value ? 'none' : 'auto'};</attribute>
             </xpath>
             
             <!-- إضافة علامة القفل والنص بجوار عنوان المهمة -->
             <xpath expr="//strong[hasclass('o_kanban_record_title')]" position="after">
-                <div invisible="not is_disabled" class="text-danger mt-1" style="font-weight: bold; font-size: 11px;">
+                <div t-if="record.is_disabled.raw_value" class="text-danger mt-1" style="font-weight: bold; font-size: 11px;">
                     <i class="fa fa-lock"/> مقفلة (بانتظار المهام السابقة)
                 </div>
             </xpath>
+            
         </field>
     </record>
 </odoo>
