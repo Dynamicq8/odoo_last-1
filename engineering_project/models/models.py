@@ -615,7 +615,30 @@ class ProjectProject(models.Model):
         if user_id: 
             val['user_ids'] = [(4, user_id)]
             
-        self.env['project.task'].create(val)
+        new_task = self.env['project.task'].create(val)
+
+        # =========================================================
+        # 🔥 CREATING AUTOMATIC SUBTASKS FOR SPECIFIC TASKS 🔥
+        # =========================================================
+        # 1. تجميع المستندات
+        if "تجميع المستندات" in step_data['name']:
+            for sub_name in ["الوثيقه", "المدنيه", "الموقع العام"]:
+                self.env['project.task'].create({
+                    'name': sub_name,
+                    'project_id': self.id,
+                    'parent_id': new_task.id,
+                    'is_disabled': is_disabled,
+                })
+
+        # 2. فحص التربة - كتاب الكهرباء
+        if "فحص التربة" in step_data['name'] and "الكهرباء" in step_data['name']:
+            for sub_name in ["فحص التربه تم الأرسال", "فحص التربه تم الأعتماد", "الكهرباء تم الأرسال", "الكهرباء تم الأعتماد"]:
+                self.env['project.task'].create({
+                    'name': sub_name,
+                    'project_id': self.id,
+                    'parent_id': new_task.id,
+                    'is_disabled': is_disabled,
+                })
 
 
 # ==============================================================================
@@ -925,8 +948,5 @@ class ProjectTaskPhase(models.Model):
     task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
     sequence = fields.Integer(string='التسلسل', default=10)
     floor_category = fields.Char(string='الدور (Floor)', required=True)
-    
-    # *** CHANGE THIS LINE ***
     name = fields.Text(string='المرحلة (Phase)', required=True) 
-    
     is_completed = fields.Boolean(string='تم (Completed)', default=False)
