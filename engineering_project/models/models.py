@@ -561,7 +561,10 @@ class ProjectProject(models.Model):
         if workflow:
             self.triggered_steps = workflow[0]['code'] + "," 
 
-    def _trigger_next_workflow_step(self, completed_code):
+    # THIS IS THE METHOD THE TRACEBACK REFERS TO. 
+    # Its definition (self, completed_code) is correct as per your provided code.
+    # The error implies your deployed code for this method is missing 'completed_code'.
+    def _trigger_next_workflow_step(self, completed_code): # <--- THIS DEFINITION IS CRUCIAL
         self.ensure_one()
         wf_key = self._get_workflow_key()
         workflow = WORKFLOW_TEMPLATES.get(wf_key, [])
@@ -787,6 +790,9 @@ class ProjectTask(models.Model):
                         is_done = True
 
             if is_done and task.workflow_step and task.project_id:
+                # This is the line where the error occurred in your traceback.
+                # The definition of _trigger_next_workflow_step(self, completed_code)
+                # must match the call (which it does in your provided code).
                 task.project_id._trigger_next_workflow_step(task.workflow_step)
                 
         return res
