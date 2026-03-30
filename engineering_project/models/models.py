@@ -11,6 +11,7 @@ from PIL import Image
 #  WORKFLOW TEMPLATES (خرائط سير العمل)
 # ==============================================================================
 WORKFLOW_TEMPLATES = {
+    # 1. سكن خاص + بناء جديد
     'res_new': [
         {'code': 'rn_1_1', 'name': '1- تصميم الكروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
         {'code': 'rn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
@@ -37,6 +38,8 @@ WORKFLOW_TEMPLATES = {
         {'code': 'rn_5_3', 'name': '3- كتب البنك', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
         {'code': 'rn_5_4', 'name': '4- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
     ],
+    
+    # 2. غير سكني (استثماري، صناعي، إلخ) + بناء جديد
     'non_res_new': [
         {'code': 'nrn_1_1', 'name': '1- تصميم الكروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
         {'code': 'nrn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
@@ -64,6 +67,8 @@ WORKFLOW_TEMPLATES = {
         {'code': 'nrn_5_2', 'name': '2- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
         {'code': 'nrn_5_3', 'name': '4- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
     ],
+    
+    # 3. سكن خاص + تعديل واضافة
     'res_add': [
         {'code': 'ra_1_1', 'name': '1- دراسة المخطط الإنشائي القديم', 'stage': 'المرحلة الأولى', 'role': 'structural_id'},
         {'code': 'ra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
@@ -85,6 +90,8 @@ WORKFLOW_TEMPLATES = {
         {'code': 'ra_5_2', 'name': '2- كتب البنك', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
         {'code': 'ra_5_3', 'name': '3- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
     ],
+    
+    # 4. غير سكني (استثماري، صناعي، إلخ) + تعديل واضافة
     'non_res_add': [
         {'code': 'nra_1_1', 'name': '1- دراسة المخطط الإنشائي القديم', 'stage': 'المرحلة الأولى', 'role': 'structural_id'},
         {'code': 'nra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id'},
@@ -109,6 +116,8 @@ WORKFLOW_TEMPLATES = {
         {'code': 'nra_5_1', 'name': '1- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id'},
         {'code': 'nra_5_2', 'name': '3- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id'},
     ],
+    
+    # 5. هدم (لكل أنواع المباني) NEW WORKFLOW ADDED
     'demolition': [
         {'code': 'dem_1_1', 'name': '1- تجميع المستندات والوثائق', 'stage': 'المرحلة الأولى', 'role': 'secretary_id'},
         {'code': 'dem_1_2', 'name': '2- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id'},
@@ -123,6 +132,9 @@ WORKFLOW_TEMPLATES = {
     ]
 }
 
+# ==============================================================================
+#  HELPER FUNCTIONS FOR GOVERNORATE & REGION 
+# ==============================================================================
 def _get_governorate_areas():
     return {
         'محافظة العاصمة': [
@@ -249,6 +261,7 @@ def _get_all_regions(self):
                 seen_regions.add(area_val)
     return sorted(all_regions, key=lambda x: x[1])
 
+
 # ==============================================================================
 #  SALE ORDER MODEL 
 # ==============================================================================
@@ -312,10 +325,13 @@ class SaleOrder(models.Model):
             })
             self.write({'quotation_stage_id': next_stage.id})
             
+            # --- FIX: Auto Create Project and Start Workflow on Approval ---
             if next_stage.is_approved_stage:
+                # 1. إنشاء المشروع تلقائياً إذا لم يتم إنشاؤه مسبقاً
                 if not self.project_id:
                     self._create_engineering_project()
                 
+                # 2. تفعيل سير العمل (إنشاء المهام) إذا لم يبدأ
                 if self.project_id and not self.project_id.workflow_started:
                     self.project_id.action_start_workflow()
                 
@@ -338,6 +354,7 @@ class SaleOrder(models.Model):
 
     def _create_engineering_project(self):
         self.ensure_one()
+        # --- FIX: Safe getattr to prevent errors if these fields aren't in SaleOrder yet ---
         gov_id = getattr(self, 'governorate_id', False)
         reg_id = getattr(self, 'region_id', False)
         elec = getattr(self, 'electricity_receipt', False)
@@ -357,7 +374,10 @@ class SaleOrder(models.Model):
             'electricity_receipt': elec,
         }
         project = self.env['project.project'].create(project_vals)
+        
+        # --- FIX: Create or link stages securely ---
         project._get_project_stages_map()
+            
         self.write({'project_id': project.id})
         return project
 
@@ -418,6 +438,7 @@ class EngineeringQuotationStage(models.Model):
     is_rejected_stage = fields.Boolean(string="مرحلة الرفض؟")
     fold = fields.Boolean(string='Folded in Kanban', default=False)
 
+
 class EngineeringQuotationStageHistory(models.Model):
     _name = 'engineering.quotation.stage.history'
     _description = 'Quotation Stage History'
@@ -428,6 +449,7 @@ class EngineeringQuotationStageHistory(models.Model):
     to_stage_id = fields.Many2one('engineering.quotation.stage', string='To Stage')
     changed_by_id = fields.Many2one('res.users', string='Changed By', default=lambda self: self.env.user)
     change_date = fields.Datetime(string='Change Date', default=fields.Datetime.now)
+
 
 # ==============================================================================
 #  PROJECT MODEL
@@ -473,12 +495,15 @@ class ProjectProject(models.Model):
 
     workflow_started = fields.Boolean(default=False)
     triggered_steps = fields.Text(string="المهام المنفذة", default="")
+    
+    commitment_ids = fields.Many2many('sale.order.line', string='Commitments', copy=False)
 
     def _get_project_stages_map(self):
         self.ensure_one()
         stages = self.env['project.task.type'].search([('project_ids', 'in', self.id)], order='sequence')
         stage_map = {stage.name: stage.id for stage in stages}
         
+        # --- FIX: Ensure stages explicitly exist to prevent silent bugs during task creation ---
         required_stages = [
             'المرحلة الأولى', 
             'المرحلة الثانية', 
@@ -524,9 +549,11 @@ class ProjectProject(models.Model):
         if not workflow:
             raise UserError(_("لا توجد خطة مهام مطابقة لنوع الخدمة والمبنى."))
 
+        # التأكد من وجود المراحل (Stages) قبل إنشاء المهام
         self._get_project_stages_map()
 
         for index, step in enumerate(workflow):
+            # فقط أول مهمة تكون مفعلة (غير مقفلة)، والباقي يتم قفله
             is_disabled_task = (index != 0)
             self._create_task_for_step(step, is_disabled=is_disabled_task)
 
@@ -552,6 +579,7 @@ class ProjectProject(models.Model):
                         ], limit=1)
                         
                         if next_task:
+                            # فتح المهمة التالية لتمكين النقر عليها
                             next_task.is_disabled = False
                             self.triggered_steps = (self.triggered_steps or "") + next_step['code'] + ","
                 break
@@ -572,6 +600,7 @@ class ProjectProject(models.Model):
                 task_sequence = index + 1 
                 break
 
+        # --- FIX: Safe attribute handling for roles ---
         user_record = getattr(self, step_data['role'], False)
         user_id = user_record.id if user_record else False
         
@@ -588,89 +617,79 @@ class ProjectProject(models.Model):
             
         self.env['project.task'].create(val)
 
+
 # ==============================================================================
 #  PROJECT TASK MODEL
 # ==============================================================================
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    state = fields.Selection(
-        selection=[
-            ('01_in_progress', 'In Progress'),
-            ('02_changes_requested', 'Change Requested'),
-            ('03_approved', 'Approved'),
-        ],
-        string='Status',
-        default='01_in_progress',
-        tracking=True,
-        copy=False,
-    )
-
     workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
     is_disabled = fields.Boolean(string="مقفلة (Disabled)", default=False)
     phase_ids = fields.One2many('project.task.phase', 'task_id', string='مراحل التنفيذ (Phases)')
 
-    # --- حقول للتحكم في ظهور تبويبات التعهدات والكروكي ---
-    is_architectural_task = fields.Boolean(compute='_compute_task_visibility')
-    is_doc_task = fields.Boolean(compute='_compute_task_visibility')
-
-    @api.depends('name')
-    def _compute_task_visibility(self):
-        for task in self:
-            name = task.name or ''
-            task.is_architectural_task = bool(any(kw in name for kw in ['معماري', 'كروكي', 'فرش', 'واجهات', 'تصميم معماري']))
-            task.is_doc_task = bool(any(kw in name for kw in ['تجميع المستندات', 'تجهيز النماذج', 'تعهد']))
-
+    # --- NEW SKETCH-RELATED FIELDS ADDED HERE ---
     sketch_ids = fields.One2many('project.task.sketch', 'task_id', string="Sketches")
     sketch_count = fields.Integer(compute='_compute_sketch_count', string="Number of Sketches")
+
+    # ==================================================================================
+    # NEW FIELDS TO CONTROL TAB VISIBILITY BASED ON TASK TYPE (PAPERWORK VS ENGINEERING)
+    # ==================================================================================
+    is_paperwork_task = fields.Boolean(string="Is Paperwork Task", compute="_compute_task_category", store=False)
+    is_engineering_task = fields.Boolean(string="Is Engineering Task", compute="_compute_task_category", store=False)
+
+    @api.depends('workflow_step')
+    def _compute_task_category(self):
+        for task in self:
+            is_paper = False
+            is_eng = False
+            
+            if task.workflow_step:
+                role = False
+                for wf_list in WORKFLOW_TEMPLATES.values():
+                    for step in wf_list:
+                        if step['code'] == task.workflow_step:
+                            role = step.get('role')
+                            break
+                    if role:
+                        break
+                
+                # Check mapping
+                if role in ['secretary_id', 'accountant_id']:
+                    is_paper = True
+                elif role in ['structural_id', 'facade_draftsman_id', 'muni_draftsman_id', 'architect_id', 'electrical_id', 'draftsman_id']:
+                    is_eng = True
+                else:
+                    is_paper = True
+                    is_eng = True
+            else:
+                # If it's a manual task without a workflow_step, show everything
+                is_paper = True
+                is_eng = True
+            
+            task.is_paperwork_task = is_paper
+            task.is_engineering_task = is_eng
 
     @api.depends('sketch_ids')
     def _compute_sketch_count(self):
         for task in self:
             task.sketch_count = len(task.sketch_ids)
+    # --- END OF NEW SKETCH-RELATED FIELDS ---
 
     proof_attachment_ids = fields.Many2many(
         'ir.attachment',
-        'project_task_ir_attachments_rel',
+        'project_task_ir_attachments_rel', # Explicit join table name
         'task_id', 
         'attachment_id', 
         string="اثباتات (Attachments)"
     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        tasks = super(ProjectTask, self).create(vals_list)
-        for task in tasks:
-            name = task.name or ''
-            project = task.project_id
-
-            if 'فحص التربة' in name and 'الكهرباء' in name:
-                secretary_id = project.secretary_id.id if project and project.secretary_id else False
-                st_names = ['فحص التربة تم الإرسال', 'فحص التربة تم الإنشاء', 'الكهرباء تم الإرسال', 'الكهرباء تم الاعتماد']
-                for i, st in enumerate(st_names):
-                    self.env['project.task'].create({
-                        'name': st,
-                        'project_id': project.id if project else False,
-                        'parent_id': task.id,
-                        'user_ids': [(4, secretary_id)] if secretary_id else [],
-                        'sequence': i + 1,
-                    })
-
-            if 'تجميع المستندات' in name and project and project.building_type == 'residential':
-                st_names = ['الوثيقة', 'المدنية', 'الموقع العام']
-                for i, st in enumerate(st_names):
-                    self.env['project.task'].create({
-                        'name': st,
-                        'project_id': project.id,
-                        'parent_id': task.id,
-                        'sequence': i + 1,
-                    })
-        return tasks
-
     def action_load_default_phases(self):
         self.ensure_one() 
+
         if self.is_disabled:
             raise UserError(_("لا يمكن تحميل المراحل لمهمة مقفلة."))
+
         if self.phase_ids:
             return 
 
@@ -692,37 +711,51 @@ class ProjectTask(models.Model):
 
         phases_to_create = []
         for name, category in phases_data:
-            phases_to_create.append((0, 0, {'name': name, 'floor_category': category, 'sequence': seq}))
+            phases_to_create.append((0, 0, {
+                'name': name,
+                'floor_category': category,
+                'sequence': seq
+            }))
             seq += 10
+
         self.write({'phase_ids': phases_to_create})
 
     def get_completed_phases_grouped(self):
         self.ensure_one()
         completed_phases = self.phase_ids.filtered(lambda p: p.is_completed)
+        
         grouped = {}
         for phase in completed_phases:
             cat = phase.floor_category
-            if cat not in grouped: grouped[cat] = []
+            if cat not in grouped:
+                grouped[cat] = []
             grouped[cat].append(phase)
         return grouped
 
     def write(self, vals):
-        if 'stage_id' in vals or vals.get('state') == '03_approved':
+        # 1. منع التحديث إذا كانت المهمة مقفلة 
+        if 'stage_id' in vals or vals.get('state') in ['1_done', '03_approved']:
             for task in self:
                 if task.is_disabled:
                     raise UserError(_("لا يمكنك إنجاز هذه المهمة أو تغيير حالتها لأنها مقفلة! يرجى الانتهاء من المهام السابقة أولاً."))
 
         res = super(ProjectTask, self).write(vals)
 
+        # 2. تفعيل المهمة التالية إذا تحولت المهمة الحالية إلى منجزة
         for task in self:
             is_done = False
-            if vals.get('state') == '03_approved':
+            
+            # في أودو 16 وما فوق: تقييم حالة Task عبر الحقل (state)
+            if vals.get('state') in ['1_done', '03_approved']:
                 is_done = True
+                
+            # التقييم بناءً على تغيير المرحلة (Stage)
             elif 'stage_id' in vals:
                 stage = self.env['project.task.type'].browse(vals['stage_id'])
                 if stage.fold or stage.is_closed or 'done' in (stage.name or '').lower() or 'منجز' in (stage.name or ''):
                     is_done = True
                 else:
+                    # فحص توافقي كحل احتياطي
                     done_stage = self.env.ref('project.project_stage_3', raise_if_not_found=False)
                     if done_stage and stage.id == done_stage.id:
                         is_done = True
@@ -760,7 +793,11 @@ class ProjectTask(models.Model):
         
     def action_create_new_sketch(self):
         self.ensure_one()
-        new_sketch = self.env['project.task.sketch'].create({'task_id': self.id})
+        # Create an empty sketch record automatically
+        new_sketch = self.env['project.task.sketch'].create({
+            'task_id': self.id,
+        })
+        # Open it in the popup editor
         return {
             'name': _('Sketch Editor'),
             'type': 'ir.actions.act_window',
@@ -769,21 +806,41 @@ class ProjectTask(models.Model):
             'res_id': new_sketch.id,
             'target': 'new',
         }
-        
     @api.model
     def _send_periodic_task_reminders(self):
-        open_tasks = self.search([('stage_id.fold', '=', False), ('user_ids', '!=', False), ('is_disabled', '=', False)])
+        open_tasks = self.search([
+            ('stage_id.fold', '=', False), 
+            ('user_ids', '!=', False),
+            ('is_disabled', '=', False)
+        ])
+
         user_task_counts = {}
         for task in open_tasks:
             for user in task.user_ids:
-                if user not in user_task_counts: user_task_counts[user] = 0
+                if user not in user_task_counts:
+                    user_task_counts[user] = 0
                 user_task_counts[user] += 1
 
         for user, count in user_task_counts.items():
             if count > 0:
-                message = f"""<div style="direction: rtl; text-align: right;"><strong>مرحباً {user.name}،</strong><br/>هذا تذكير تلقائي بأن لديك <b>{count} مهام</b> قيد التنفيذ بانتظارك.<br/>يرجى مراجعة قائمة المهام الخاصة بك وإنجازها.</div>"""
-                user.partner_id.message_post(body=message, subject="تذكير بالمهام (Task Reminder)", message_type='notification', subtype_xmlid='mail.mt_comment', author_id=self.env.ref('base.partner_root').id)
+                message = f"""
+                <div style="direction: rtl; text-align: right;">
+                    <strong>مرحباً {user.name}،</strong><br/>
+                    هذا تذكير تلقائي بأن لديك <b>{count} مهام</b> قيد التنفيذ بانتظارك.<br/>
+                    يرجى مراجعة قائمة المهام الخاصة بك وإنجازها.
+                </div>
+                """
+                user.partner_id.message_post(
+                    body=message,
+                    subject="تذكير بالمهام (Task Reminder)",
+                    message_type='notification',
+                    subtype_xmlid='mail.mt_comment',
+                    author_id=self.env.ref('base.partner_root').id,
+                )
 
+# ==============================================================================
+#  NEW MODEL: project.task.sketch
+# ==============================================================================
 class ProjectTaskSketch(models.Model):
     _name = 'project.task.sketch'
     _description = 'Project Task Sketch'
@@ -795,28 +852,60 @@ class ProjectTaskSketch(models.Model):
     created_by_id = fields.Many2one('res.users', string='Created By', default=lambda self: self.env.user, readonly=True)
     create_date = fields.Datetime(string='Creation Date', readonly=True)
 
+    # 👇 ADD THIS METHOD 👇
     def action_open_sketch_editor(self):
         self.ensure_one()
-        return {'name': _('Sketch Editor'), 'type': 'ir.actions.act_window', 'res_model': 'project.task.sketch', 'view_mode': 'form', 'res_id': self.id, 'target': 'new'}
+        return {
+            'name': _('Sketch Editor'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task.sketch',
+            'view_mode': 'form',
+            'res_id': self.id,
+            'target': 'new', # Opens as a popup dialog
+        }
 
+# ==============================================================================
+#  IR ATTACHMENT MODEL (NEW)
+# ==============================================================================
 class IrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
     def action_send_attachment_whatsapp(self):
         self.ensure_one()
-        task = self.env['project.task'].search([('proof_attachment_ids', 'in', self.ids)], limit=1)
-        if not task: raise UserError(_("لا يمكن إيجاد المهمة المرتبطة بهذا المرفق."))
+        # Find the related task
+        task = self.env['project.task'].search([
+            ('proof_attachment_ids', 'in', self.ids)
+        ], limit=1)
+        
+        if not task:
+             raise UserError(_("لا يمكن إيجاد المهمة المرتبطة بهذا المرفق."))
+
         partner = task.project_id.partner_id
-        if not partner: raise UserError(_("لا يوجد عميل مرتبط بالمشروع."))
+        if not partner:
+            raise UserError(_("لا يوجد عميل مرتبط بالمشروع."))
+            
         phone = partner.mobile or partner.phone
-        if not phone: raise UserError(_("لا يوجد رقم هاتف للعميل: %s") % partner.name)
+        if not phone: 
+            raise UserError(_("لا يوجد رقم هاتف للعميل: %s") % partner.name)
+
+        # Generate a public URL for the attachment
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         download_url = f"{base_url}/web/content/{self.id}?download=true"
+        
         message = _("مرحباً %s,\n\nيرجى الإطلاع على المرفق الجديد الخاص بمشروعكم:\n%s\n\nالملف: %s") % (partner.name, download_url, self.name)
+        
         encoded_message = urllib.parse.quote(message)
         whatsapp_url = f"https://web.whatsapp.com/send?phone={phone}&text={encoded_message}"
-        return {'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new'}
+        
+        return {
+            'type': 'ir.actions.act_url',
+            'url': whatsapp_url,
+            'target': 'new',
+        }
 
+# ==============================================================================
+#  GOVERNORATE AND REGION MODELS 
+# ==============================================================================
 class KuwaitGovernorate(models.Model):
     _name = 'kuwait.governorate'
     _description = 'Kuwait Governorate'
@@ -836,5 +925,8 @@ class ProjectTaskPhase(models.Model):
     task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
     sequence = fields.Integer(string='التسلسل', default=10)
     floor_category = fields.Char(string='الدور (Floor)', required=True)
+    
+    # *** CHANGE THIS LINE ***
     name = fields.Text(string='المرحلة (Phase)', required=True) 
+    
     is_completed = fields.Boolean(string='تم (Completed)', default=False)

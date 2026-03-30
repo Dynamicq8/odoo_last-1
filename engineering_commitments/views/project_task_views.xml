@@ -5,8 +5,6 @@
     =================================================
     1. Add "Commitments" Tab to the TASK Form View
     =================================================
-    This is the original code you provided. It correctly
-    adds the tab to the project.task model.
     -->
     <record id="project_task_view_form_inherit_commitments" model="ir.ui.view">
         <field name="name">project.task.form.inherit.commitments</field>
@@ -15,7 +13,9 @@
         <field name="arch" type="xml">
             
             <xpath expr="//notebook" position="inside">
-                <page string="Commitments (تعهدات)" name="engineering_commitments">
+                
+                <!-- تبويب التعهدات (يظهر فقط لمهام السكرتارية والمحاسبة) -->
+                <page string="Commitments (تعهدات)" name="engineering_commitments" invisible="not is_paperwork_task">
                     
                     <!-- Buttons -->
                     <div class="mb-3">
@@ -62,8 +62,6 @@
     ====================================================
     2. Add "Commitments" Tab to the main PROJECT Form View
     ====================================================
-    This new record adds the same tab to the main
-    project.project model.
     -->
     <record id="project_project_view_form_inherit_commitments" model="ir.ui.view">
         <field name="name">project.project.form.inherit.commitments</field>
