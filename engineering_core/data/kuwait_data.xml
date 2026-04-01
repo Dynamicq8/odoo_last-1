@@ -2,25 +2,25 @@
     <data noupdate="1">
         <!-- Governorates -->
         <record id="gov_asima" model="kuwait.governorate">
-            <field name="name">محافظة العاصمة</field>
+            <field name="name">العاصمة</field>
         </record>
         <record id="gov_hawalli" model="kuwait.governorate">
-            <field name="name">محافظة حولي</field>
+            <field name="name">حولي</field>
         </record>
         <record id="gov_farwaniya" model="kuwait.governorate">
-            <field name="name">محافظة الفروانية</field>
+            <field name="name">الفروانية</field>
         </record>
         <record id="gov_ahmadi" model="kuwait.governorate">
-            <field name="name">محافظة الأحمدي</field>
+            <field name="name">الأحمدي</field>
         </record>
         <record id="gov_jahra" model="kuwait.governorate">
-            <field name="name">محافظة الجهراء</field>
+            <field name="name">الجهراء</field>
         </record>
         <record id="gov_mubarak_alkabeer" model="kuwait.governorate">
-            <field name="name">محافظة مبارك الكبير</field>
+            <field name="name">مبارك الكبير</field>
         </record>
 
-        <!-- Regions for محافظة العاصمة (gov_asima) -->
+        <!-- Regions for العاصمة (gov_asima) -->
         <record id="reg_asima_jaber_alahmad" model="kuwait.region"> <field name="name">جابر الاحمد</field> <field name="governorate_id" ref="gov_asima"/> </record>
         <record id="reg_asima_alqibla" model="kuwait.region"> <field name="name">القبلة</field> <field name="governorate_id" ref="gov_asima"/> </record>
         <record id="reg_asima_alsharq" model="kuwait.region"> <field name="name">الشرق</field> <field name="governorate_id" ref="gov_asima"/> </record>
@@ -64,7 +64,7 @@
         <record id="reg_asima_doha_chalets" model="kuwait.region"> <field name="name">شاليهات الدوحة</field> <field name="governorate_id" ref="gov_asima"/> </record>
         <record id="reg_asima_surra_repost" model="kuwait.region"> <field name="name">السره</field> <field name="governorate_id" ref="gov_asima"/> </record>
 
-        <!-- Regions for محافظة حولي (gov_hawalli) -->
+        <!-- Regions for حولي (gov_hawalli) -->
         <record id="reg_hawalli_hawalli" model="kuwait.region"> <field name="name">حولي</field> <field name="governorate_id" ref="gov_hawalli"/> </record>
         <record id="reg_hawalli_salmiya" model="kuwait.region"> <field name="name">السالمية</field> <field name="governorate_id" ref="gov_hawalli"/> </record>
         <record id="reg_hawalli_rumeithiya" model="kuwait.region"> <field name="name">الرميثية</field> <field name="governorate_id" ref="gov_hawalli"/> </record>
@@ -86,7 +86,7 @@
         <record id="reg_hawalli_mubarkiya_bayang15" model="kuwait.region"> <field name="name">المباركيه قطعة 15 بيان</field> <field name="governorate_id" ref="gov_hawalli"/> </record>
         <record id="reg_hawalli_bida" model="kuwait.region"> <field name="name">البدع</field> <field name="governorate_id" ref="gov_hawalli"/> </record>
 
-        <!-- Regions for محافظة الفروانية (gov_farwaniya) -->
+        <!-- Regions for الفروانية (gov_farwaniya) -->
         <record id="reg_farwaniya_farwaniya" model="kuwait.region"> <field name="name">الفروانية</field> <field name="governorate_id" ref="gov_farwaniya"/> </record>
         <record id="reg_farwaniya_khaitan" model="kuwait.region"> <field name="name">خيطان</field> <field name="governorate_id" ref="gov_farwaniya"/> </record>
         <record id="reg_farwaniya_omariya" model="kuwait.region"> <field name="name">العمرية</field> <field name="governorate_id" ref="gov_farwaniya"/> </record>
@@ -113,7 +113,7 @@
         <record id="reg_farwaniya_south_abdullah_mubarak_res" model="kuwait.region"> <field name="name">جنوب عبد الله المبارك السكنى</field> <field name="governorate_id" ref="gov_farwaniya"/> </record>
         <record id="reg_farwaniya_abbasiya" model="kuwait.region"> <field name="name">العباسية</field> <field name="governorate_id" ref="gov_farwaniya"/> </record>
 
-        <!-- Regions for محافظة الأحمدي (gov_ahmadi) -->
+        <!-- Regions for الأحمدي (gov_ahmadi) -->
         <record id="reg_ahmadi_ahmadi" model="kuwait.region"> <field name="name">الأحمدي</field> <field name="governorate_id" ref="gov_ahmadi"/> </record>
         <record id="reg_ahmadi_fahaheel" model="kuwait.region"> <field name="name">الفحيحيل</field> <field name="governorate_id" ref="gov_ahmadi"/> </record>
         <record id="reg_ahmadi_manqaf" model="kuwait.region"> <field name="name">المنقف</field> <field name="governorate_id" ref="gov_ahmadi"/> </record>
@@ -168,7 +168,7 @@
         <record id="reg_ahmadi_um_qadeer" model="kuwait.region"> <field name="name">ام قدير</field> <field name="governorate_id" ref="gov_ahmadi"/> </record>
         <record id="reg_ahmadi_abu_kharajeen_subbihiya" model="kuwait.region"> <field name="name">ابو خرجين والصبيحية</field> <field name="governorate_id" ref="gov_ahmadi"/> </record>
 
-        <!-- Regions for محافظة الجهراء (gov_jahra) -->
+        <!-- Regions for الجهراء (gov_jahra) -->
         <record id="reg_jahra_jahra" model="kuwait.region"> <field name="name">الجهراء</field> <field name="governorate_id" ref="gov_jahra"/> </record>
         <record id="reg_jahra_qasr" model="kuwait.region"> <field name="name">القصر</field> <field name="governorate_id" ref="gov_jahra"/> </record>
         <record id="reg_jahra_naseem" model="kuwait.region"> <field name="name">النسيم</field> <field name="governorate_id" ref="gov_jahra"/> </record>
@@ -224,7 +224,7 @@
         <record id="reg_jahra_cemetery" model="kuwait.region"> <field name="name">مقبرة</field> <field name="governorate_id" ref="gov_jahra"/> </record>
         <record id="reg_jahra_remote_areas" model="kuwait.region"> <field name="name">مناطق نائية -الجهراء</field> <field name="governorate_id" ref="gov_jahra"/> </record>
 
-        <!-- Regions for محافظة مبارك الكبير (gov_mubarak_alkabeer) -->
+        <!-- Regions for مبارك الكبير (gov_mubarak_alkabeer) -->
         <record id="reg_mubarak_mubarak_alkabeer" model="kuwait.region"> <field name="name">مبارك الكبير</field> <field name="governorate_id" ref="gov_mubarak_alkabeer"/> </record>
         <record id="reg_mubarak_adaan" model="kuwait.region"> <field name="name">العدان</field> <field name="governorate_id" ref="gov_mubarak_alkabeer"/> </record>
         <record id="reg_mubarak_qurain" model="kuwait.region"> <field name="name">القرين</field> <field name="governorate_id" ref="gov_mubarak_alkabeer"/> </record>

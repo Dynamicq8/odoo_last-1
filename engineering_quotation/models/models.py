@@ -518,6 +518,14 @@ class ProjectProject(models.Model):
                 vals['name'] = sub_name
                 self.env['project.task'].create(vals)
 
+        # New logic for "إصدار تعهد الإشراف"
+        if "إصدار تعهد الإشراف" in task_name:
+            subtasks_to_create = ["اصدار تعهد الأشراف", "اعتماد تهعد الأشراف"]
+            for sub_name in subtasks_to_create:
+                vals = subtask_base_vals.copy()
+                vals['name'] = sub_name
+                self.env['project.task'].create(vals)
+                
         if "الإشراف على التنفيذ" in task_name or "الإشراف علي اللتنفيذ" in task_name:
             subtasks_to_create = []
             if self.building_type == 'residential':

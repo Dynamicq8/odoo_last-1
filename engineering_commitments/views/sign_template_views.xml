@@ -6,11 +6,13 @@
         <field name="inherit_id" ref="sign.sign_template_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
-                <group string="Engineering Commitment Settings (إعدادات التعهد الهندسي)">
+                <!-- Changed group title to fit both types -->
+                <group string="Template Document Settings (إعدادات نوع المستند)">
                     <group>
-                        <field name="is_commitment"/>
+                        <!-- Added the new selection fields -->
+                        <field name="document_type" widget="radio"/> 
                         <field name="building_type"/>
-                        <field name="service_type"/> <!-- ADDED SERVICE TYPE HERE -->
+                        <field name="service_type"/>
                     </group>
                 </group>
             </xpath>
