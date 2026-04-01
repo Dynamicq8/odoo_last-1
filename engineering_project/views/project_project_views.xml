@@ -149,32 +149,61 @@
                     • Visible for engineering tasks ONLY
                     • Hidden for سيستم الأعمدة tasks
                 -->
-                <page string="رسومات كروكي (Sketches)" name="sketches"
-                      invisible="not is_engineering_task or workflow_step in ['rn_2_1','nrn_2_1','ra_2_1','nra_2_1']">
-                    <field name="sketch_ids" nolabel="1" readonly="is_disabled">
-                        <tree>
-                            <field name="name"/>
-                            <field name="create_date" string="تاريخ الإنشاء"/>
-                            <field name="created_by_id"/>
-                            <button name="action_open_sketch_editor" type="object" icon="fa-pencil" string="تعديل" help="Open Sketch Editor"/>
-                        </tree>
-                        <form>
-                            <sheet>
-                                <group>
-                                    <field name="name"/>
-                                    <field name="created_by_id" readonly="1"/>
-                                    <field name="create_date" readonly="1"/>
-                                </group>
-                                <separator string="Sketch Pad"/>
-                                <field name="sketch_image" widget="sketch_pad_editor" style="width: 100%; height: 500px;"/>
-                            </sheet>
-                        </form>
-                    </field>
-                    <button name="action_create_new_sketch" type="object"
-                            string="إضافة رسم كروكي جديد" class="oe_highlight" icon="fa-plus-circle"
-                            invisible="is_disabled"/>
-                    <field name="sketch_count" invisible="1"/>
-                </page>
+               <page string="رسومات كروكي (Sketches)" name="sketches"
+      invisible="
+          not is_engineering_task
+          or workflow_step not in [
+              'rn_1_1',
+              'rn_2_3',
+              'rn_4_1',
+              'nrn_1_1',
+              'nrn_2_3',
+              'nrn_4_1',
+              'ra_1_3',
+              'ra_4_1',
+              'nra_1_3',
+              'nra_4_1'
+          ]
+      ">
+
+    <field name="sketch_ids" nolabel="1" readonly="is_disabled">
+        <tree>
+            <field name="name"/>
+            <field name="create_date" string="تاريخ الإنشاء"/>
+            <field name="created_by_id"/>
+            <button name="action_open_sketch_editor"
+                    type="object"
+                    icon="fa-pencil"
+                    string="تعديل"
+                    help="Open Sketch Editor"/>
+        </tree>
+
+        <form>
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    <field name="created_by_id" readonly="1"/>
+                    <field name="create_date" readonly="1"/>
+                </group>
+
+                <separator string="Sketch Pad"/>
+                <field name="sketch_image"
+                       widget="sketch_pad_editor"
+                       style="width: 100%; height: 500px;"/>
+            </sheet>
+        </form>
+    </field>
+
+    <button name="action_create_new_sketch"
+            type="object"
+            string="إضافة رسم كروكي جديد"
+            class="oe_highlight"
+            icon="fa-plus-circle"
+            invisible="is_disabled"/>
+
+    <field name="sketch_count" invisible="1"/>
+
+</page>
 
                 <!--
                     تبويب المرفقات
