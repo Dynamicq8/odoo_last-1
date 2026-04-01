@@ -52,7 +52,7 @@
     <!-- ================================================= -->
     <!-- Project Task Form: Button + Site Visit Reports -->
     <!-- ================================================= -->
-   <!--  <record id="view_task_form_add_site_visits" model="ir.ui.view">
+    <record id="view_task_form_add_site_visits" model="ir.ui.view">
         <field name="name">project.task.form.add.site.visits</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
@@ -83,6 +83,6 @@
             </xpath>
 
         </field>
-    </record> -->
+    </record>
 
 </odoo>
