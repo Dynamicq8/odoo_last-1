@@ -16,7 +16,7 @@
                     <group>
                         <field name="is_commitment"/>
                         <field name="building_type"/>
-                        <field name="service_type"/> <!-- ADDED SERVICE TYPE HERE -->
+                        <field name="service_type"/>
                     </group>
                 </group>
             </xpath>
@@ -27,19 +27,38 @@
     =================================================
     2. Add "Commitments" Tab to the TASK Form View
     =================================================
+
+    Visibility rules for التعهدات tab on tasks:
+    • Shown only for paperwork tasks (secretary / accountant role)
+    • HIDDEN for:
+        - العقد وتحصيل الدفعة الأولى
+          codes: rn_1_3 | nrn_1_3 | ra_1_5 | nra_1_5 | dem_1_2
+        - سيستم الأعمدة
+          codes: rn_2_1 | nrn_2_1 | ra_2_1 | nra_2_1
     -->
     <record id="project_task_view_form_inherit_commitments" model="ir.ui.view">
         <field name="name">project.task.form.inherit.commitments</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
-            
+
             <xpath expr="//notebook" position="inside">
-                
-                <!-- تبويب التعهدات (يظهر فقط لمهام السكرتارية والمحاسبة) -->
-                <page string="Commitments (تعهدات)" name="engineering_commitments" invisible="not is_paperwork_task">
-                    
-                    <!-- Buttons -->
+
+                <!--
+                    التعهدات tab:
+                    • Visible when: is_paperwork_task = True
+                      AND workflow_step is NOT one of the excluded codes
+                    • "site visit report" tab never existed in this view and is not added
+                -->
+                <page string="Commitments (تعهدات)" name="engineering_commitments"
+                      invisible="
+                          not is_paperwork_task
+                          or workflow_step in [
+                              'rn_1_3',  'nrn_1_3',  'ra_1_5',  'nra_1_5',  'dem_1_2',
+                              'rn_2_1',  'nrn_2_1',  'ra_2_1',  'nra_2_1'
+                          ]
+                      ">
+
                     <div class="mb-3">
                         <button name="action_load_commitments"
                                 type="object"
@@ -54,7 +73,6 @@
                                 icon="fa-file-pdf-o"/>
                     </div>
 
-                    <!-- Table -->
                     <field name="commitment_ids">
                         <tree editable="bottom">
                             <field name="sign_template_id"
@@ -65,7 +83,6 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
-                            <!-- 🔥 SIGN BUTTON -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="Sign Now"
@@ -84,17 +101,18 @@
     ====================================================
     3. Add "Commitments" Tab to the main PROJECT Form View
     ====================================================
+    No task-level filtering needed here — project-level commitments
+    always show regardless of task type.
     -->
     <record id="project_project_view_form_inherit_commitments" model="ir.ui.view">
         <field name="name">project.project.form.inherit.commitments</field>
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
-            
+
             <xpath expr="//notebook" position="inside">
                 <page string="Commitments (تعهدات)" name="engineering_commitments">
-                    
-                    <!-- Buttons -->
+
                     <div class="mb-3">
                         <button name="action_load_commitments"
                                 type="object"
@@ -109,7 +127,6 @@
                                 icon="fa-file-pdf-o"/>
                     </div>
 
-                    <!-- Table -->
                     <field name="commitment_ids">
                         <tree editable="bottom">
                             <field name="sign_template_id"
@@ -120,7 +137,6 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
-                            <!-- 🔥 SIGN BUTTON -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="Sign Now"

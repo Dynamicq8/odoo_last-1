@@ -8,23 +8,21 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
-            
+
             <xpath expr="//header" position="inside">
-                <button name="action_start_workflow" 
-                        string="بدء سير العمل (Start Workflow)" 
-                        type="object" 
-                        class="btn-primary" 
+                <button name="action_start_workflow"
+                        string="بدء سير العمل (Start Workflow)"
+                        type="object"
+                        class="btn-primary"
                         invisible="workflow_started == True or id == False"
                         help="Creates all tasks for this project's workflow."/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="sale_order_id" readonly="1"/>
-                
+
                 <field name="workflow_started" invisible="1"/>
-                <!-- REMOVED THE FOLLOWING LINE THAT CAUSED THE ERROR -->
-                <!-- <field name="triggered_steps" invisible="1"/> -->
-                
+
                 <group string="فريق العمل (Project Team)">
                     <group>
                         <field name="architect_id"/>
@@ -45,8 +43,8 @@
                         <field name="building_type"/>
                         <field name="service_type"/>
                         <field name="governorate_id" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="region_id" 
-                               domain="[('governorate_id', '=', governorate_id)]" 
+                        <field name="region_id"
+                               domain="[('governorate_id', '=', governorate_id)]"
                                options="{'no_create': True, 'no_open': True}"/>
                         <field name="area"/>
                     </group>
@@ -62,33 +60,52 @@
 
     <!-- ====================================================== -->
     <!--  2. TASK FORM (EDITED WITH NEW TABS)                   -->
+    <!--                                                        -->
+    <!--  Tab visibility rules:                                 -->
+    <!--  • "نموذج مكونات المشروع" → engineering tasks only    -->
+    <!--  • "رسومات كروكي"         → engineering tasks only    -->
+    <!--  • "مرفقات"               → always visible            -->
+    <!--                                                        -->
+    <!--  Hidden for العقد وتحصيل الدفعة الأولى               -->
+    <!--    (workflow_step in rn_1_3, nrn_1_3, ra_1_5,         -->
+    <!--                         nra_1_5, dem_1_2):            -->
+    <!--    • التعهدات tab   → hidden (controlled in           -->
+    <!--                       commitments_views.xml)           -->
+    <!--    • site visit tab → never existed; confirmed absent  -->
+    <!--                                                        -->
+    <!--  Hidden for سيستم الأعمدة                             -->
+    <!--    (workflow_step in rn_2_1, nrn_2_1, ra_2_1,         -->
+    <!--                         nra_2_1):                      -->
+    <!--    • التعهدات tab   → hidden (commitments_views.xml)   -->
+    <!--    • site visit tab → never existed; confirmed absent  -->
+    <!--    • نموذج مكونات  → hidden (only المرفقات shown)     -->
+    <!--    • رسومات كروكي  → hidden (only المرفقات shown)     -->
     <!-- ====================================================== -->
     <record id="view_task_form2_engineering_extended" model="ir.ui.view">
         <field name="name">project.task.form.engineering.extended</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
-            
+
             <xpath expr="//header" position="inside">
-                <!-- إخفاء الأزرار إذا كانت المهمة مقفلة -->
-                <button name="%(engineering_project.action_report_initial_design_form)d" 
+                <button name="%(engineering_project.action_report_initial_design_form)d"
                         string="طباعة نموذج المشروع (Print PDF)" type="action" class="btn-primary"
                         invisible="is_disabled"/>
-                <button name="action_send_task_form_whatsapp" 
+                <button name="action_send_task_form_whatsapp"
                         string="إرسال واتساب (WhatsApp)" type="object" class="btn-success" icon="fa-whatsapp"
                         invisible="is_disabled"/>
                 <button name="action_view_parent_project"
                         string="الذهاب للمشروع (Go to Project)" type="object" icon="fa-briefcase"/>
             </xpath>
 
-            <!-- رسالة تنبيه للمهمة المقفلة + حقول الفرز الجديدة -->
             <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
                 <field name="is_disabled" invisible="1"/>
-                
-                <!-- تم إضافة هذه الحقول المخفية للتحكم بالتبويبات -->
                 <field name="is_paperwork_task" invisible="1"/>
                 <field name="is_engineering_task" invisible="1"/>
-                
+
+                <!-- Hidden field to carry workflow_step for use in invisible expressions -->
+                <field name="workflow_step" invisible="1"/>
+
                 <div class="alert alert-danger text-center" role="alert" invisible="not is_disabled" style="margin-bottom: 10px;">
                     <i class="fa fa-lock fa-2x"/> <br/>
                     <strong>هذه المهمة مقفلة (Disabled)!</strong><br/>
@@ -97,15 +114,19 @@
             </xpath>
 
             <xpath expr="//notebook" position="inside">
-                
-                <!-- تبويب نموذج مكونات المشروع (يظهر للمهندسين فقط) -->
-                <page string="نموذج مكونات المشروع" name="project_details_form" invisible="not is_engineering_task">
-                    <field name="workflow_step" invisible="1"/>
-                    
+
+                <!--
+                    تبويب نموذج مكونات المشروع
+                    • Visible for engineering tasks ONLY
+                    • Hidden for سيستم الأعمدة tasks — only المرفقات + description kept
+                      workflow_step codes for سيستم الأعمدة: rn_2_1, nrn_2_1, ra_2_1, nra_2_1
+                -->
+                <page string="نموذج مكونات المشروع" name="project_details_form"
+                      invisible="not is_engineering_task or workflow_step in ['rn_2_1','nrn_2_1','ra_2_1','nra_2_1']">
+
                     <div class="mb-3 mt-2">
-                        <!-- زر تحميل المراحل مخفي إذا كانت المهمة مقفلة -->
-                        <button name="action_load_default_phases" type="object" 
-                                string="تحميل المراحل الافتراضية (Load Defaultرات)" 
+                        <button name="action_load_default_phases" type="object"
+                                string="تحميل المراحل الافتراضية (Load Defaults)"
                                 class="btn-secondary" icon="fa-list-ol"
                                 invisible="phase_ids != [] or is_disabled"/>
                         <span class="text-muted ms-3">
@@ -123,8 +144,13 @@
                     </field>
                 </page>
 
-                <!-- ================== NEW TAB 1: SKETCHES (يظهر للمهندسين فقط) ================== -->
-                <page string="رسومات كروكي (Sketches)" name="sketches" invisible="not is_engineering_task">
+                <!--
+                    تبويب رسومات كروكي
+                    • Visible for engineering tasks ONLY
+                    • Hidden for سيستم الأعمدة tasks
+                -->
+                <page string="رسومات كروكي (Sketches)" name="sketches"
+                      invisible="not is_engineering_task or workflow_step in ['rn_2_1','nrn_2_1','ra_2_1','nra_2_1']">
                     <field name="sketch_ids" nolabel="1" readonly="is_disabled">
                         <tree>
                             <field name="name"/>
@@ -140,35 +166,39 @@
                                     <field name="create_date" readonly="1"/>
                                 </group>
                                 <separator string="Sketch Pad"/>
-                                <!-- The new sketch_pad widget points to the sketch_image field of the current sketch record -->
                                 <field name="sketch_image" widget="sketch_pad_editor" style="width: 100%; height: 500px;"/>
                             </sheet>
                         </form>
                     </field>
-                    <button name="action_create_new_sketch" type="object" string="إضافة رسم كروكي جديد" class="oe_highlight" icon="fa-plus-circle" invisible="is_disabled"/>
+                    <button name="action_create_new_sketch" type="object"
+                            string="إضافة رسم كروكي جديد" class="oe_highlight" icon="fa-plus-circle"
+                            invisible="is_disabled"/>
                     <field name="sketch_count" invisible="1"/>
                 </page>
 
-                <!-- ================== NEW TAB 2: ATTACHMENTS (يظهر للجميع دائماً) ================= -->
-                <!-- تمت إزالة أي كود إخفاء ليبقى ظاهراً في جميع المهام -->
+                <!--
+                    تبويب المرفقات
+                    • Always visible for ALL tasks (including العقد and سيستم الأعمدة)
+                -->
                 <page string="مرفقات" name="proofs_attachments">
                     <p class="text-muted">
                         قم برفع صور، ملفات PDF، أو أي مستندات أخرى كإثباتات للمهمة. (اضغط على إضافة سطر للرفع)
                     </p>
                     <field name="proof_attachment_ids" nolabel="1">
-                         <tree editable="bottom">
+                        <tree editable="bottom">
                             <field name="name" string="اسم الملف"/>
                             <field name="mimetype" readonly="1" optional="hide"/>
                             <field name="create_date" readonly="1"/>
                             <field name="datas" filename="name" widget="binary" string="رفع الملف (Upload)"/>
-                            <button name="action_send_attachment_whatsapp" 
-                                    type="object" 
-                                    string="إرسال واتساب" 
-                                    icon="fa-whatsapp" 
+                            <button name="action_send_attachment_whatsapp"
+                                    type="object"
+                                    string="إرسال واتساب"
+                                    icon="fa-whatsapp"
                                     class="btn-success"/>
-                         </tree>
+                        </tree>
                     </field>
                 </page>
+
             </xpath>
         </field>
     </record>
@@ -182,14 +212,14 @@
     </record>
 
     <!-- ====================================================== -->
-    <!--  3. TASK KANBAN (NO CHANGES HERE)                      -->
+    <!--  3. TASK KANBAN (NO CHANGES)                           -->
     <!-- ====================================================== -->
     <record id="view_task_kanban_engineering" model="ir.ui.view">
         <field name="name">project.task.kanban.engineering</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
-            
+
             <xpath expr="//templates" position="before">
                 <field name="is_disabled" invisible="1"/>
             </xpath>
@@ -197,13 +227,13 @@
             <xpath expr="//t[@t-name='kanban-box']/div" position="attributes">
                 <attribute name="t-attf-style">opacity: #{record.is_disabled.raw_value ? '0.4' : '1.0'}; pointer-events: #{record.is_disabled.raw_value ? 'none' : 'auto'};</attribute>
             </xpath>
-            
+
             <xpath expr="//strong[hasclass('o_kanban_record_title')]" position="after">
                 <div t-if="record.is_disabled.raw_value" class="text-danger mt-1" style="font-weight: bold; font-size: 11px;">
                     <i class="fa fa-lock"/> مقفلة (بانتظار المهام السابقة)
                 </div>
             </xpath>
-            
+
         </field>
     </record>
 </odoo>
