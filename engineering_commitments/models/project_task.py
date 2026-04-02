@@ -392,4 +392,29 @@ class ProjectTask(models.Model):
             })
 
             replacements = {
-                'na
+                'name': project.partner_id.name or '',
+                'date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
+                'governorate': project.governorate_id.name if getattr(project, 'governorate_id', False) else '',
+                'region': project.region_id.name if getattr(project, 'region_id', False) else '',
+                'block': getattr(project, 'block_no', ''),
+                'plot': getattr(project, 'plot_no', ''),
+                'customer signature text': project.partner_id.name or '',
+                'company signature text': self.env.company.name or '',
+            }
+
+            for item in template.sign_item_ids:
+                field_name = (item.name or '').strip().lower()
+                _logger.warning(f"FIELD DETECTED >>> '{field_name}'")
+                if field_name in replacements:
+                    value = replacements[field_name]
+                    signer = sign_request.request_item_ids.filtered(
+                        lambda r: r.role_id.id == item.responsible_id.id
+                    )
+                    if signer:
+                        self.env['sign.request.item.value'].sudo().create({
+                                'sign_request_id': sign_request.id,
+                                'sign_request_item_id': signer[0].id,
+                                'sign_item_id': item.id,
+                                'value': value,
+                        })
+            line.sign_request_id = sign_request.id
