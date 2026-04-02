@@ -4,7 +4,7 @@ from odoo.exceptions import UserError
 
 
 class EngineeringProjectCompanyContract(models.Model):
-    _name = 'engineering.project.company.contract'
+    _name = 'engineering.project.contract' # CHANGED FROM 'engineering.project.company.contract'
     _description = 'Engineering Project Company Contract Line'
 
     project_id = fields.Many2one('project.project', string='Project', ondelete='cascade')

@@ -261,7 +261,7 @@ class ProjectTask(models.Model):
     )
 
     company_contract_ids = fields.One2many(
-        'engineering.task.company.contract',
+    _name = 'engineering.project.contract' # CHANGED FROM 'engineering.project.company.contract'
         'task_id',
         string='Company Contracts (عقود الشركة)'
     )
