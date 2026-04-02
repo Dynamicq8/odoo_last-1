@@ -1,7 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_engineering_task_commitment_user,Engineering Task Commitment User,model_engineering_task_commitment,base.group_user,1,1,1,0
 access_eng_project_commitment_user,Engineering Project Commitment User,model_engineering_project_commitment,base.group_user,1,1,1,1
-
-# NEW: Access rights for Company Contract models
 access_engineering_project_company_contract_user,Engineering Project Company Contract User,model_engineering_project_contract,base.group_user,1,1,1,1
 access_engineering_task_company_contract_user,Engineering Task Company Contract User,model_engineering_task_contract,base.group_user,1,1,1,0
