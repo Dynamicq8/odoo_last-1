@@ -173,9 +173,7 @@ class SaleOrder(models.Model):
                 docs += "<li>المدنيات</li>"
                 docs += "<li>الموقع العام</li>"
                 docs += "<li>مخطط المرخص</li>"
-                docs += "<li>رخصة البناء</li>"
-                docs += "<li>صور عدادات الكهرباء</li>"
-                docs += "<li>صور وجهات القسيمة</li>"
+                
             elif order.building_type == 'commercial' and is_new_or_add:
                 docs += "<li>الوثيقة</li>"
                 docs += "<li>المدنيات</li>"
