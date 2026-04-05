@@ -465,26 +465,17 @@ class ProjectProject(models.Model):
         if user_id:
             val['user_ids'] = [(4, user_id)]
 
-        # ========================================================
-        #  MAIN TASK CREATION
-        # ========================================================
         new_task = self.env['project.task'].create(val)
         task_name = step_data['name']
 
-        # ========================================================
-        #  SUBTASK CREATION LOGIC 
-        # ========================================================
-        # 1. We link parent_id to the main task
-        # 2. We DO NOT assign a stage_id so it doesn't force itself onto the Kanban
-        # 3. We set 'display_in_project' to False to hide it from the project board completely
-        
         subtask_base_vals = {
             'project_id': self.id,
             'parent_id': new_task.id,
-            'is_disabled': is_disabled,
+            # Subtasks are NEVER blocked — they have no workflow_step and have a parent_id
+            # so the write() guard will not apply to them regardless of is_disabled
+            'is_disabled': False,
         }
         
-        # Safely hide subtask from Kanban board for newer Odoo versions (v15, v16, v17)
         if 'display_in_project' in self.env['project.task']._fields:
             subtask_base_vals['display_in_project'] = False
 
@@ -518,7 +509,6 @@ class ProjectProject(models.Model):
                 vals['name'] = sub_name
                 self.env['project.task'].create(vals)
 
-        # New logic for "إصدار تعهد الإشراف"
         if "إصدار تعهد الإشراف" in task_name or "اصدار تعهد الأشراف" in task_name:
             subtasks_to_create = ["اصدار تعهد الأشراف", "اعتماد تعهد الأشراف"]
             for sub_name in subtasks_to_create:
@@ -526,7 +516,6 @@ class ProjectProject(models.Model):
                 vals['name'] = sub_name
                 self.env['project.task'].create(vals)
                 
-        # New logic for "إنهاء الإشراف"
         if "إنهاء الإشراف" in task_name or "انهاء الأشراف" in task_name:
             subtasks_to_create = [
                 "تجميع الصور و استلام الحدود و الأمن و السلامه",
@@ -576,7 +565,9 @@ class ProjectTask(models.Model):
     def write(self, vals):
         if 'stage_id' in vals or 'state' in vals:
             for task in self:
-                if task.is_disabled and vals.get('is_disabled') is not False:
+                # Only block main workflow tasks (they have workflow_step and no parent).
+                # Subtasks (parent_id is set) are always free to be approved/moved.
+                if task.is_disabled and task.workflow_step and not task.parent_id and vals.get('is_disabled') is not False:
                     raise UserError(_("لا يمكنك إنجاز أو تحريك هذه المهمة لأنها مقفلة! يجب إنجاز المهام السابقة أولاً."))
 
         res = super(ProjectTask, self).write(vals)

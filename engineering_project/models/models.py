@@ -131,101 +131,46 @@ WORKFLOW_TEMPLATES = {
 
 # ==============================================================================
 #  DOCUMENT SUBTASKS CONFIGURATION
-#  Determines subtasks for "جمع الوثائق" based on building_type + service_type
 # ==============================================================================
 
 def _get_document_subtasks(building_type, service_type):
-    """
-    Returns the list of subtask names for the document-collection task
-    based on building_type and service_type.
-    """
-    # Residential + shades_garden
     if building_type == 'residential' and service_type == 'shades_garden':
         return [
-            'الوثيقة',
-            'المدنيات',
-            'ورقة من الكهرباء تفيد دفع المبالغ او الفاتوره',
-            'رخصه بناء للقسيمه',
-            'صور القسيمه',
-            'صور الحديقه',
+            'الوثيقة', 'المدنيات', 'ورقة من الكهرباء تفيد دفع المبالغ او الفاتوره',
+            'رخصه بناء للقسيمه', 'صور القسيمه', 'صور الحديقه',
         ]
-    # Residential + demolition
     elif building_type == 'residential' and service_type == 'demolition':
         return [
-            'وثيقه الملكية',
-            'المدنيات',
-            'كتاب من وزاره الكهرباء و الماء قطع الكيبل',
-            'كتاب براةه ذمه من وزاره المواصلات',
-            'صور وجهات القسيمه',
+            'وثيقه الملكية', 'المدنيات', 'كتاب من وزاره الكهرباء و الماء قطع الكيبل',
+            'كتاب براةه ذمه من وزاره المواصلات', 'صور وجهات القسيمه',
         ]
-    # Cooperative — all services
     elif building_type == 'cooperative':
-        return [
-            'كتاب التخصيص',
-            'المخطط المساحي',
-            'مدنيه',
-            'كتب التفويض من وزاره الأرقام الأليه',
-        ]
-    # Commercial — replicate cooperative subtasks
+        return ['كتاب التخصيص', 'المخطط المساحي', 'مدنيه', 'كتب التفويض من وزاره الأرقام الأليه']
     elif building_type == 'commercial':
-        return [
-            'كتاب التخصيص',
-            'المخطط المساحي',
-            'مدنيه',
-            'كتب التفويض من وزاره الأرقام الأليه',
-        ]
-    # Default fallback (residential other services, investment, etc.)
+        return ['كتاب التخصيص', 'المخطط المساحي', 'مدنيه', 'كتب التفويض من وزاره الأرقام الأليه']
     else:
-        return [
-            'الوثيقه',
-            'المدنيه',
-            'الموقع العام',
-        ]
+        return ['الوثيقه', 'المدنيه', 'الموقع العام']
 
 
 # ==============================================================================
 #  STRUCTURAL PLAN SUBTASKS CONFIGURATION
-#  Determines subtasks for "المخطط الأنشائي" inside "الأشراف علي اللتنفيذ"
-#  based on building_type
 # ==============================================================================
 
 def _get_structural_plan_subtasks(building_type):
-    """
-    Returns the list of phase names for the structural plan task
-    under supervision, based on building_type.
-    """
-    # Residential — all services
     if building_type == 'residential':
         return [
-            'مرحلة الحفر',
-            'مرحلة القواعد والشناجات',
-            'مرحلة حوائط السرداب',
-            'مرحلة صب سقف السرداب',
-            'مرحلة اعمده الدور الارضى',
-            'مرحلة صب سقف الدور الارضى',
-            'مرحلة اعمده الدور الاول',
-            'مرحلة صب سقف الدور الاول',
-            'مرحلة اعمده الدور الثانى',
-            'مرحلة صب سقف الدور الثانى',
-            'مرحلة اعمده الدور السطح',
-            'مرحله صب سقف السطح',
+            'مرحلة الحفر', 'مرحلة القواعد والشناجات', 'مرحلة حوائط السرداب',
+            'مرحلة صب سقف السرداب', 'مرحلة اعمده الدور الارضى', 'مرحلة صب سقف الدور الارضى',
+            'مرحلة اعمده الدور الاول', 'مرحلة صب سقف الدور الاول', 'مرحلة اعمده الدور الثانى',
+            'مرحلة صب سقف الدور الثانى', 'مرحلة اعمده الدور السطح', 'مرحله صب سقف السطح',
         ]
-    # Commercial — all services
     elif building_type == 'commercial':
         return [
-            'مرحله القواعد والشناجات',
-            'مرحله حوائط السرداب',
-            'مرحله صب سقف السرداب',
-            'مرحله اعمده الدور الارضى',
-            'مرحله صب سقف الدور الارضى',
-            'مرحله اعمده الدور الاول',
-            'مرحله صب سقف الدور الاول',
-            'مرحله اعمده الدور الثانى',
-            'مرحله صب سقف الدور الثانى',
-            'مرحله اعمده الدور السطح',
-            'مرحله صب سقف السطح',
+            'مرحله القواعد والشناجات', 'مرحله حوائط السرداب', 'مرحله صب سقف السرداب',
+            'مرحله اعمده الدور الارضى', 'مرحله صب سقف الدور الارضى', 'مرحله اعمده الدور الاول',
+            'مرحله صب سقف الدور الاول', 'مرحله اعمده الدور الثانى', 'مرحله صب سقف الدور الثانى',
+            'مرحله اعمده الدور السطح', 'مرحله صب سقف السطح',
         ]
-    # Default — no phases
     else:
         return []
 
@@ -615,11 +560,8 @@ class ProjectProject(models.Model):
         stage_map = {stage.name: stage.id for stage in stages}
 
         required_stages = [
-            'المرحلة الأولى',
-            'المرحلة الثانية',
-            'المرحلة الثالثة',
-            'المرحلة الرابعة',
-            'المرحلة الخامسة'
+            'المرحلة الأولى', 'المرحلة الثانية', 'المرحلة الثالثة',
+            'المرحلة الرابعة', 'المرحلة الخامسة'
         ]
 
         for idx, s_name in enumerate(required_stages):
@@ -726,12 +668,15 @@ class ProjectProject(models.Model):
 
         new_task = self.env['project.task'].create(val)
 
-        # ======================================================================
-        # SUBTASK: جمع الوثائق  (document collection)
-        # Rules:
-        #   - NO "site visit report" subtask ever
-        #   - Subtask list is dynamic based on building_type + service_type
-        # ======================================================================
+        # Subtasks are NEVER blocked — no workflow_step, has parent_id,
+        # so the write() guard will not apply to them regardless of parent state.
+        subtask_base_vals = {
+            'project_id': self.id,
+            'parent_id': new_task.id,
+            'stage_id': stage_id,
+            'is_disabled': False,
+        }
+
         task_name_lower = step_data['name'].strip()
         is_document_task = (
             "تجميع المستندات" in task_name_lower
@@ -742,17 +687,10 @@ class ProjectProject(models.Model):
         if is_document_task:
             doc_subtasks = _get_document_subtasks(self.building_type, self.service_type)
             for sub_name in doc_subtasks:
-                self.env['project.task'].create({
-                    'name': sub_name,
-                    'project_id': self.id,
-                    'parent_id': new_task.id,
-                    'stage_id': stage_id,
-                    'is_disabled': is_disabled,
-                })
+                vals = subtask_base_vals.copy()
+                vals['name'] = sub_name
+                self.env['project.task'].create(vals)
 
-        # ======================================================================
-        # SUBTASK: فحص التربة - كتاب الكهرباء
-        # ======================================================================
         if "فحص التربة" in step_data['name'] and "الكهرباء" in step_data['name']:
             for sub_name in [
                 "فحص التربه تم الأرسال",
@@ -760,43 +698,10 @@ class ProjectProject(models.Model):
                 "الكهرباء تم الأرسال",
                 "الكهرباء تم الأعتماد",
             ]:
-                self.env['project.task'].create({
-                    'name': sub_name,
-                    'project_id': self.id,
-                    'parent_id': new_task.id,
-                    'stage_id': stage_id,
-                    'is_disabled': is_disabled,
-                })
+                vals = subtask_base_vals.copy()
+                vals['name'] = sub_name
+                self.env['project.task'].create(vals)
 
-        # ======================================================================
-        # SUBTASK: العقد وتحصيل الدفعة الأولى
-        # Rules:
-        #   - Remove "التعهدات" subtask
-        #   - Remove "site visit report" subtask
-        #   (No subtasks added here — original code had none; enforced by omission)
-        # ======================================================================
-        # NOTE: The original code did not create subtasks for "العقد وتحصيل الدفعة الأولى".
-        # The removal of "التعهدات" and "site visit report" is enforced by simply NOT
-        # adding those subtasks in any branch. If previously they were added elsewhere,
-        # they are not added here.
-
-        # ======================================================================
-        # SUBTASK: سيستم الأعمدة
-        # Rules:
-        #   - Remove "site visit report" subtask
-        #   - Remove "التعهدات" subtask
-        #   - Keep ONLY "المرفقات" and "description" sections
-        #   (Controlled in the view layer; no subtasks created in Python for this task)
-        # ======================================================================
-        # NOTE: سيستم الأعمدة tab restrictions (keeping only المرفقات and description)
-        # are enforced via the XML view. No Python subtasks are created for it.
-
-        # ======================================================================
-        # SUBTASK: المخطط الأنشائي  under  الأشراف علي اللتنفيذ
-        # Rules:
-        #   - Residential (all services): 12 phases
-        #   - Commercial (all services): 11 phases
-        # ======================================================================
         is_structural_plan_task = (
             "المخطط الإنشائي" in step_data['name']
             or "المخطط الانشائي" in step_data['name']
@@ -807,13 +712,9 @@ class ProjectProject(models.Model):
         if is_structural_plan_task:
             structural_subtasks = _get_structural_plan_subtasks(self.building_type)
             for sub_name in structural_subtasks:
-                self.env['project.task'].create({
-                    'name': sub_name,
-                    'project_id': self.id,
-                    'parent_id': new_task.id,
-                    'stage_id': stage_id,
-                    'is_disabled': is_disabled,
-                })
+                vals = subtask_base_vals.copy()
+                vals['name'] = sub_name
+                self.env['project.task'].create(vals)
 
 
 # ==============================================================================
@@ -926,7 +827,9 @@ class ProjectTask(models.Model):
     def write(self, vals):
         if 'stage_id' in vals or vals.get('state') in ['1_done', '03_approved']:
             for task in self:
-                if task.is_disabled:
+                # Only block main workflow tasks (they have workflow_step and no parent_id).
+                # Subtasks (parent_id is set) are always free to be approved/moved.
+                if task.is_disabled and task.workflow_step and not task.parent_id and vals.get('is_disabled') is not False:
                     raise UserError(_("لا يمكنك إنجاز هذه المهمة أو تغيير حالتها لأنها مقفلة! يرجى الانتهاء من المهام السابقة أولاً."))
 
         res = super(ProjectTask, self).write(vals)
