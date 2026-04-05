@@ -2,6 +2,9 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
+# =========================================================
+# COMMITMENT MODEL FOR TASKS
+# =========================================================
 class EngineeringTaskCommitment(models.Model):
     _name = 'engineering.task.commitment'
     _description = 'Task Commitment'
@@ -19,9 +22,7 @@ class EngineeringTaskCommitment(models.Model):
         request = self.sign_request_id
         user = self.env.user
         
-        # Check permissions
         is_admin = user.has_group('base.group_system')
-        # Check if user has a secretary_id (using getattr to avoid errors if field doesn't exist)
         is_secretary = bool(getattr(user, 'secretary_id', False))
         
         if is_admin or is_secretary:
@@ -40,8 +41,11 @@ class EngineeringTaskCommitment(models.Model):
             'target': 'new',
         }
 
+# =========================================================
+# COMPANY CONTRACT MODEL FOR TASKS
+# =========================================================
 class EngineeringTaskCompanyContract(models.Model):
-    _name = 'engineering.task.contract'   # CHANGED FROM 'engineering.task.company.contract'
+    _name = 'engineering.task.company.contract'   # <--- FIXED: ADDED .company. BACK!
     _description = 'Engineering Task Company Contract Line'
 
     task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
@@ -77,7 +81,7 @@ class EngineeringTaskCompanyContract(models.Model):
         }
 
 # =========================================================
-# NEW: PHASES APPROVAL MODEL FOR TASKS
+# PHASES APPROVAL MODEL FOR TASKS
 # =========================================================
 class EngineeringTaskPhaseApproval(models.Model):
     _name = 'engineering.task.phase.approval'

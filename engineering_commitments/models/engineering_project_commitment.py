@@ -3,8 +3,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
 # =========================================================
-# NEW 🚀: COMMITMENT MODEL FOR PROJECTS
-# This is a new model specifically for project-level commitments.
+# COMMITMENT MODEL FOR PROJECTS
 # =========================================================
 class EngineeringProjectCommitment(models.Model):
     _name = 'engineering.project.commitment'
@@ -23,7 +22,6 @@ class EngineeringProjectCommitment(models.Model):
         request = self.sign_request_id
         user = self.env.user
         
-        # Check permissions
         is_admin = user.has_group('base.group_system')
         is_secretary = bool(getattr(user, 'secretary_id', False))
         
@@ -43,9 +41,11 @@ class EngineeringProjectCommitment(models.Model):
             'target': 'new',
         }
 
-
+# =========================================================
+# COMPANY CONTRACT MODEL FOR PROJECTS
+# =========================================================
 class EngineeringProjectCompanyContract(models.Model):
-    _name = 'engineering.project.contract' # CHANGED FROM 'engineering.project.company.contract'
+    _name = 'engineering.project.company.contract' # <--- FIXED: ADDED .company. BACK!
     _description = 'Engineering Project Company Contract Line'
 
     project_id = fields.Many2one('project.project', string='Project', ondelete='cascade')
@@ -80,9 +80,8 @@ class EngineeringProjectCompanyContract(models.Model):
             'target': 'new',
         }
 
-
 # =========================================================
-# NEW: PHASES APPROVAL MODEL FOR PROJECTS
+# PHASES APPROVAL MODEL FOR PROJECTS
 # =========================================================
 class EngineeringProjectPhaseApproval(models.Model):
     _name = 'engineering.project.phase.approval'
