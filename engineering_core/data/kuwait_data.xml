@@ -1,5 +1,5 @@
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <!-- Governorates -->
         <record id="gov_asima" model="kuwait.governorate">
             <field name="name">العاصمة</field>
