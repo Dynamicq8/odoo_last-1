@@ -3,43 +3,80 @@
 
     <t t-name="engineering_project.SketchPadWidget" owl="1">
         <div class="o_field_sketch_pad_container" t-att-class="{ 'o_field_empty': !props.value, 'o_field_widget': true }">
-            <div class="sketch-controls bg-light p-2 mb-2 d-flex flex-wrap align-items-center justify-content-center">
-                <!-- Controls remain completely unchanged -->
-                <div class="d-flex align-items-center me-3 mb-2 mb-md-0">
-                    <button type="button" class="btn btn-outline-primary btn-sm me-2" t-att-class="{ 'active': currentMode.mode === 'pen' }" t-on-click="setPenMode">
-                        <i class="fa fa-pencil"/> Pen
-                    </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm me-2" t-att-class="{ 'active': currentMode.mode === 'eraser' }" t-on-click="setEraserMode">
-                        <i class="fa fa-eraser"/> Eraser
-                    </button>
-                    <input type="color" class="form-control form-control-color me-2" t-ref="colorPicker" value="#000000" t-on-change="changeColor"/>
-                    <input type="range" class="form-range" min="1" max="20" value="5" t-ref="sizePicker" t-on-input="changeBrushSize" style="width: 80px;"/>
-                    <span class="ms-2">Size</span>
+            
+            <!-- CONTROLS HEADER -->
+            <div class="sketch-controls bg-light p-2 mb-2 d-flex flex-wrap align-items-center">
+                
+                <!-- 1. Tools & Shapes -->
+                <div class="d-flex align-items-center me-3 mb-2">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" t-att-class="{ 'active': currentMode.mode === 'select' }" t-on-click="setSelectMode" title="Select Tool">
+                            <i class="fa fa-mouse-pointer"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" t-att-class="{ 'active': currentMode.mode === 'pen' }" t-on-click="setPenMode" title="Pen">
+                            <i class="fa fa-pencil"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" t-att-class="{ 'active': currentMode.mode === 'eraser' }" t-on-click="setEraserMode" title="Eraser">
+                            <i class="fa fa-eraser"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" t-att-class="{ 'active': currentMode.mode === 'line' }" t-on-click="() => this.setShapeMode('line')" title="Line">
+                            <i class="fa fa-minus"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" t-att-class="{ 'active': currentMode.mode === 'rect' }" t-on-click="() => this.setShapeMode('rect')" title="Rectangle">
+                            <i class="fa fa-square-o"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" t-att-class="{ 'active': currentMode.mode === 'circle' }" t-on-click="() => this.setShapeMode('circle')" title="Circle">
+                            <i class="fa fa-circle-o"/>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" t-att-class="{ 'active': currentMode.mode === 'triangle' }" t-on-click="() => this.setShapeMode('triangle')" title="Triangle">
+                            <span style="font-weight: bold; font-size: 14px; line-height: 1;">△</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="d-flex align-items-center me-3 mb-2 mb-md-0">
-                    <button type="button" class="btn btn-outline-secondary btn-sm me-2" t-att-class="{ 'active': currentMode.mode === 'text' || currentMode.mode === 'text_edit' }" t-on-click="setTextMode">
-                        <i class="fa fa-font"/> Text
-                    </button>
-                    <input type="text" class="form-control form-control-sm me-2" t-ref="textInput" placeholder="Type text here..." style="width: 150px;"/>
+                <!-- 2. Text Input -->
+                <div class="d-flex align-items-center me-3 mb-2">
+                    <div class="input-group input-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" t-att-class="{ 'active': currentMode.mode === 'text' || currentMode.mode === 'text_edit' }" t-on-click="setTextMode" title="Add Text">
+                            <i class="fa fa-font"/>
+                        </button>
+                        <input type="text" class="form-control" t-ref="textInput" placeholder="Type text..." style="width: 120px;"/>
+                    </div>
                 </div>
 
-                <div class="d-flex align-items-center">
+                <!-- 3. Styles (Colors & Size) -->
+                <div class="d-flex align-items-center me-3 mb-2 bg-white border rounded px-2 py-1">
+                    <label class="me-1 small mb-0 text-muted">Line:</label>
+                    <input type="color" class="form-control form-control-color p-0 me-2 border-0" t-ref="colorPicker" value="#000000" t-on-change="changeColor" style="width: 25px; height: 25px; cursor: pointer;" title="Pen/Border/Text Color"/>
+                    
+                    <label class="me-1 small mb-0 text-muted">Fill:</label>
+                    <input type="color" class="form-control form-control-color p-0 me-3 border-0" t-ref="fillColorPicker" value="#ffffff" t-on-change="changeFillColor" style="width: 25px; height: 25px; cursor: pointer;" title="Shape Fill Color"/>
+                    
+                    <i class="fa fa-circle text-muted me-1" style="font-size: 10px;"/>
+                    <input type="range" class="form-range" min="1" max="50" value="5" t-ref="sizePicker" t-on-input="changeBrushSize" style="width: 70px;" title="Size / Thickness"/>
+                </div>
+
+                <!-- 4. Actions -->
+                <div class="d-flex align-items-center mb-2 ms-auto">
+                    <button type="button" class="btn btn-outline-danger btn-sm me-2" t-on-click="deleteSelected" title="Delete Selected Item">
+                        <i class="fa fa-trash-o"/>
+                    </button>
                     <button type="button" class="btn btn-outline-warning btn-sm me-2" t-on-click="clearCanvas">
-                        <i class="fa fa-trash"/> Clear
+                        <i class="fa fa-ban"/> Clear All
                     </button>
                     <button type="button" class="btn btn-success btn-sm me-2" t-on-click="saveCanvas">
                         <i class="fa fa-save"/> Save
                     </button>
-                    <button type="button" class="btn btn-info btn-sm" t-on-click="downloadCanvas">
+                    <button type="button" class="btn btn-info btn-sm text-white" t-on-click="downloadCanvas">
                         <i class="fa fa-download"/> Download
                     </button>
                 </div>
+
             </div>
             
-            <!-- FIX 3: Replaced <canvas> with a container div. 
-                 OWL will manage this outer div, while Fabric.js manages the canvas inside it -->
-            <div t-ref="canvasContainer" class="border border-dark bg-white w-100"></div>
+            <!-- Canvas Container -->
+            <!-- OWL will manage this outer div, while Fabric.js manages the canvas inside it -->
+            <div t-ref="canvasContainer" class="border border-dark bg-white w-100" style="min-height: 500px;"></div>
             
         </div>
     </t>

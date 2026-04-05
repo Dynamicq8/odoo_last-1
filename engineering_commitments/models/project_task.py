@@ -285,6 +285,9 @@ class ProjectProject(models.Model):
                 'request_item_ids': signers,
             })
             
+            # Extract area safely, handle if empty/false/0
+            project_area = getattr(project, 'area', False)
+
             replacements = {
                 'name': project.partner_id.name or '',
                 'date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
@@ -292,6 +295,7 @@ class ProjectProject(models.Model):
                 'region': project.region_id.name if getattr(project, 'region_id', False) else '',
                 'block': getattr(project, 'block_no', ''),
                 'plot': getattr(project, 'plot_no', ''),
+                'area': str(project_area) if project_area else '', # <--- ADDED AREA HERE
                 'customer signature text': project.partner_id.name or '',
                 'company signature text': self.env.company.name or '',
             }
@@ -509,6 +513,9 @@ class ProjectTask(models.Model):
                 'request_item_ids': signers,
             })
 
+            # Extract area safely, handle if empty/false/0
+            project_area = getattr(project, 'area', False)
+
             replacements = {
                 'name': project.partner_id.name or '',
                 'date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
@@ -516,6 +523,7 @@ class ProjectTask(models.Model):
                 'region': project.region_id.name if getattr(project, 'region_id', False) else '',
                 'block': getattr(project, 'block_no', ''),
                 'plot': getattr(project, 'plot_no', ''),
+                'area': str(project_area) if project_area else '', # <--- ADDED AREA HERE
                 'customer signature text': project.partner_id.name or '',
                 'company signature text': self.env.company.name or '',
             }

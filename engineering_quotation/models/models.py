@@ -519,8 +519,21 @@ class ProjectProject(models.Model):
                 self.env['project.task'].create(vals)
 
         # New logic for "إصدار تعهد الإشراف"
-        if "إصدار تعهد الإشراف" in task_name:
-            subtasks_to_create = ["اصدار تعهد الأشراف", "اعتماد تهعد الأشراف"]
+        if "إصدار تعهد الإشراف" in task_name or "اصدار تعهد الأشراف" in task_name:
+            subtasks_to_create = ["اصدار تعهد الأشراف", "اعتماد تعهد الأشراف"]
+            for sub_name in subtasks_to_create:
+                vals = subtask_base_vals.copy()
+                vals['name'] = sub_name
+                self.env['project.task'].create(vals)
+                
+        # New logic for "إنهاء الإشراف"
+        if "إنهاء الإشراف" in task_name or "انهاء الأشراف" in task_name:
+            subtasks_to_create = [
+                "تجميع الصور و استلام الحدود و الأمن و السلامه",
+                "توقيع انهاء الأشراف",
+                "ارسال المعامله للبلديه",
+                "اعتماد انهاء الأشراف"
+            ]
             for sub_name in subtasks_to_create:
                 vals = subtask_base_vals.copy()
                 vals['name'] = sub_name
