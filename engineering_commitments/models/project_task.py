@@ -287,11 +287,15 @@ class ProjectProject(models.Model):
             
             # Extract area safely, handle if empty/false/0
             project_area = getattr(project, 'area', False)
+            
+            # Clean up Governorate name to remove "محافظه" or "محافظة"
+            raw_gov_name = project.governorate_id.name if getattr(project, 'governorate_id', False) else ''
+            clean_gov_name = raw_gov_name.replace('محافظة', '').replace('محافظه', '').strip()
 
             replacements = {
                 'name': project.partner_id.name or '',
                 'date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
-                'governorate': project.governorate_id.name if getattr(project, 'governorate_id', False) else '',
+                'governorate': clean_gov_name,
                 'region': project.region_id.name if getattr(project, 'region_id', False) else '',
                 'block': getattr(project, 'block_no', ''),
                 'plot': getattr(project, 'plot_no', ''),
@@ -515,11 +519,15 @@ class ProjectTask(models.Model):
 
             # Extract area safely, handle if empty/false/0
             project_area = getattr(project, 'area', False)
+            
+            # Clean up Governorate name to remove "محافظه" or "محافظة"
+            raw_gov_name = project.governorate_id.name if getattr(project, 'governorate_id', False) else ''
+            clean_gov_name = raw_gov_name.replace('محافظة', '').replace('محافظه', '').strip()
 
             replacements = {
                 'name': project.partner_id.name or '',
                 'date': fields.Date.context_today(self).strftime("%Y/%m/%d"),
-                'governorate': project.governorate_id.name if getattr(project, 'governorate_id', False) else '',
+                'governorate': clean_gov_name,
                 'region': project.region_id.name if getattr(project, 'region_id', False) else '',
                 'block': getattr(project, 'block_no', ''),
                 'plot': getattr(project, 'plot_no', ''),
