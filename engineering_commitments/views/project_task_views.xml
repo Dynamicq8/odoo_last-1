@@ -91,11 +91,12 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
+                            <!-- FIXED for Odoo 17: removed attrs -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="Sign Now"
                                     class="btn-primary"
-                                    attrs="{'invisible': [('sign_request_id','=',False)]}"/>
+                                    invisible="not sign_request_id"/>
                         </tree>
                     </field>
                 </page>
@@ -138,11 +139,12 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
+                            <!-- FIXED for Odoo 17: removed attrs -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="Sign Now"
                                     class="btn-primary"
-                                    attrs="{'invisible': [('sign_request_id','=',False)]}"/>
+                                    invisible="not sign_request_id"/>
                         </tree>
                     </field>
                 </page>
@@ -186,12 +188,12 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
-                            <!-- Renamed to إثبات -->
+                            <!-- FIXED for Odoo 17: removed attrs -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="إثبات (Sign Now)"
                                     class="btn-primary"
-                                    attrs="{'invisible': [('sign_request_id','=',False)]}"/>
+                                    invisible="not sign_request_id"/>
                         </tree>
                     </field>
                 </page>
@@ -239,11 +241,12 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
+                            <!-- FIXED for Odoo 17: removed attrs -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="Sign Now"
                                     class="btn-primary"
-                                    attrs="{'invisible': [('sign_request_id','=',False)]}"/>
+                                    invisible="not sign_request_id"/>
                         </tree>
                     </field>
                 </page>
@@ -274,11 +277,12 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
+                            <!-- FIXED for Odoo 17: removed attrs -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="Sign Now"
                                     class="btn-primary"
-                                    attrs="{'invisible': [('sign_request_id','=',False)]}"/>
+                                    invisible="not sign_request_id"/>
                         </tree>
                     </field>
                 </page>
@@ -309,11 +313,12 @@
 
                             <field name="sign_request_id" readonly="1"/>
 
+                            <!-- FIXED for Odoo 17: removed attrs -->
                             <button name="action_sign_now"
                                     type="object"
                                     string="إثبات (Sign Now)"
                                     class="btn-primary"
-                                    attrs="{'invisible': [('sign_request_id','=',False)]}"/>
+                                    invisible="not sign_request_id"/>
                         </tree>
                     </field>
                 </page>
