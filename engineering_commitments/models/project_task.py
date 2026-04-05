@@ -106,7 +106,7 @@ class ProjectProject(models.Model):
     )
 
     company_contract_ids = fields.One2many(
-        'engineering.project.contract', # <--- FIXED: Now matches your new model name
+        'engineering.project.company.contract', # <--- FIXED: Added '.company'
         'project_id',
         string='Company Contracts (عقود الشركة)'
     )
@@ -335,7 +335,7 @@ class ProjectTask(models.Model):
     )
 
     company_contract_ids = fields.One2many(
-        'engineering.task.contract', # <--- FIXED: Now matches your new model name
+        'engineering.task.company.contract', # <--- FIXED: Added '.company'
         'task_id',
         string='Company Contracts (عقود الشركة)'
     )
@@ -552,3 +552,31 @@ class ProjectTask(models.Model):
                                 'value': value,
                         })
             line.sign_request_id = sign_request.id
+    def action_quick_sign_phase(self):
+        self.ensure_one()
+        
+        # 1. Load the phase template if it isn't loaded yet
+        if not self.phase_approval_ids:
+            self.action_load_phases_approvals()
+        
+        # 2. Force mark at least the first template as "Required" automatically
+        if self.phase_approval_ids and not self.phase_approval_ids.filtered(lambda p: p.is_required):
+            self.phase_approval_ids[0].is_required = True
+            
+        # 3. Generate the PDF signature document
+        unsigned = self.phase_approval_ids.filtered(lambda p: p.is_required and not p.sign_request_id)
+        if unsigned:
+            self._generate_pdfs_for_lines(unsigned)
+            
+        # 4. Jump straight into the Signing page window
+        sign_request = self.phase_approval_ids.filtered(lambda p: p.sign_request_id).mapped('sign_request_id')
+        if sign_request:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Sign Phase Document',
+                'res_model': 'sign.request',
+                'res_id': sign_request[0].id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+
