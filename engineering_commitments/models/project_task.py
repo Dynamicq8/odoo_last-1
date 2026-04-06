@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 
 
 # =========================================================
-# 1. SIGN TEMPLATE EXTENSION (Added Document Type & Package)
+# 1. SIGN TEMPLATE EXTENSION
 # =========================================================
 class SignTemplate(models.Model):
     _inherit = 'sign.template'
@@ -50,7 +50,6 @@ class SignTemplate(models.Model):
 
 
 def _action_sign_now_direct(self):
-    """ Universal function to go directly to signing page """
     self.ensure_one()
     if not self.sign_request_id:
         raise UserError(_("No generated document yet."))
@@ -61,10 +60,8 @@ def _action_sign_now_direct(self):
     request_item = request.request_item_ids.filtered(
         lambda r: r.partner_id.id == user.partner_id.id
     )
-
     if not request_item:
         request_item = request.request_item_ids[:1]
-
     if not request_item:
         raise UserError(_("You are not assigned to sign this document, and no other signers were found."))
 
@@ -76,9 +73,8 @@ def _action_sign_now_direct(self):
 
 
 # =========================================================
-# 2. SUPPORTING MODELS FOR COMPANY CONTRACTS & PHASES APPROVALS
+# 2. SUPPORTING MODELS
 # =========================================================
-# --- COMMITMENTS ---
 class EngineeringProjectCommitment(models.Model):
     _name = 'engineering.project.commitment'
     _description = 'Engineering Project Commitment Line'
@@ -90,6 +86,7 @@ class EngineeringProjectCommitment(models.Model):
 
     def action_sign_now(self):
         return _action_sign_now_direct(self)
+
 
 class EngineeringTaskCommitment(models.Model):
     _name = 'engineering.task.commitment'
@@ -104,7 +101,6 @@ class EngineeringTaskCommitment(models.Model):
         return _action_sign_now_direct(self)
 
 
-# --- COMPANY CONTRACTS ---
 class EngineeringProjectCompanyContract(models.Model):
     _name = 'engineering.project.company.contract'
     _description = 'Engineering Project Company Contract Line'
@@ -116,6 +112,7 @@ class EngineeringProjectCompanyContract(models.Model):
 
     def action_sign_now(self):
         return _action_sign_now_direct(self)
+
 
 class EngineeringTaskCompanyContract(models.Model):
     _name = 'engineering.task.company.contract'
@@ -130,7 +127,6 @@ class EngineeringTaskCompanyContract(models.Model):
         return _action_sign_now_direct(self)
 
 
-# --- PHASES APPROVAL ---
 class EngineeringProjectPhaseApproval(models.Model):
     _name = 'engineering.project.phase.approval'
     _description = 'Engineering Project Phase Approval Line'
@@ -142,6 +138,7 @@ class EngineeringProjectPhaseApproval(models.Model):
 
     def action_sign_now(self):
         return _action_sign_now_direct(self)
+
 
 class EngineeringTaskPhaseApproval(models.Model):
     _name = 'engineering.task.phase.approval'
@@ -162,39 +159,15 @@ class EngineeringTaskPhaseApproval(models.Model):
 class ProjectProject(models.Model):
     _inherit = 'project.project'
 
-    # ----------------------------------------------------------
-    # RELATED FIELDS: Pull building_type, service_type, package
-    # from the linked Sale Order so domain filtering works.
-    # If your project already has these fields defined elsewhere,
-    # remove the ones that conflict — keep only missing ones.
-    # ----------------------------------------------------------
-    building_type = fields.Selection([
-        ('residential', 'سكن خاص'),
-        ('investment', 'استثماري'),
-        ('commercial', 'تجاري'),
-        ('industrial', 'صناعي'),
-        ('cooperative', 'جمعيات وتعاونيات'),
-        ('mosque', 'مساجد'),
-        ('hangar', 'مخازن / شبرات'),
-        ('farm', 'مزارع'),
-        ('all', 'جميع الأنواع')
-    ], related='sale_order_id.building_type', store=True, readonly=True,
-       string="Building Type (نوع العقار)")
-
-    service_type = fields.Selection([
-        ('new_construction', 'بناء جديد'),
-        ('demolition', 'هدم'),
-        ('modification', 'تعديل'),
-        ('addition', 'اضافة'),
-        ('addition_modification', 'تعديل واضافة'),
-        ('supervision_only', 'إشراف هندسي فقط'),
-        ('renovation', 'ترميم'),
-        ('internal_partitions', 'قواطع داخلية'),
-        ('shades_garden', 'مظلات / حدائق'),
-        ('all', 'جميع الأنواع')
-    ], related='sale_order_id.service_type', store=True, readonly=True,
-       string="Service Type (نوع الخدمة)")
-
+    # -------------------------------------------------------
+    # DO NOT redefine building_type or service_type here.
+    # They are already defined as stored Selection fields
+    # in engineering_quotation. Redefining them causes a
+    # silent field conflict that breaks domain filtering.
+    #
+    # ONLY add engineering_package_id — it is missing from
+    # engineering_quotation's project.project definition.
+    # -------------------------------------------------------
     engineering_package_id = fields.Many2one(
         'engineering.package',
         string="الباقة (Package)",
@@ -220,13 +193,19 @@ class ProjectProject(models.Model):
     )
 
     def _get_sign_template_domain(self, doc_type):
+        """
+        Build domain for sign templates using building_type, service_type,
+        and engineering_package_id stored directly on the project.
+        Falls back to sale_order_id if values are missing on the project.
+        """
         domain = [('document_type', '=', doc_type)]
 
+        # Read from project directly (set at project creation from sale order)
         building_type = self.building_type or False
         service_type = self.service_type or False
-        pack = self.engineering_package_id if hasattr(self, 'engineering_package_id') else False
+        pack = self.engineering_package_id or False
 
-        # Fallback to sale order if somehow not on project
+        # Fallback to sale order in case project was created without these values
         if not building_type and self.sale_order_id:
             building_type = self.sale_order_id.building_type
         if not service_type and self.sale_order_id:
@@ -234,16 +213,19 @@ class ProjectProject(models.Model):
         if not pack and self.sale_order_id:
             pack = getattr(self.sale_order_id, 'engineering_package_id', False)
 
+        # 1. Building Type filter
         if building_type:
             domain.append(('building_type', 'in', [building_type, 'all']))
         else:
             domain.append(('building_type', '=', 'all'))
 
+        # 2. Service Type filter
         if service_type:
             domain.append(('service_type', 'in', [service_type, 'all']))
         else:
             domain.append(('service_type', '=', 'all'))
 
+        # 3. Package filter
         if pack:
             domain.extend(['|', ('package_id', '=', False), ('package_id', '=', pack.id)])
         else:
@@ -258,14 +240,13 @@ class ProjectProject(models.Model):
         return domain
 
     # ---------------------------------------------------------
-    # COMMITMENTS FUNCTIONS
+    # COMMITMENTS
     # ---------------------------------------------------------
     def action_load_commitments(self):
         for project in self:
             domain = project._get_sign_template_domain('commitment')
             templates = self.env['sign.template'].search(domain)
             existing_template_ids = project.commitment_ids.mapped('sign_template_id.id')
-
             for template in templates:
                 if template.id not in existing_template_ids:
                     self.env['engineering.project.commitment'].create({
@@ -275,22 +256,20 @@ class ProjectProject(models.Model):
 
     def action_generate_commitments_pdf(self):
         self.ensure_one()
-        required_commitments = self.commitment_ids.filtered(lambda c: c.is_required)
-        if not required_commitments:
+        required = self.commitment_ids.filtered(lambda c: c.is_required)
+        if not required:
             raise UserError(_("Please mark at least one commitment as Required."))
-
-        self._generate_pdfs_for_lines(required_commitments)
+        self._generate_pdfs_for_lines(required)
         return True
 
     # ---------------------------------------------------------
-    # COMPANY CONTRACTS FUNCTIONS
+    # COMPANY CONTRACTS
     # ---------------------------------------------------------
     def action_load_company_contracts(self):
         for project in self:
             domain = project._get_sign_template_domain('company_contract')
             templates = self.env['sign.template'].search(domain)
             existing_template_ids = project.company_contract_ids.mapped('sign_template_id.id')
-
             for template in templates:
                 if template.id not in existing_template_ids:
                     self.env['engineering.project.company.contract'].create({
@@ -300,22 +279,20 @@ class ProjectProject(models.Model):
 
     def action_generate_company_contracts_pdf(self):
         self.ensure_one()
-        required_contracts = self.company_contract_ids.filtered(lambda c: c.is_required)
-        if not required_contracts:
+        required = self.company_contract_ids.filtered(lambda c: c.is_required)
+        if not required:
             raise UserError(_("Please mark at least one company contract as Required."))
-
-        self._generate_pdfs_for_lines(required_contracts)
+        self._generate_pdfs_for_lines(required)
         return True
 
     # ---------------------------------------------------------
-    # PHASES APPROVAL FUNCTIONS
+    # PHASES APPROVALS
     # ---------------------------------------------------------
     def action_load_phases_approvals(self):
         for project in self:
             domain = project._get_sign_template_domain('phases_approval')
             templates = self.env['sign.template'].search(domain)
             existing_template_ids = project.phase_approval_ids.mapped('sign_template_id.id')
-
             for template in templates:
                 if template.id not in existing_template_ids:
                     self.env['engineering.project.phase.approval'].create({
@@ -325,15 +302,14 @@ class ProjectProject(models.Model):
 
     def action_generate_phases_approvals_pdf(self):
         self.ensure_one()
-        required_approvals = self.phase_approval_ids.filtered(lambda c: c.is_required)
-        if not required_approvals:
+        required = self.phase_approval_ids.filtered(lambda c: c.is_required)
+        if not required:
             raise UserError(_("Please mark at least one phases approval as Required."))
-
-        self._generate_pdfs_for_lines(required_approvals)
+        self._generate_pdfs_for_lines(required)
         return True
 
     # ---------------------------------------------------------
-    # HELPER FUNCTION FOR ALL
+    # SHARED PDF GENERATOR
     # ---------------------------------------------------------
     def _generate_pdfs_for_lines(self, lines):
         project = self
@@ -432,15 +408,11 @@ class ProjectTask(models.Model):
         string='Phases Approvals (اعتماد المراحل)'
     )
 
-    # ---------------------------------------------------------
-    # COMMITMENTS FUNCTIONS
-    # ---------------------------------------------------------
     def action_load_commitments(self):
         for task in self:
             domain = task.project_id._get_sign_template_domain('commitment')
             templates = self.env['sign.template'].search(domain)
             existing_template_ids = task.commitment_ids.mapped('sign_template_id.id')
-
             for template in templates:
                 if template.id not in existing_template_ids:
                     self.env['engineering.task.commitment'].create({
@@ -450,22 +422,17 @@ class ProjectTask(models.Model):
 
     def action_generate_commitments_pdf(self):
         self.ensure_one()
-        required_commitments = self.commitment_ids.filtered(lambda c: c.is_required)
-        if not required_commitments:
+        required = self.commitment_ids.filtered(lambda c: c.is_required)
+        if not required:
             raise UserError(_("Please mark at least one commitment as Required."))
-
-        self._generate_pdfs_for_lines(required_commitments)
+        self._generate_pdfs_for_lines(required)
         return True
 
-    # ---------------------------------------------------------
-    # COMPANY CONTRACTS FUNCTIONS
-    # ---------------------------------------------------------
     def action_load_company_contracts(self):
         for task in self:
             domain = task.project_id._get_sign_template_domain('company_contract')
             templates = self.env['sign.template'].search(domain)
             existing_template_ids = task.company_contract_ids.mapped('sign_template_id.id')
-
             for template in templates:
                 if template.id not in existing_template_ids:
                     self.env['engineering.task.company.contract'].create({
@@ -475,22 +442,17 @@ class ProjectTask(models.Model):
 
     def action_generate_company_contracts_pdf(self):
         self.ensure_one()
-        required_contracts = self.company_contract_ids.filtered(lambda c: c.is_required)
-        if not required_contracts:
+        required = self.company_contract_ids.filtered(lambda c: c.is_required)
+        if not required:
             raise UserError(_("Please mark at least one company contract as Required."))
-
-        self._generate_pdfs_for_lines(required_contracts)
+        self._generate_pdfs_for_lines(required)
         return True
 
-    # ---------------------------------------------------------
-    # PHASES APPROVAL FUNCTIONS
-    # ---------------------------------------------------------
     def action_load_phases_approvals(self):
         for task in self:
             domain = task.project_id._get_sign_template_domain('phases_approval')
             templates = self.env['sign.template'].search(domain)
             existing_template_ids = task.phase_approval_ids.mapped('sign_template_id.id')
-
             for template in templates:
                 if template.id not in existing_template_ids:
                     self.env['engineering.task.phase.approval'].create({
@@ -500,22 +462,16 @@ class ProjectTask(models.Model):
 
     def action_generate_phases_approvals_pdf(self):
         self.ensure_one()
-        required_approvals = self.phase_approval_ids.filtered(lambda c: c.is_required)
-        if not required_approvals:
+        required = self.phase_approval_ids.filtered(lambda c: c.is_required)
+        if not required:
             raise UserError(_("Please mark at least one phases approval as Required."))
-
-        self._generate_pdfs_for_lines(required_approvals)
+        self._generate_pdfs_for_lines(required)
         return True
 
-    # ---------------------------------------------------------
-    # HELPER FUNCTION FOR ALL
-    # ---------------------------------------------------------
     def _generate_pdfs_for_lines(self, lines):
-        # Delegate the PDF generation to the parent project
         self.project_id._generate_pdfs_for_lines(lines)
 
     def action_quick_sign_phase(self):
-        """ Quick action from the tree view to generate and immediately jump to signing """
         self.ensure_one()
         if not self.phase_approval_ids:
             self.action_load_phases_approvals()
