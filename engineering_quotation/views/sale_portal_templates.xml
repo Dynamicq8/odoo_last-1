@@ -49,17 +49,31 @@
                 </div>
             </div>
 
-            <!-- ADD THIS BLOCK FOR PACKAGE FEATURES -->
-            <t t-if="sale_order.package_features_html">
+            <!-- ADD THIS BLOCK FOR PACKAGE FEATURES OR DESCRIPTION -->
+            
+            <!-- Check if Features has a value -->
+            <t t-if="sale_order.package_features_html and sale_order.package_features_html != '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'">
                 <div class="row mt-4 mb-4" id="package_features_section">
                     <div class="col-12">
-                        <h5 class="mb-3 text-primary">مميزات الباقه (Package Features)</h5>
+                        <h5 class="mb-3 text-primary">مميزات الباقة (Package Features)</h5>
                         <hr/>
                         <div t-field="sale_order.package_features_html"/>
                     </div>
                 </div>
             </t>
-            <!-- END PACKAGE FEATURES BLOCK -->
+            
+            <!-- If Features is empty, check if Description has a value -->
+            <t t-elif="sale_order.package_description_html and sale_order.package_description_html != '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'">
+                <div class="row mt-4 mb-4" id="package_description_section">
+                    <div class="col-12">
+                        <h5 class="mb-3 text-primary">تفاصيل الباقة (Package Details)</h5>
+                        <hr/>
+                        <div t-field="sale_order.package_description_html"/>
+                    </div>
+                </div>
+            </t>
+            
+            <!-- END PACKAGE FEATURES OR DESCRIPTION BLOCK -->
 
         </xpath>
     </template>
