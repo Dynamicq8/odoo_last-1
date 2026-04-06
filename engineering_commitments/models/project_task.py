@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from odoo import models, fields, _
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -17,35 +17,35 @@ class SignTemplate(models.Model):
         ('company_contract', 'عقد شركة (Company Contract)'),
         ('phases_approval', 'اعتماد المراحل (Phases Approval)'),
         ('none', 'غير محدد (None)')
-    ], string="Document Type (نوع المستند)", default='none', 
+    ], string="Document Type (نوع المستند)", default='none',
        help="Choose whether this is an Engineering Commitment, Company Contract, or Phases Approval.")
 
     package_id = fields.Many2one('engineering.package', string="الباقة (Package)",
         help="If selected, this contract will only load for projects using this package.")
 
     building_type = fields.Selection([
-        ('residential', 'سكن خاص'), 
-        ('investment', 'استثماري'), 
-        ('commercial', 'تجاري'), 
-        ('industrial', 'صناعي'), 
-        ('cooperative', 'جمعيات وتعاونيات'), 
-        ('mosque', 'مساجد'), 
-        ('hangar', 'مخازن / شبرات'), 
-        ('farm', 'مزارع'), 
+        ('residential', 'سكن خاص'),
+        ('investment', 'استثماري'),
+        ('commercial', 'تجاري'),
+        ('industrial', 'صناعي'),
+        ('cooperative', 'جمعيات وتعاونيات'),
+        ('mosque', 'مساجد'),
+        ('hangar', 'مخازن / شبرات'),
+        ('farm', 'مزارع'),
         ('all', 'جميع الأنواع')
     ], string="Building Type (نوع العقار)", default='all')
-    
+
     service_type = fields.Selection([
-        ('new_construction', 'بناء جديد'), 
-        ('demolition', 'هدم'), 
-        ('modification', 'تعديل'), 
-        ('addition', 'اضافة'), 
-        ('addition_modification', 'تعديل واضافة'), 
-        ('supervision_only', 'إشراف هندسي فقط'), 
-        ('renovation', 'ترميم'), 
-        ('internal_partitions', 'قواطع داخلية'), 
+        ('new_construction', 'بناء جديد'),
+        ('demolition', 'هدم'),
+        ('modification', 'تعديل'),
+        ('addition', 'اضافة'),
+        ('addition_modification', 'تعديل واضافة'),
+        ('supervision_only', 'إشراف هندسي فقط'),
+        ('renovation', 'ترميم'),
+        ('internal_partitions', 'قواطع داخلية'),
         ('shades_garden', 'مظلات / حدائق'),
-        ('all', 'جميع الأنواع') 
+        ('all', 'جميع الأنواع')
     ], string="Service Type (نوع الخدمة)", default='all')
 
 
@@ -54,22 +54,20 @@ def _action_sign_now_direct(self):
     self.ensure_one()
     if not self.sign_request_id:
         raise UserError(_("No generated document yet."))
-        
+
     request = self.sign_request_id
     user = self.env.user
-    
-    # Try to find the signer for the current user.
+
     request_item = request.request_item_ids.filtered(
         lambda r: r.partner_id.id == user.partner_id.id
     )
-    
-    # If not found (e.g., admin), just take the first one available
+
     if not request_item:
         request_item = request.request_item_ids[:1]
-        
+
     if not request_item:
         raise UserError(_("You are not assigned to sign this document, and no other signers were found."))
-        
+
     return {
         'type': 'ir.actions.act_url',
         'url': f'/sign/document/{request.id}/{request_item[0].access_token}',
@@ -164,8 +162,49 @@ class EngineeringTaskPhaseApproval(models.Model):
 class ProjectProject(models.Model):
     _inherit = 'project.project'
 
+    # ----------------------------------------------------------
+    # RELATED FIELDS: Pull building_type, service_type, package
+    # from the linked Sale Order so domain filtering works.
+    # If your project already has these fields defined elsewhere,
+    # remove the ones that conflict — keep only missing ones.
+    # ----------------------------------------------------------
+    building_type = fields.Selection([
+        ('residential', 'سكن خاص'),
+        ('investment', 'استثماري'),
+        ('commercial', 'تجاري'),
+        ('industrial', 'صناعي'),
+        ('cooperative', 'جمعيات وتعاونيات'),
+        ('mosque', 'مساجد'),
+        ('hangar', 'مخازن / شبرات'),
+        ('farm', 'مزارع'),
+        ('all', 'جميع الأنواع')
+    ], related='sale_order_id.building_type', store=True, readonly=True,
+       string="Building Type (نوع العقار)")
+
+    service_type = fields.Selection([
+        ('new_construction', 'بناء جديد'),
+        ('demolition', 'هدم'),
+        ('modification', 'تعديل'),
+        ('addition', 'اضافة'),
+        ('addition_modification', 'تعديل واضافة'),
+        ('supervision_only', 'إشراف هندسي فقط'),
+        ('renovation', 'ترميم'),
+        ('internal_partitions', 'قواطع داخلية'),
+        ('shades_garden', 'مظلات / حدائق'),
+        ('all', 'جميع الأنواع')
+    ], related='sale_order_id.service_type', store=True, readonly=True,
+       string="Service Type (نوع الخدمة)")
+
+    engineering_package_id = fields.Many2one(
+        'engineering.package',
+        related='sale_order_id.engineering_package_id',
+        store=True,
+        readonly=True,
+        string="الباقة (Package)"
+    )
+
     commitment_ids = fields.One2many(
-        'engineering.project.commitment', 
+        'engineering.project.commitment',
         'project_id',
         string='Engineering Commitments (التعهدات)'
     )
@@ -177,49 +216,58 @@ class ProjectProject(models.Model):
     )
 
     phase_approval_ids = fields.One2many(
-        'engineering.project.phase.approval', 
+        'engineering.project.phase.approval',
         'project_id',
         string='Phases Approvals (اعتماد المراحل)'
     )
 
     def _get_sign_template_domain(self, doc_type):
+        """
+        Build the search domain for sign templates.
+        Resolves building_type, service_type, and package
+        from the project itself first, then falls back to
+        the linked sale order if not set on the project.
+        """
         domain = [('document_type', '=', doc_type)]
 
-        # === Resolve source of truth ===
-        # Try project first, fallback to sale order
+        # --- Resolve Sale Order fallback ---
         sale_order = getattr(self, 'sale_order_id', False)
 
+        # 1. Building Type
         building_type = getattr(self, 'building_type', False)
         if not building_type and sale_order:
             building_type = getattr(sale_order, 'building_type', False)
 
-        service_type = getattr(self, 'service_type', False)
-        if not service_type and sale_order:
-            service_type = getattr(sale_order, 'service_type', False)
-
-        pack = getattr(self, 'engineering_package_id', False)
-        if not pack and sale_order:
-            pack = getattr(sale_order, 'engineering_package_id', False)
-
-        # === Build domain ===
-
-        # 1. Building Type
         if building_type:
             domain.append(('building_type', 'in', [building_type, 'all']))
         else:
             domain.append(('building_type', '=', 'all'))
 
         # 2. Service Type
+        service_type = getattr(self, 'service_type', False)
+        if not service_type and sale_order:
+            service_type = getattr(sale_order, 'service_type', False)
+
         if service_type:
             domain.append(('service_type', 'in', [service_type, 'all']))
         else:
             domain.append(('service_type', '=', 'all'))
 
         # 3. Package
+        pack = getattr(self, 'engineering_package_id', False)
+        if not pack and sale_order:
+            pack = getattr(sale_order, 'engineering_package_id', False)
+
         if pack:
             domain.extend(['|', ('package_id', '=', False), ('package_id', '=', pack.id)])
         else:
             domain.append(('package_id', '=', False))
+
+        _logger.warning(
+            f"_get_sign_template_domain >>> doc_type={doc_type} | "
+            f"building_type={building_type} | service_type={service_type} | "
+            f"pack={pack} | domain={domain}"
+        )
 
         return domain
 
@@ -298,7 +346,6 @@ class ProjectProject(models.Model):
         self._generate_pdfs_for_lines(required_approvals)
         return True
 
-
     # ---------------------------------------------------------
     # HELPER FUNCTION FOR ALL
     # ---------------------------------------------------------
@@ -327,13 +374,13 @@ class ProjectProject(models.Model):
 
             if not signers:
                 raise UserError(_("Template has no signers."))
-                
+
             sign_request = self.env['sign.request'].create({
                 'template_id': template.id,
                 'reference': f"{template.name} - {self.name}",
                 'request_item_ids': signers,
             })
-            
+
             raw_gov_name = project.governorate_id.name if getattr(project, 'governorate_id', False) else ''
             clean_gov_name = raw_gov_name.replace('محافظة', '').replace('محافظه', '').strip()
 
@@ -344,7 +391,7 @@ class ProjectProject(models.Model):
                 'region': f"          {project.region_id.name if getattr(project, 'region_id', False) else ''}",
                 'block': f"          {getattr(project, 'block_no', '')}",
                 'plot': f"          {getattr(project, 'plot_no', '')}",
-                'area': str(getattr(project, 'area', '') or ''), 
+                'area': str(getattr(project, 'area', '') or ''),
                 'customer signature text': project.partner_id.name or '',
                 'company signature text': self.env.company.name or '',
             }
@@ -377,7 +424,7 @@ class ProjectTask(models.Model):
     parent_task_name = fields.Char(
         string="Parent Task Name",
         related='parent_id.name',
-        store=True, 
+        store=True,
         readonly=True
     )
 
@@ -394,7 +441,7 @@ class ProjectTask(models.Model):
     )
 
     phase_approval_ids = fields.One2many(
-        'engineering.task.phase.approval', 
+        'engineering.task.phase.approval',
         'task_id',
         string='Phases Approvals (اعتماد المراحل)'
     )
@@ -474,7 +521,6 @@ class ProjectTask(models.Model):
         self._generate_pdfs_for_lines(required_approvals)
         return True
 
-
     # ---------------------------------------------------------
     # HELPER FUNCTION FOR ALL
     # ---------------------------------------------------------
@@ -485,17 +531,16 @@ class ProjectTask(models.Model):
     def action_quick_sign_phase(self):
         """ Quick action from the tree view to generate and immediately jump to signing """
         self.ensure_one()
-        if not self.phase_approval_ids: 
+        if not self.phase_approval_ids:
             self.action_load_phases_approvals()
-            
+
         if self.phase_approval_ids and not self.phase_approval_ids.filtered('is_required'):
             self.phase_approval_ids[0].is_required = True
-            
+
         unsigned = self.phase_approval_ids.filtered(lambda p: p.is_required and not p.sign_request_id)
-        if unsigned: 
+        if unsigned:
             self._generate_pdfs_for_lines(unsigned)
-            
-        # FIXED: Go directly to the signing page
+
         sign_line = self.phase_approval_ids.filtered(lambda p: p.is_required and p.sign_request_id)
         if sign_line:
             return sign_line[0].action_sign_now()
