@@ -197,10 +197,8 @@ class ProjectProject(models.Model):
 
     engineering_package_id = fields.Many2one(
         'engineering.package',
-        related='sale_order_id.engineering_package_id',
+        string="الباقة (Package)",
         store=True,
-        readonly=True,
-        string="الباقة (Package)"
     )
 
     commitment_ids = fields.One2many(
