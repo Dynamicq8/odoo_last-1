@@ -93,7 +93,7 @@
                         <div style="margin-top: 30px; font-size: 16px;">
                             <strong>قيمة الأتعاب المالية: </strong> 
                             <span t-field="doc.amount_total" t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
-                            (<span t-esc="doc.amount_total"/> دينار كويتي لا غير)
+(<span t-esc="doc.amount_in_arabic_words()"/> دينار كويتي لا غير)
                         </div>
 
                         <div style="margin-top: 40px;">
