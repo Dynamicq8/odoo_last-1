@@ -166,15 +166,33 @@ class SaleOrder(models.Model):
     def _compute_required_documents(self):
         for order in self:
             docs = "<ul>"
-            is_new_or_add = order.service_type in ['new_construction', 'addition', 'addition_modification']
             
-            if order.building_type == 'residential' and is_new_or_add:
+            # Helper for new_construction, addition, addition_modification
+            is_new_or_add = order.service_type in ['new_construction', 'addition', 'addition_modification']
+
+            if order.building_type == 'residential' and order.service_type == 'new_construction':
+                docs += "<li>الوثيقة</li>"
+                docs += "<li>المدنيات</li>"
+                docs += "<li>الموقع العام</li>"
+            
+            elif order.building_type == 'residential' and order.service_type in ['addition', 'modification', 'addition_modification']:
+                # Your existing logic for residential + add/edit
                 docs += "<li>الوثيقة</li>"
                 docs += "<li>المدنيات</li>"
                 docs += "<li>الموقع العام</li>"
                 docs += "<li>مخطط المرخص</li>"
+                docs += "<li>رخصه البناء</li>"
+                docs += "<li>صور عدادات الكهرباء</li>"
+                docs += "<li>صور وجهات القسيمه</li>"
                 
-            elif order.building_type == 'commercial' and is_new_or_add:
+            elif (order.building_type == 'investment' or order.building_type == 'commercial') and order.service_type == 'new_construction':
+                docs += "<li>الوثيقة</li>"
+                docs += "<li>المدنيات</li>"
+                docs += "<li>اعتماد التوقيع ومدنية المفوض</li>"
+                docs += "<li>الارقام الاليه</li>"
+
+            elif (order.building_type == 'investment' or order.building_type == 'commercial') and order.service_type in ['addition', 'modification', 'addition_modification']:
+                # The user specified showing 10 docs if add/edit for investment/commercial
                 docs += "<li>الوثيقة</li>"
                 docs += "<li>المدنيات</li>"
                 docs += "<li>اعتماد التوقيع ومدنية المفوض</li>"
@@ -185,7 +203,8 @@ class SaleOrder(models.Model):
                 docs += "<li>الارقام الاليه</li>"
                 docs += "<li>مخطط المطافئ ورخصة المطافئ</li>"
                 docs += "<li>كتب التفويض من الشركة</li>"
-            elif order.building_type == 'industrial' and is_new_or_add:
+
+            elif order.building_type == 'industrial': # User specified showing 10 docs always for industrial
                 docs += "<li>عقد املاك الدوله</li>"
                 docs += "<li>المدنيات</li>"
                 docs += "<li>اعتماد التوقيع ومدنية المفوض</li>"
@@ -197,7 +216,9 @@ class SaleOrder(models.Model):
                 docs += "<li>مخطط المطافئ ورخصة المطافئ</li>"
                 docs += "<li>كتب التفويض من الشركة</li>"
                 docs += "<li>وصل ايجار سارى</li>"
+
             else:
+                # Original general fallback logic
                 docs += "<li>البطاقة المدنية للمالك (Civil ID Copy)</li>"
                 if order.service_type == 'new_construction':
                     docs += "<li>وثيقة الملكية</li><li>كتاب التخصيص</li><li>مخطط المساحة</li>"
@@ -481,11 +502,16 @@ class ProjectProject(models.Model):
             subtasks_to_create = []
             is_new_or_add = self.service_type in ['new_construction', 'addition', 'addition_modification']
             
-            if self.building_type == 'residential' and is_new_or_add:
-                subtasks_to_create = ["الوثيقة", "المدنيات", "الموقع العام", "مخطط المرخص", "رخصة البناء", "صور عدادات الكهرباء", "صور وجهات القسيمة"]
-            elif self.building_type == 'commercial' and is_new_or_add:
-                subtasks_to_create = ["الوثيقة", "المدنيات", "اعتماد التوقيع ومدنية المفوض", "مخطط المرخص", "رخصة البناء", "صور عدادات الكهرباء", "صور وجهات القسيمة", "الارقام الاليه", "مخطط المطافئ ورخصة المطافئ", "كتب التفويض من الشركة"]
-            elif self.building_type == 'industrial' and is_new_or_add:
+            # Updated logic for subtasks based on the new requirements
+            if self.building_type == 'residential' and self.service_type == 'new_construction':
+                subtasks_to_create = ["الوثيقة", "المدنيات", "الموقع العام", "مخطط المرخص", "رخصة البناء", "صور عدادات الكهرباء", "صور وجهات القسيمه"]
+            elif self.building_type == 'residential' and self.service_type in ['addition', 'modification', 'addition_modification']:
+                subtasks_to_create = ["الوثيقة", "المدنيات", "الموقع العام", "مخطط المرخص", "رخصة البناء", "صور عدادات الكهرباء", "صور وجهات القسيمه"]
+            elif (self.building_type == 'investment' or self.building_type == 'commercial') and self.service_type == 'new_construction':
+                subtasks_to_create = ["الوثيقة", "المدنيات", "اعتماد التوقيع ومدنية المفوض", "الارقام الاليه"]
+            elif (self.building_type == 'investment' or self.building_type == 'commercial') and self.service_type in ['addition', 'modification', 'addition_modification']:
+                 subtasks_to_create = ["الوثيقة", "المدنيات", "اعتماد التوقيع ومدنية المفوض", "مخطط المرخص", "رخصة البناء", "صور عدادات الكهرباء", "صور وجهات القسيمة", "الارقام الاليه", "مخطط المطافئ ورخصة المطافئ", "كتب التفويض من الشركة"]
+            elif self.building_type == 'industrial': # Industrial always has the 10 documents
                 subtasks_to_create = ["عقد املاك الدوله", "المدنيات", "اعتماد التوقيع ومدنية المفوض", "مخطط المرخص", "رخصة البناء", "صور عدادات الكهرباء", "صور وجهات القسيمة", "الارقام الاليه", "مخطط المطافئ ورخصة المطافئ", "كتب التفويض من الشركة", "وصل ايجار سارى"]
             elif self.building_type == 'residential' and self.service_type == 'shades_garden':
                 subtasks_to_create = ["الوثيقة", "المدنيات", "ورقة من الكهرباء تفيد دفع المبالغ او الفاتوره", "رخصه بناء للقسيمه", "صور القسيمه", "صور الحديقه"]
@@ -575,6 +601,39 @@ class ProjectTask(models.Model):
                 if task.project_id:
                     task.project_id._trigger_next_workflow_step()
                     
+                    # ----------------------------------------------------------------------------------
+                    # NEW LOGIC: When a specific subtask under "الإشراف على التنفيذ" is approved
+                    # Create a duplicate subtask inside "كتب البنك"
+                    # ----------------------------------------------------------------------------------
+                    if task.parent_id and ('شراف' in task.parent_id.name) and ('تنفيذ' in task.parent_id.name):
+                        # Filter to only capture subtasks containing "قواعد" or "سقف"
+                        if ('قواعد' in task.name) or ('سقف' in task.name):
+                            # Find the "كتب البنك" parent task inside the same project
+                            bank_parent_task = self.env['project.task'].search([
+                                ('project_id', '=', task.project_id.id),
+                                ('name', 'ilike', 'كتب البنك'),
+                                ('parent_id', '=', False)
+                            ], limit=1)
+                            
+                            if bank_parent_task:
+                                # Ensure we don't accidentally create duplicates if approved multiple times
+                                existing_subtask = self.env['project.task'].search([
+                                    ('parent_id', '=', bank_parent_task.id),
+                                    ('name', '=', task.name)
+                                ], limit=1)
+                                
+                                if not existing_subtask:
+                                    subtask_vals = {
+                                        'name': task.name,
+                                        'project_id': task.project_id.id,
+                                        'parent_id': bank_parent_task.id,
+                                        'is_disabled': False,
+                                    }
+                                    if 'display_in_project' in self.env['project.task']._fields:
+                                        subtask_vals['display_in_project'] = False
+                                        
+                                    self.env['project.task'].create(subtask_vals)
+
         return res
 
     def action_view_parent_project(self):

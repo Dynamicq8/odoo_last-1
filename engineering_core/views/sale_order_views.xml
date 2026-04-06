@@ -14,7 +14,11 @@
                     <!-- THIS IS THE NEW POSITION FOR THE PACKAGE FIELD -->
                     <field name="engineering_package_id" 
                            options="{'no_create': True, 'no_open': True}"
-                           placeholder="اختر باقة هندسية..."/>
+                           placeholder="اختر باقة هندسية..."
+                           domain="[
+                               ('building_type', 'in', [building_type, 'all']),
+                               ('service_type', 'in', [service_type, 'all'])
+                           ]"/>
                 </group>
 
                 <!-- Location Details Section -->

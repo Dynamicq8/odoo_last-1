@@ -26,6 +26,14 @@
 
                 <!-- Column 2: Location -->
                 <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="mb-2" t-if="sale_order.governorate_id">
+                        <strong>المحافظة (Governorate):</strong>
+                        <span t-esc="sale_order.governorate_id.name.replace('محافظة', '').replace('محافظه', '').strip()"/>
+                    </div>
+                    <div class="mb-2" t-if="sale_order.region_id">
+                        <strong>المنطقة (Region):</strong>
+                        <span t-field="sale_order.region_id.name"/>
+                    </div>
                     <div class="mb-2" t-if="sale_order.block_no">
                         <strong>القطعة (Block):</strong>
                         <span t-field="sale_order.block_no"/>
