@@ -4,8 +4,9 @@ from odoo.exceptions import UserError
 import urllib.parse
 import re
 
-
-# 👇 1. ADD THE HELPER FUNCTION HERE AT THE TOP 👇
+# =========================================================
+# HELPER FUNCTION FOR WHATSAPP
+# =========================================================
 def _action_send_whatsapp_direct(self):
     self.ensure_one()
     if not self.sign_request_id:
@@ -63,6 +64,8 @@ def _action_send_whatsapp_direct(self):
         'url': whatsapp_url,
         'target': 'new',
     }
+
+
 # =========================================================
 # COMMITMENT MODEL FOR TASKS
 # =========================================================
@@ -74,6 +77,9 @@ class EngineeringTaskCommitment(models.Model):
     sign_template_id = fields.Many2one('sign.template', required=True)
     sign_request_id = fields.Many2one('sign.request')
     is_required = fields.Boolean("Required")
+
+    def action_send_whatsapp(self):
+        return _action_send_whatsapp_direct(self)
 
     def action_sign_now(self):
         self.ensure_one()
@@ -106,15 +112,16 @@ class EngineeringTaskCommitment(models.Model):
 # COMPANY CONTRACT MODEL FOR TASKS
 # =========================================================
 class EngineeringTaskCompanyContract(models.Model):
-    _name = 'engineering.task.company.contract'   # <--- FIXED: ADDED .company. BACK!
+    _name = 'engineering.task.company.contract'
     _description = 'Engineering Task Company Contract Line'
 
     task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
     sign_template_id = fields.Many2one('sign.template', string='Template', required=True)
     is_required = fields.Boolean(string='Required', default=False)
     sign_request_id = fields.Many2one('sign.request', string='Sign Request')
-    def action_send_whatsapp(self):          # ← THIS must exist
-        return _action_send_whatsapp_direct(self);
+
+    def action_send_whatsapp(self):
+        return _action_send_whatsapp_direct(self)
 
     def action_sign_now(self):
         self.ensure_one()
