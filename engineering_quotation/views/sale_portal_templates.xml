@@ -18,6 +18,19 @@
                         <strong>نوع الخدمة (Service Type):</strong>
                         <span t-field="sale_order.service_type"/>
                     </div>
+
+                    <!-- NEW LINE: Total Services Price -->
+                    <div class="mb-2" t-if="sale_order.amount_untaxed">
+                        <strong>سعر جميع الخدمات:</strong>
+                        <span t-field="sale_order.amount_untaxed"/>
+                    </div>
+
+                    <!-- NEW LINE: Package Price -->
+                    <div class="mb-2" t-if="sale_order.engineering_package_id and sale_order.engineering_package_id.list_price">
+                        <strong>سعر الباقة:</strong>
+                        <span t-field="sale_order.engineering_package_id.list_price"/>
+                    </div>
+
                      <div class="mb-2" t-if="sale_order.area">
                         <strong>المساحة (Area):</strong>
                         <span t-field="sale_order.area"/>
@@ -89,8 +102,9 @@
             <t t-if="sale_order.required_documents">
                 <div class="row mt-4 mb-4" id="required_documents_section">
                     <div class="col-12">
-                        <h5 class="mb-3 text-danger">في اله الموافقه علي عرض السعر يرجي ارسال هذه المستندات الينا علي الرقم التالي : 22091228</h5>
-                        <hr/>
+<h5 class="mb-3 text-danger">
+في حالة الموافقة على عرض السعر، يرجى إرسال هذه المستندات إلينا على الرقم التالي: 22091228
+</h5>                        <hr/>
                         <div class="bg-light p-3 rounded border">
                             <span t-field="sale_order.required_documents"/>
                         </div>
