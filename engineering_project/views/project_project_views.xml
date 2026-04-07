@@ -123,35 +123,40 @@
                        وتم إضافة <form> داخلي لكي تتمكن من فتح السطر بالضغط عليه في حال أردت مساحة Textarea عملاقة!
                     -->
                     <field name="phase_ids" context="{'default_task_id': active_id}" readonly="is_disabled">
-                        <tree editable="bottom"
-                              decoration-success="is_completed==True"
-                              decoration-muted="is_completed==False">
-                            <field name="sequence" widget="handle"/>
-                            <field name="floor_category"
-                                   placeholder="مثال: الدور الثالث"
-                                   string="الدور"/>
-                            
-                            <field name="name"
-                                   string="المرحلة"
-                                   widget="text" 
-                                   class="text-wrap"
-                                   placeholder="مثال: مرحلة أعمدة الدور الثالث"/>
-                                   
-                            <field name="is_completed" widget="boolean_toggle" string="تم"/>
-                        </tree>
-                        <!-- Form View Hidden: في حال رغبت بـ Text Area منفصل بالكامل يوماً ما، يمكنك إزالة editable="bottom" من الأعلى وسيعمل هذا الكود -->
-                        <form>
-                            <sheet>
-                                <group>
-                                    <field name="floor_category" string="الدور"/>
-                                    <field name="is_completed" string="تم"/>
-                                </group>
-                                <group>
-                                    <field name="name" string="المرحلة" widget="text"/>
-                                </group>
-                            </sheet>
-                        </form>
-                    </field>
+    <!-- ============================================ -->
+    <!--     تم حذف editable="bottom" من هنا          -->
+    <!-- ============================================ -->
+    <tree decoration-success="is_completed==True"
+          decoration-muted="is_completed==False">
+        <field name="sequence" widget="handle"/>
+        <field name="floor_category" string="الدور"/>
+        <!-- 
+            This field will now display multiple lines correctly in read-only mode
+            because the view is no longer in the special "editable" mode.
+        -->
+        <field name="name" string="المرحلة" class="text-wrap"/>
+        <field name="is_completed" widget="boolean_toggle" string="تم"/>
+    </tree>
+    
+    <!-- 
+        This is the Form that will open as a popup.
+        Notice the "name" field here is a standard, large Textarea.
+    -->
+    <form>
+        <sheet>
+            <group>
+                <group>
+                    <field name="floor_category" placeholder="مثال: الدور الثالث"/>
+                    <field name="is_completed"/>
+                </group>
+            </group>
+            <group>
+                <separator string="تفاصيل المرحلة"/>
+                <field name="name" placeholder="مثال:&#10;مرحلة أعمدة الدور الثالث&#10;مع ملاحظات إضافية هنا..."/>
+            </group>
+        </sheet>
+    </form>
+</field>
 
                     <div class="mt-3" invisible="is_disabled">
                         <button name="action_send_project_form_pdf_whatsapp"
