@@ -1,54 +1,60 @@
 /* ==========================================================
-   1. HIDE "CANCELED", "DONE", AND THE SEPARATOR LINE
+   1. HIDE "CANCELED" AND "DONE" (Works for Teleported Dropdowns)
    ========================================================== */
-.o_field_project_task_state_selection .dropdown-menu [data-value="1_done"],
-.o_field_project_task_state_selection .dropdown-menu [data-value="1_canceled"],
-.o_field_project_task_state_selection .dropdown-menu .dropdown-divider {
+/* Hide the items by targeting their specific icons and Odoo classes */
+.dropdown-menu .dropdown-item:has(i.fa-times-circle.text-danger),
+.dropdown-menu .dropdown-item:has(i.fa-check-circle.text-success),
+.dropdown-menu .o_status_1_canceled,
+.dropdown-menu .o_status_1_done {
+    display: none !important;
+}
+
+/* Hide the gray separator line just above them */
+.dropdown-menu:has(i.fa-times-circle.text-danger) .dropdown-divider,
+.dropdown-menu:has(.o_status_1_canceled) .dropdown-divider {
     display: none !important;
 }
 
 /* ==========================================================
    2. CHANGE COLORS IN THE DROPDOWN LIST
    ========================================================== */
-
-/* In Progress (Dropdown Item) - e.g., Blue */
-.o_field_project_task_state_selection .dropdown-menu [data-value="01_in_progress"],
-.o_field_project_task_state_selection .dropdown-menu [data-value="01_in_progress"] i {
+/* In Progress - Blue */
+.dropdown-menu .o_status_01_in_progress,
+.dropdown-menu .o_status_01_in_progress i {
     color: #007bff !important; 
 }
 
-/* Changes Requested (Dropdown Item) - e.g., Purple */
-.o_field_project_task_state_selection .dropdown-menu [data-value="02_changes_requested"],
-.o_field_project_task_state_selection .dropdown-menu [data-value="02_changes_requested"] i {
-    color: #6f42c1 !important; 
+/* Changes Requested - Orange/Purple */
+.dropdown-menu .o_status_02_changes_requested,
+.dropdown-menu .o_status_02_changes_requested i {
+    color: #fd7e14 !important; /* Adjust Hex as needed */
 }
 
-/* Approved (Dropdown Item) - e.g., Dark Green */
-.o_field_project_task_state_selection .dropdown-menu [data-value="03_approved"],
-.o_field_project_task_state_selection .dropdown-menu [data-value="03_approved"] i {
-    color: #0f5132 !important; 
+/* Approved - Green */
+.dropdown-menu .o_status_03_approved,
+.dropdown-menu .o_status_03_approved i {
+    color: #198754 !important; 
 }
 
 /* ==========================================================
    3. CHANGE COLORS OF THE MAIN SELECTED BUTTON (BADGE)
    ========================================================== */
-
 /* When 'In Progress' is selected */
 .o_field_project_task_state_selection button:not(.text-success):not(.text-warning):not(.text-danger) {
     color: #007bff !important;
     border-color: #007bff !important;
 }
 
-/* When 'Changes Requested' is selected (Overrides Odoo's Warning Color) */
+/* When 'Changes Requested' is selected */
 .o_field_project_task_state_selection button.text-warning,
 .o_field_project_task_state_selection button.border-warning {
-    color: #6f42c1 !important; /* Change hex to your preferred color */
-    border-color: #6f42c1 !important;
+    color: #fd7e14 !important; 
+    border-color: #fd7e14 !important;
 }
 
-/* When 'Approved' is selected (Overrides Odoo's Success Color) */
+/* When 'Approved' is selected */
 .o_field_project_task_state_selection button.text-success,
 .o_field_project_task_state_selection button.border-success {
-    color: #0f5132 !important; /* Change hex to your preferred color */
-    border-color: #0f5132 !important;
+    color: #198754 !important; 
+    border-color: #198754 !important;
 }
