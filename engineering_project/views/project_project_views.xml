@@ -74,10 +74,9 @@
                 <button name="action_send_task_form_whatsapp"
                         string="إرسال واتساب (WhatsApp)" type="object" class="btn-success" icon="fa-whatsapp"
                         invisible="is_disabled"/>
-                <!-- NEW: Send PDF of نموذج مكونات المشروع via WhatsApp -->
                 <button name="action_send_project_form_pdf_whatsapp"
                         string="إرسال نموذج المكونات واتساب" type="object" class="btn-success" icon="fa-whatsapp"
-                        invisible="is_disabled or workflow_step not in ['rn_1_1','nrn_1_1','ra_1_3','nra_1_3']"/>
+                        invisible="is_disabled or workflow_step not in['rn_1_1','nrn_1_1','ra_1_3','nra_1_3']"/>
                 <button name="action_view_parent_project"
                         string="الذهاب للمشروع (Go to Project)" type="object" icon="fa-briefcase"/>
             </xpath>
@@ -86,8 +85,6 @@
                 <field name="is_disabled" invisible="1"/>
                 <field name="is_paperwork_task" invisible="1"/>
                 <field name="is_engineering_task" invisible="1"/>
-
-                <!-- Hidden field to carry workflow_step for use in invisible expressions -->
                 <field name="workflow_step" invisible="1"/>
 
                 <div class="alert alert-danger text-center" role="alert" invisible="not is_disabled" style="margin-bottom: 10px;">
@@ -99,13 +96,11 @@
 
             <xpath expr="//notebook" position="inside">
 
-                <!--
-                    تبويب نموذج مكونات المشروع
-                -->
+                <!-- تبويب نموذج مكونات المشروع -->
                 <page string="نموذج مكونات المشروع" name="project_details_form"
                       invisible="
                           not is_engineering_task
-                          or workflow_step not in [
+                          or workflow_step not in[
                               'rn_1_1',
                               'nrn_1_1',
                               'ra_1_3',
@@ -117,35 +112,47 @@
                         <button name="action_load_default_phases" type="object"
                                 string="تحميل المراحل الافتراضية (Load Defaults)"
                                 class="btn-secondary" icon="fa-list-ol"
-                                invisible="phase_ids != [] or is_disabled"/>
+                                invisible="phase_ids !=[] or is_disabled"/>
                         <span class="text-muted ms-3">
                             <i class="fa fa-info-circle"/> للمشاريع الاستثمارية/التجارية، يمكنك إضافة أدوار ومراحل جديدة يدوياً من الأسفل.
                         </span>
                     </div>
 
-                    <!--
-                        FIX: Use 'text' widget on the 'name' field so multi-line input
-                        is preserved and does not collapse on blur. Also set
-                        optional="show" on columns so they always display.
+                    <!-- 
+                       تم إضافة class="text-wrap" إلى حقل name
+                       وتم إضافة <form> داخلي لكي تتمكن من فتح السطر بالضغط عليه في حال أردت مساحة Textarea عملاقة!
                     -->
                     <field name="phase_ids" context="{'default_task_id': active_id}" readonly="is_disabled">
-                        <tree
+                        <tree editable="bottom"
                               decoration-success="is_completed==True"
                               decoration-muted="is_completed==False">
                             <field name="sequence" widget="handle"/>
                             <field name="floor_category"
                                    placeholder="مثال: الدور الثالث"
                                    string="الدور"/>
+                            
                             <field name="name"
-       string="المرحلة"
-       widget="text" 
-       style="white-space: pre-wrap !important;" 
-       placeholder="مثال: مرحلة أعمدة الدور الثالث"/>
+                                   string="المرحلة"
+                                   widget="text" 
+                                   class="text-wrap"
+                                   placeholder="مثال: مرحلة أعمدة الدور الثالث"/>
+                                   
                             <field name="is_completed" widget="boolean_toggle" string="تم"/>
                         </tree>
+                        <!-- Form View Hidden: في حال رغبت بـ Text Area منفصل بالكامل يوماً ما، يمكنك إزالة editable="bottom" من الأعلى وسيعمل هذا الكود -->
+                        <form>
+                            <sheet>
+                                <group>
+                                    <field name="floor_category" string="الدور"/>
+                                    <field name="is_completed" string="تم"/>
+                                </group>
+                                <group>
+                                    <field name="name" string="المرحلة" widget="text"/>
+                                </group>
+                            </sheet>
+                        </form>
                     </field>
 
-                    <!-- Button to send this tab's PDF via WhatsApp (inside the tab) -->
                     <div class="mt-3" invisible="is_disabled">
                         <button name="action_send_project_form_pdf_whatsapp"
                                 type="object"
@@ -155,13 +162,11 @@
                     </div>
                 </page>
 
-                <!--
-                    تبويب رسومات كروكي
-                -->
+                <!-- تبويب رسومات كروكي -->
                 <page string="رسومات كروكي (Sketches)" name="sketches"
                       invisible="
                           not is_engineering_task
-                          or workflow_step not in [
+                          or workflow_step not in[
                               'rn_1_1',
                               'nrn_1_1',
                               'ra_1_3',
@@ -208,9 +213,7 @@
 
                 </page>
 
-                <!--
-                    تبويب المرفقات
-                -->
+                <!-- تبويب المرفقات -->
                 <page string="مرفقات" name="proofs_attachments">
                     <p class="text-muted">
                         قم برفع صور، ملفات PDF، أو أي مستندات أخرى كإثباتات للمهمة. (اضغط على إضافة سطر للرفع)

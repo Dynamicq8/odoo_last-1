@@ -9,71 +9,71 @@ import urllib.parse
 # ==============================================================================
 WORKFLOW_TEMPLATES = {
     # 1. سكن خاص + بناء جديد
-    'res_new': [
+    'res_new':[
         {'code': 'rn_1_1', 'name': '1- تصميم الكروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on': []},
-        {'code': 'rn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'rn_1_3', 'name': '3- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on': []},
-        {'code': 'rn_1_4', 'name': '4- تجهيز النماذج والتعهدات والتوقيع', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'rn_1_5', 'name': '5- فحص التربة - كتاب الكهرباء', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
+        {'code': 'rn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
+        {'code': 'rn_1_3', 'name': '3- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on':[]},
+        {'code': 'rn_1_4', 'name': '4- تجهيز النماذج والتعهدات والتوقيع', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
+        {'code': 'rn_1_5', 'name': '5- فحص التربة - كتاب الكهرباء', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
 
         {'code': 'rn_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id', 'depends_on': ['rn_1_1']},
-        {'code': 'rn_2_2', 'name': '2- الواجهات', 'stage': 'المرحلة الثانية', 'role': 'facade_draftsman_id', 'depends_on': ['rn_1_1']},
+        {'code': 'rn_2_2', 'name': '2- الواجهات', 'stage': 'المرحلة الثانية', 'role': 'facade_draftsman_id', 'depends_on':['rn_1_1']},
         {'code': 'rn_2_3', 'name': '3- رسم مخطط البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id', 'depends_on': ['rn_2_1']},
 
         {'code': 'rn_3_1', 'name': '1- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['rn_2_3']},
-        {'code': 'rn_3_2', 'name': '2- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['rn_3_1']},
+        {'code': 'rn_3_2', 'name': '2- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on':['rn_3_1']},
         {'code': 'rn_3_3', 'name': '3- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id', 'depends_on': ['rn_3_2']},
 
         {'code': 'rn_4_1', 'name': '1- تصميم المخطط الإنشائي', 'stage': 'المرحلة الرابعة', 'role': 'structural_id', 'depends_on': ['rn_3_2']},
-        {'code': 'rn_4_2', 'name': '2- تصميم مخطط الصحي', 'stage': 'المرحلة الرابعة', 'role': 'draftsman_id', 'depends_on': ['rn_3_2']},
+        {'code': 'rn_4_2', 'name': '2- تصميم مخطط الصحي', 'stage': 'المرحلة الرابعة', 'role': 'draftsman_id', 'depends_on':['rn_3_2']},
         {'code': 'rn_4_3', 'name': '3- تصميم مخطط الكهرباء', 'stage': 'المرحلة الرابعة', 'role': 'electrical_id', 'depends_on': ['rn_3_2']},
         {'code': 'rn_4_4', 'name': '4- تصميم مخطط الفرش', 'stage': 'المرحلة الرابعة', 'role': 'architect_id', 'depends_on': ['rn_3_2']},
         {'code': 'rn_4_5', 'name': '5- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id', 'depends_on': ['rn_3_2']},
 
-        {'code': 'rn_5_1', 'name': '1- إصدار تعهد الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on': ['rn_4_1', 'rn_4_2', 'rn_4_3', 'rn_4_4', 'rn_4_5']},
+        {'code': 'rn_5_1', 'name': '1- إصدار تعهد الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on':['rn_4_1', 'rn_4_2', 'rn_4_3', 'rn_4_4', 'rn_4_5']},
         {'code': 'rn_5_2', 'name': '2- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id', 'depends_on': ['rn_5_1']},
         {'code': 'rn_5_3', 'name': '3- كتب البنك', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on': ['rn_5_2']},
         {'code': 'rn_5_4', 'name': '4- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on': ['rn_5_3']},
     ],
 
     # 2. غير سكني (استثماري، صناعي، إلخ) + بناء جديد
-    'non_res_new': [
+    'non_res_new':[
         {'code': 'nrn_1_1', 'name': '1- تصميم الكروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on': []},
-        {'code': 'nrn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'nrn_1_3', 'name': '3- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on': []},
-        {'code': 'nrn_1_4', 'name': '4- تجهيز النماذج والتعهدات والتوقيع', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'nrn_1_5', 'name': '5- فحص التربة - كتاب الكهرباء', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
+        {'code': 'nrn_1_2', 'name': '2- تجميع المستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
+        {'code': 'nrn_1_3', 'name': '3- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on':[]},
+        {'code': 'nrn_1_4', 'name': '4- تجهيز النماذج والتعهدات والتوقيع', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
+        {'code': 'nrn_1_5', 'name': '5- فحص التربة - كتاب الكهرباء', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
 
         {'code': 'nrn_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id', 'depends_on': ['nrn_1_1']},
         {'code': 'nrn_2_2', 'name': '2- الواجهات', 'stage': 'المرحلة الثانية', 'role': 'facade_draftsman_id', 'depends_on': ['nrn_1_1']},
-        {'code': 'nrn_2_3', 'name': '3- رسم مخطط البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id', 'depends_on': ['nrn_2_1']},
+        {'code': 'nrn_2_3', 'name': '3- رسم مخطط البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id', 'depends_on':['nrn_2_1']},
 
         {'code': 'nrn_3_1', 'name': '1- إرسال للمطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nrn_2_3']},
         {'code': 'nrn_3_2', 'name': '2- اعتماد المطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nrn_3_1']},
-        {'code': 'nrn_3_3', 'name': '3- إرسال للتنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nrn_3_2']},
+        {'code': 'nrn_3_3', 'name': '3- إرسال للتنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on':['nrn_3_2']},
         {'code': 'nrn_3_4', 'name': '4- اعتماد التنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nrn_3_3']},
         {'code': 'nrn_3_5', 'name': '5- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nrn_3_4']},
-        {'code': 'nrn_3_6', 'name': '6- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nrn_3_5']},
+        {'code': 'nrn_3_6', 'name': '6- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on':['nrn_3_5']},
         {'code': 'nrn_3_7', 'name': '7- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id', 'depends_on': ['nrn_3_6']},
 
-        {'code': 'nrn_4_1', 'name': '1- تصميم المخطط الإنشائي', 'stage': 'المرحلة الرابعة', 'role': 'structural_id', 'depends_on': ['nrn_3_6']},
+        {'code': 'nrn_4_1', 'name': '1- تصميم المخطط الإنشائي', 'stage': 'المرحلة الرابعة', 'role': 'structural_id', 'depends_on':['nrn_3_6']},
         {'code': 'nrn_4_2', 'name': '2- تصميم مخطط الصحي', 'stage': 'المرحلة الرابعة', 'role': 'draftsman_id', 'depends_on': ['nrn_3_6']},
         {'code': 'nrn_4_3', 'name': '5- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id', 'depends_on': ['nrn_3_6']},
 
-        {'code': 'nrn_5_1', 'name': '1- إصدار تعهد الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on': ['nrn_4_1', 'nrn_4_2', 'nrn_4_3']},
-        {'code': 'nrn_5_2', 'name': '2- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id', 'depends_on': ['nrn_5_1']},
+        {'code': 'nrn_5_1', 'name': '1- إصدار تعهد الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on':['nrn_4_1', 'nrn_4_2', 'nrn_4_3']},
+        {'code': 'nrn_5_2', 'name': '2- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id', 'depends_on':['nrn_5_1']},
         {'code': 'nrn_5_3', 'name': '4- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on': ['nrn_5_2']},
     ],
 
     # 3. سكن خاص + تعديل واضافة
-    'res_add': [
+    'res_add':[
         {'code': 'ra_1_1', 'name': '1- دراسة المخطط الإنشائي القديم', 'stage': 'المرحلة الأولى', 'role': 'structural_id', 'depends_on': []},
-        {'code': 'ra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on': []},
-        {'code': 'ra_1_3', 'name': '3- كروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on': []},
-        {'code': 'ra_1_4', 'name': '4- جمع الوثائق والمستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'ra_1_5', 'name': '5- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on': []},
+        {'code': 'ra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on':[]},
+        {'code': 'ra_1_3', 'name': '3- كروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on':[]},
+        {'code': 'ra_1_4', 'name': '4- جمع الوثائق والمستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
+        {'code': 'ra_1_5', 'name': '5- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on':[]},
 
-        {'code': 'ra_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id', 'depends_on': ['ra_1_3']},
+        {'code': 'ra_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id', 'depends_on':['ra_1_3']},
         {'code': 'ra_2_2', 'name': '2- رسم البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id', 'depends_on': ['ra_1_3']},
 
         {'code': 'ra_3_1', 'name': '1- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['ra_2_2']},
@@ -83,29 +83,29 @@ WORKFLOW_TEMPLATES = {
         {'code': 'ra_4_1', 'name': '1- مخطط إنشائي كامل', 'stage': 'المرحلة الرابعة', 'role': 'structural_id', 'depends_on': ['ra_3_2']},
         {'code': 'ra_4_2', 'name': '2- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id', 'depends_on': ['ra_3_2']},
 
-        {'code': 'ra_5_1', 'name': '1- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id', 'depends_on': ['ra_4_1', 'ra_4_2']},
+        {'code': 'ra_5_1', 'name': '1- الإشراف على التنفيذ', 'stage': 'المرحلة الخامسة', 'role': 'structural_id', 'depends_on':['ra_4_1', 'ra_4_2']},
         {'code': 'ra_5_2', 'name': '2- كتب البنك', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on': ['ra_5_1']},
         {'code': 'ra_5_3', 'name': '3- إنهاء الإشراف', 'stage': 'المرحلة الخامسة', 'role': 'secretary_id', 'depends_on': ['ra_5_2']},
     ],
 
     # 4. غير سكني (استثماري، صناعي، إلخ) + تعديل واضافة
-    'non_res_add': [
+    'non_res_add':[
         {'code': 'nra_1_1', 'name': '1- دراسة المخطط الإنشائي القديم', 'stage': 'المرحلة الأولى', 'role': 'structural_id', 'depends_on': []},
-        {'code': 'nra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on': []},
-        {'code': 'nra_1_3', 'name': '3- كروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on': []},
-        {'code': 'nra_1_4', 'name': '4- جمع الوثائق والمستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'nra_1_5', 'name': '5- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on': []},
+        {'code': 'nra_1_2', 'name': '2- كشف على العقار', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on':[]},
+        {'code': 'nra_1_3', 'name': '3- كروكي', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on':[]},
+        {'code': 'nra_1_4', 'name': '4- جمع الوثائق والمستندات', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
+        {'code': 'nra_1_5', 'name': '5- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on':[]},
 
         {'code': 'nra_2_1', 'name': '1- سيستم الأعمدة', 'stage': 'المرحلة الثانية', 'role': 'structural_id', 'depends_on': ['nra_1_3']},
         {'code': 'nra_2_2', 'name': '2- رسم البلدية', 'stage': 'المرحلة الثانية', 'role': 'muni_draftsman_id', 'depends_on': ['nra_1_3']},
 
-        {'code': 'nra_3_1', 'name': '1- إرسال للمطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nra_2_2']},
+        {'code': 'nra_3_1', 'name': '1- إرسال للمطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on':['nra_2_2']},
         {'code': 'nra_3_2', 'name': '2- اعتماد المطافي', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nra_3_1']},
         {'code': 'nra_3_3', 'name': '3- إرسال للتنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nra_3_2']},
-        {'code': 'nra_3_4', 'name': '4- اعتماد التنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nra_3_3']},
+        {'code': 'nra_3_4', 'name': '4- اعتماد التنظيم', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on':['nra_3_3']},
         {'code': 'nra_3_5', 'name': '5- إرسال للبلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nra_3_4']},
         {'code': 'nra_3_6', 'name': '6- اعتماد البلدية', 'stage': 'المرحلة الثالثة', 'role': 'secretary_id', 'depends_on': ['nra_3_5']},
-        {'code': 'nra_3_7', 'name': '7- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id', 'depends_on': ['nra_3_6']},
+        {'code': 'nra_3_7', 'name': '7- تحصيل الدفعة الأخيرة من العقد', 'stage': 'المرحلة الثالثة', 'role': 'accountant_id', 'depends_on':['nra_3_6']},
 
         {'code': 'nra_4_1', 'name': '1- مخطط إنشائي كامل', 'stage': 'المرحلة الرابعة', 'role': 'structural_id', 'depends_on': ['nra_3_6']},
         {'code': 'nra_4_2', 'name': '2- تجهيز الكراسة النهائية', 'stage': 'المرحلة الرابعة', 'role': 'secretary_id', 'depends_on': ['nra_3_6']},
@@ -115,11 +115,11 @@ WORKFLOW_TEMPLATES = {
     ],
 
     # 5. هدم (لكل أنواع المباني)
-    'demolition': [
+    'demolition':[
         {'code': 'dem_1_1', 'name': '1- تجميع المستندات والوثائق', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'dem_1_2', 'name': '2- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on': []},
-        {'code': 'dem_1_3', 'name': '3- توقيع نماذج البلدية', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on': []},
-        {'code': 'dem_1_4', 'name': '4- كتاب المواصفات وكتاب قطع تربة', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on': []},
+        {'code': 'dem_1_2', 'name': '2- العقد وتحصيل الدفعة الأولى', 'stage': 'المرحلة الأولى', 'role': 'accountant_id', 'depends_on':[]},
+        {'code': 'dem_1_3', 'name': '3- توقيع نماذج البلدية', 'stage': 'المرحلة الأولى', 'role': 'secretary_id', 'depends_on':[]},
+        {'code': 'dem_1_4', 'name': '4- كتاب المواصفات وكتاب قطع تربة', 'stage': 'المرحلة الأولى', 'role': 'architect_id', 'depends_on':[]},
 
         {'code': 'dem_2_1', 'name': '1- إرسال للبلدية', 'stage': 'المرحلة الثانية', 'role': 'secretary_id', 'depends_on': ['dem_1_4']},
         {'code': 'dem_2_2', 'name': '2- اعتماد البلدية', 'stage': 'المرحلة الثانية', 'role': 'secretary_id', 'depends_on': ['dem_2_1']},
@@ -135,21 +135,21 @@ WORKFLOW_TEMPLATES = {
 
 def _get_document_subtasks(building_type, service_type):
     if building_type == 'residential' and service_type == 'shades_garden':
-        return [
+        return[
             'الوثيقة', 'المدنيات', 'ورقة من الكهرباء تفيد دفع المبالغ او الفاتوره',
             'رخصه بناء للقسيمه', 'صور القسيمه', 'صور الحديقه',
         ]
     elif building_type == 'residential' and service_type == 'demolition':
-        return [
+        return[
             'وثيقه الملكية', 'المدنيات', 'كتاب من وزاره الكهرباء و الماء قطع الكيبل',
             'كتاب براةه ذمه من وزاره المواصلات', 'صور وجهات القسيمه',
         ]
     elif building_type == 'cooperative':
-        return ['كتاب التخصيص', 'المخطط المساحي', 'مدنيه', 'كتب التفويض من وزاره الأرقام الأليه']
+        return['كتاب التخصيص', 'المخطط المساحي', 'مدنيه', 'كتب التفويض من وزاره الأرقام الأليه']
     elif building_type == 'commercial':
-        return ['كتاب التخصيص', 'المخطط المساحي', 'مدنيه', 'كتب التفويض من وزاره الأرقام الأليه']
+        return['كتاب التخصيص', 'المخطط المساحي', 'مدنيه', 'كتب التفويض من وزاره الأرقام الأليه']
     else:
-        return ['الوثيقه', 'المدنيه', 'الموقع العام']
+        return['الوثيقه', 'المدنيه', 'الموقع العام']
 
 
 # ==============================================================================
@@ -158,21 +158,21 @@ def _get_document_subtasks(building_type, service_type):
 
 def _get_structural_plan_subtasks(building_type):
     if building_type == 'residential':
-        return [
+        return[
             'مرحلة الحفر', 'مرحلة القواعد والشناجات', 'مرحلة حوائط السرداب',
             'مرحلة صب سقف السرداب', 'مرحلة اعمده الدور الارضى', 'مرحلة صب سقف الدور الارضى',
             'مرحلة اعمده الدور الاول', 'مرحلة صب سقف الدور الاول', 'مرحلة اعمده الدور الثانى',
             'مرحلة صب سقف الدور الثانى', 'مرحلة اعمده الدور السطح', 'مرحله صب سقف السطح',
         ]
     elif building_type == 'commercial':
-        return [
+        return[
             'مرحله القواعد والشناجات', 'مرحله حوائط السرداب', 'مرحله صب سقف السرداب',
             'مرحله اعمده الدور الارضى', 'مرحله صب سقف الدور الارضى', 'مرحله اعمده الدور الاول',
             'مرحله صب سقف الدور الاول', 'مرحله اعمده الدور الثانى', 'مرحله صب سقف الدور الثانى',
             'مرحله اعمده الدور السطح', 'مرحله صب سقف السطح',
         ]
     else:
-        return []
+        return[]
 
 
 # ==============================================================================
@@ -180,7 +180,7 @@ def _get_structural_plan_subtasks(building_type):
 # ==============================================================================
 def _get_governorate_areas():
     return {
-        'محافظة العاصمة': [
+        'محافظة العاصمة':[
             ('جابر الاحمد', 'جابر الاحمد'), ('القبلة', 'القبلة'), ('الشرق', 'الشرق'),
             ('المرقاب', 'المرقاب'), ('الصالحية', 'الصالحية'), ('دسمان', 'دسمان'),
             ('الدعية', 'الدعية'), ('الدسمة', 'الدسمة'), ('كيفان', 'كيفان'),
@@ -201,7 +201,7 @@ def _get_governorate_areas():
             ('معسكرات المباركيه – جيوان', 'معسكرات المباركيه – جيوان'),
             ('شاليهات الدوحة', 'شاليهات الدوحة'), ('السره', 'السره'),
         ],
-        'محافظة حولي': [
+        'محافظة حولي':[
             ('حولي', 'حولي'), ('السالمية', 'السالمية'), ('الرميثية', 'الرميثية'),
             ('الجابرية', 'الجابرية'), ('بيان', 'بيان'), ('مشرف', 'مشرف'),
             ('سلوى', 'سلوى'), ('ميدان حولي', 'ميدان حولي'), ('الزهراء', 'الزهراء'),
@@ -211,7 +211,7 @@ def _get_governorate_areas():
             ('الضاحيه الدبلوماسيه', 'الضاحيه الدبلوماسيه'),
             ('المباركيه قطعة 15 بيان', 'المباركيه قطعة 15 بيان'), ('البدع', 'البدع'),
         ],
-        'محافظة الفروانية': [
+        'محافظة الفروانية':[
             ('الفروانية', 'الفروانية'), ('خيطان', 'خيطان'), ('العمرية', 'العمرية'),
             ('الرحاب', 'الرحاب'), ('الرقعى', 'الرقعى'), ('الشدادية', 'الشدادية'),
             ('الضجيج', 'الضجيج'), ('المطار', 'المطار'), ('غرب الجليب الشداديه', 'غرب الجليب الشداديه'),
@@ -225,7 +225,7 @@ def _get_governorate_areas():
             ('جنوب عبد الله المبارك السكنى', 'جنوب عبد الله المبارك السكنى'),
             ('العباسية', 'العباسية'),
         ],
-        'محافظة الأحمدي': [
+        'محافظة الأحمدي':[
             ('الأحمدي', 'الأحمدي'), ('الفحيحيل', 'الفحيحيل'), ('المنقف', 'المنقف'),
             ('أبو حليفة', 'أبو حليفة'), ('الصباحية', 'الصباحية'), ('الرقة', 'الرقة'),
             ('هدية', 'هدية'), ('الفنطاس', 'الفنطاس'), ('المهبولة', 'المهبولة'),
@@ -254,7 +254,7 @@ def _get_governorate_areas():
             ('الزور وصوله', 'الزور وصوله'), ('ام حجول', 'ام حجول'),
             ('ام قدير', 'ام قدير'), ('ابو خرجين والصبيحية', 'ابو خرجين والصبيحية'),
         ],
-        'محافظة الجهراء': [
+        'محافظة الجهراء':[
             ('الجهراء', 'الجهراء'), ('القصر', 'القصر'), ('النسيم', 'النسيم'),
             ('الواحة', 'الواحة'), ('النعيم', 'النعيم'), ('تيماء', 'تيماء'),
             ('سعد العبدالله', 'سعد العبدالله'), ('الصليبية', 'الصليبية'),
@@ -283,7 +283,7 @@ def _get_governorate_areas():
             ('معسكرات الجهراء', 'معسكرات الجهراء'), ('مقبرة', 'مقبرة'),
             ('مناطق نائية -الجهراء', 'مناطق نائية -الجهراء'),
         ],
-        'محافظة مبارك الكبير': [
+        'محافظة مبارك الكبير':[
             ('مبارك الكبير', 'مبارك الكبير'), ('العدان', 'العدان'),
             ('القرين', 'القرين'), ('القصور', 'القصور'), ('المسيلة', 'المسيلة'),
             ('غرب أبو فطيرة', 'غرب أبو فطيرة'), ('الفنيطيس', 'الفنيطيس'),
@@ -295,7 +295,7 @@ def _get_governorate_areas():
     }
 
 def _get_all_regions():
-    all_regions = []
+    all_regions =[]
     seen_regions = set()
     for areas in _get_governorate_areas().values():
         for area_val, area_label in areas:
@@ -350,7 +350,7 @@ class SaleOrder(models.Model):
             docs += "<li>البطاقة المدنية للمالك (Civil ID Copy)</li>"
             if order.service_type == 'new_construction':
                 docs += "<li>وثيقة الملكية</li><li>كتاب التخصيص</li><li>مخطط المساحة</li>"
-            elif order.service_type in ['modification', 'addition', 'addition_modification']:
+            elif order.service_type in['modification', 'addition', 'addition_modification']:
                 docs += "<li>رخصة البناء الأصلية</li><li>المخططات المرخصة</li><li>وثيقة البيت</li>"
             elif order.service_type == 'demolition':
                 docs += "<li>كتاب براءة ذمة من الكهرباء والماء</li><li>رخصة البناء القديمة</li>"
@@ -453,7 +453,7 @@ class SaleOrder(models.Model):
             'move_type': 'out_invoice',
             'partner_id': self.partner_id.id,
             'invoice_date': fields.Date.today(),
-            'invoice_line_ids': [(0, 0, {'product_id': product_fee.id, 'quantity': 1, 'price_unit': 50.0, 'name': 'رسوم فتح ملف وتصميم مبدئي'})],
+            'invoice_line_ids':[(0, 0, {'product_id': product_fee.id, 'quantity': 1, 'price_unit': 50.0, 'name': 'رسوم فتح ملف وتصميم مبدئي'})],
         }
         invoice = self.env['account.move'].create(invoice_vals)
         return {'name': _('Open Invoice'), 'view_mode': 'form', 'res_model': 'account.move', 'res_id': invoice.id, 'type': 'ir.actions.act_window'}
@@ -532,7 +532,7 @@ class ProjectProject(models.Model):
             gov_name = project.governorate_id.name if project.governorate_id else False
             region_name = project.region_id.name if project.region_id else False
             if gov_name and region_name:
-                valid_regions = [area[0] for area in _get_governorate_areas().get(gov_name, [])]
+                valid_regions = [area[0] for area in _get_governorate_areas().get(gov_name,[])]
                 if region_name not in valid_regions:
                     raise ValidationError(_("المنطقة المختارة '%s' لا تتبع للمحافظة '%s'.") % (region_name, gov_name))
 
@@ -560,7 +560,7 @@ class ProjectProject(models.Model):
         stages = self.env['project.task.type'].search([('project_ids', 'in', self.id)], order='sequence')
         stage_map = {stage.name: stage.id for stage in stages}
 
-        required_stages = [
+        required_stages =[
             'المرحلة الأولى', 'المرحلة الثانية', 'المرحلة الثالثة',
             'المرحلة الرابعة', 'المرحلة الخامسة'
         ]
@@ -574,7 +574,7 @@ class ProjectProject(models.Model):
                 else:
                     new_stage = self.env['project.task.type'].sudo().create({
                         'name': s_name,
-                        'project_ids': [(4, self.id)],
+                        'project_ids':[(4, self.id)],
                         'sequence': idx + 1
                     })
                     stage_map[s_name] = new_stage.id
@@ -586,7 +586,7 @@ class ProjectProject(models.Model):
         if self.service_type == 'demolition':
             return 'demolition'
 
-        is_addition = self.service_type in ['addition', 'modification', 'addition_modification']
+        is_addition = self.service_type in['addition', 'modification', 'addition_modification']
         if self.building_type == 'residential':
             return 'res_add' if is_addition else 'res_new'
         else:
@@ -598,7 +598,7 @@ class ProjectProject(models.Model):
             raise UserError(_("تم بدء سير العمل مسبقاً!"))
 
         wf_key = self._get_workflow_key()
-        workflow = WORKFLOW_TEMPLATES.get(wf_key, [])
+        workflow = WORKFLOW_TEMPLATES.get(wf_key,[])
         if not workflow:
             raise UserError(_("لا توجد خطة مهام مطابقة لنوع الخدمة والمبنى."))
 
@@ -626,7 +626,7 @@ class ProjectProject(models.Model):
             step_template = next((s for s in workflow if s['code'] == task.workflow_step), None)
 
             if step_template:
-                depends_on = step_template.get('depends_on', [])
+                depends_on = step_template.get('depends_on',[])
 
                 if not depends_on:
                     task.is_disabled = False
@@ -644,7 +644,7 @@ class ProjectProject(models.Model):
             return
 
         wf_key = self._get_workflow_key()
-        workflow = WORKFLOW_TEMPLATES.get(wf_key, [])
+        workflow = WORKFLOW_TEMPLATES.get(wf_key,[])
 
         tasks_in_current_stage = [t for t in workflow if t['stage'] == step_data['stage']]
         task_sequence = 10
@@ -691,7 +691,7 @@ class ProjectProject(models.Model):
                 self.env['project.task'].create(vals)
 
         if "فحص التربة" in step_data['name'] and "الكهرباء" in step_data['name']:
-            for sub_name in [
+            for sub_name in[
                 "فحص التربه تم الأرسال",
                 "فحص التربه تم الأعتماد",
                 "الكهرباء تم الأرسال",
@@ -750,7 +750,7 @@ class ProjectTask(models.Model):
 
                 if role in ['secretary_id', 'accountant_id']:
                     is_paper = True
-                elif role in ['structural_id', 'facade_draftsman_id', 'muni_draftsman_id', 'architect_id', 'electrical_id', 'draftsman_id']:
+                elif role in['structural_id', 'facade_draftsman_id', 'muni_draftsman_id', 'architect_id', 'electrical_id', 'draftsman_id']:
                     is_eng = True
                 else:
                     is_paper = True
@@ -785,7 +785,7 @@ class ProjectTask(models.Model):
             return
 
         seq = 10
-        phases_data = [
+        phases_data =[
             ('مرحله الحفر', 'عام (General)'),
             ('مرحله القواعد والشناجات', 'عام (General)'),
             ('مرحله حوائط السرداب', 'السرداب (Basement)'),
@@ -800,7 +800,7 @@ class ProjectTask(models.Model):
             ('مرحله صب سقف السطح', 'السطح (Roof)'),
         ]
 
-        phases_to_create = []
+        phases_to_create =[]
         for name, category in phases_data:
             phases_to_create.append((0, 0, {
                 'name': name,
@@ -834,7 +834,7 @@ class ProjectTask(models.Model):
         for task in self:
             is_done = False
 
-            if vals.get('state') in ['1_done', '03_approved']:
+            if vals.get('state') in['1_done', '03_approved']:
                 is_done = True
 
             elif 'stage_id' in vals:
@@ -862,10 +862,6 @@ class ProjectTask(models.Model):
         }
 
     def action_send_task_form_whatsapp(self):
-        """
-        Sends the general task form PDF link via WhatsApp.
-        Uses a token-based URL so the recipient does NOT need to log in.
-        """
         self.ensure_one()
         if self.is_disabled:
             raise UserError(_("لا يمكن إرسال نموذج مهمة مقفلة."))
@@ -877,7 +873,6 @@ class ProjectTask(models.Model):
         cleaned_phone = ''.join(filter(str.isdigit, phone))
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 
-        # Generate a token for the task so the link is publicly accessible
         self.sudo()._portal_ensure_token()
         token = self.sudo().access_token if hasattr(self, 'access_token') else ''
 
@@ -899,17 +894,12 @@ class ProjectTask(models.Model):
         return {'type': 'ir.actions.act_url', 'url': whatsapp_url, 'target': 'new'}
 
     def action_send_project_form_pdf_whatsapp(self):
-        """
-        NEW METHOD: Sends the PDF of نموذج مكونات المشروع (initial design form)
-        via WhatsApp using a token-based URL so no login is required.
-        Only works for engineering tasks with the correct workflow step.
-        """
         self.ensure_one()
 
         if self.is_disabled:
             raise UserError(_("لا يمكن إرسال نموذج مهمة مقفلة."))
 
-        allowed_steps = ['rn_1_1', 'nrn_1_1', 'ra_1_3', 'nra_1_3']
+        allowed_steps =['rn_1_1', 'nrn_1_1', 'ra_1_3', 'nra_1_3']
         if self.workflow_step not in allowed_steps:
             raise UserError(_("هذا الزر متاح فقط لمهام تصميم الكروكي."))
 
@@ -924,8 +914,6 @@ class ProjectTask(models.Model):
         cleaned_phone = ''.join(filter(str.isdigit, phone))
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
 
-        # Use sudo + _portal_ensure_token to generate a public access token
-        # This prevents the login page from appearing when the link is opened
         task_sudo = self.sudo()
         if hasattr(task_sudo, '_portal_ensure_token'):
             task_sudo._portal_ensure_token()
@@ -938,7 +926,6 @@ class ProjectTask(models.Model):
                 f"/{self.id}?access_token={token}"
             )
         else:
-            # Fallback: direct PDF URL (user must be logged in, but better than nothing)
             pdf_url = (
                 f"{base_url}/report/pdf/engineering_project.report_initial_design_template/{self.id}"
             )
@@ -1094,9 +1081,5 @@ class ProjectTaskPhase(models.Model):
     task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
     sequence = fields.Integer(string='التسلسل', default=10)
     floor_category = fields.Char(string='الدور (Floor)', required=True)
-    # FIX: Changed from Text to Char so the editable tree row does not
-    # collapse the multi-line widget unexpectedly on blur.
-    # If you truly need multi-line storage, keep Text but remove widget="text"
-    # from the tree view — the plain cell will wrap naturally without collapsing.
     name = fields.Text(string='المرحلة (Phase)', required=True)
     is_completed = fields.Boolean(string='تم (Completed)', default=False)
