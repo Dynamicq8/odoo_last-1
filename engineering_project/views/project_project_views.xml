@@ -118,45 +118,40 @@
                         </span>
                     </div>
 
-                    <!-- 
-                       تم إضافة class="text-wrap" إلى حقل name
-                       وتم إضافة <form> داخلي لكي تتمكن من فتح السطر بالضغط عليه في حال أردت مساحة Textarea عملاقة!
-                    -->
                     <field name="phase_ids" context="{'default_task_id': active_id}" readonly="is_disabled">
-    <!-- ============================================ -->
-    <!--     تم حذف editable="bottom" من هنا          -->
-    <!-- ============================================ -->
-    <tree decoration-success="is_completed==True"
-          decoration-muted="is_completed==False">
-        <field name="sequence" widget="handle"/>
-        <field name="floor_category" string="الدور"/>
-        <!-- 
-            This field will now display multiple lines correctly in read-only mode
-            because the view is no longer in the special "editable" mode.
-        -->
-        <field name="name" string="المرحلة" class="text-wrap"/>
-        <field name="is_completed" widget="boolean_toggle" string="تم"/>
-    </tree>
-    
-    <!-- 
-        This is the Form that will open as a popup.
-        Notice the "name" field here is a standard, large Textarea.
-    -->
-    <form>
-        <sheet>
-            <group>
-                <group>
-                    <field name="floor_category" placeholder="مثال: الدور الثالث"/>
-                    <field name="is_completed"/>
-                </group>
-            </group>
-            <group>
-                <separator string="تفاصيل المرحلة"/>
-                <field name="name" placeholder="مثال:&#10;مرحلة أعمدة الدور الثالث&#10;مع ملاحظات إضافية هنا..."/>
-            </group>
-        </sheet>
-    </form>
-</field>
+                        <!-- ============================================ -->
+                        <!--     تم حذف editable="bottom" من هنا          -->
+                        <!-- ============================================ -->
+                        <tree decoration-success="is_completed==True"
+                              decoration-muted="is_completed==False">
+                            <field name="sequence" widget="handle"/>
+                            <field name="floor_category" string="الدور"/>
+                            <!-- Added widget="text" here too so the tree view properly formats multi-line data -->
+                            <field name="name" string="المرحلة" widget="text" class="text-wrap"/>
+                            <field name="is_completed" widget="boolean_toggle" string="تم"/>
+                        </tree>
+                        
+                        <!-- 
+                            This is the Form that will open as a popup.
+                            Notice the "name" field here now uses widget="text" 
+                            to allow hitting Enter for new lines.
+                        -->
+                        <form>
+                            <sheet>
+                                <group>
+                                    <group>
+                                        <field name="floor_category" placeholder="مثال: الدور الثالث"/>
+                                        <field name="is_completed"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <separator string="تفاصيل المرحلة"/>
+                                    <!-- Add widget="text" so you can press Enter to go down a line -->
+                                    <field name="name" widget="text" placeholder="مثال:&#10;مرحلة أعمدة الدور الثالث&#10;مع ملاحظات إضافية هنا..."/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
 
                     <div class="mt-3" invisible="is_disabled">
                         <button name="action_send_project_form_pdf_whatsapp"
