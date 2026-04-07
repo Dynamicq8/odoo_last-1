@@ -1098,5 +1098,5 @@ class ProjectTaskPhase(models.Model):
     # collapse the multi-line widget unexpectedly on blur.
     # If you truly need multi-line storage, keep Text but remove widget="text"
     # from the tree view — the plain cell will wrap naturally without collapsing.
-    name = fields.Char(string='المرحلة (Phase)', required=True)
+    name = fields.Text(string='المرحلة (Phase)', required=True)
     is_completed = fields.Boolean(string='تم (Completed)', default=False)
