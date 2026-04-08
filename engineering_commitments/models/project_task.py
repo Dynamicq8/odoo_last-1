@@ -454,16 +454,31 @@ class ProjectProject(models.Model):
             raw_gov_name = project.governorate_id.name if getattr(project, 'governorate_id', False) else ''
             clean_gov_name = raw_gov_name.replace('محافظة', '').replace('محافظه', '').strip()
 
-            # تم إضافة حقل civil وتمرير قيمة الرقم المدني للمشروع
+            # --- التعديل لترجمة اليوم من الإنجليزية إلى العربية ---
+            current_date = fields.Date.context_today(self)
+            arabic_days = {
+                0: 'الإثنين',
+                1: 'الثلاثاء',
+                2: 'الأربعاء',
+                3: 'الخميس',
+                4: 'الجمعة',
+                5: 'السبت',
+                6: 'الأحد'
+            }
+            arabic_day_str = arabic_days.get(current_date.weekday(), '')
+
+            # --- القاموس المحدث ---
             replacements = {
                 'name': f"          {project.partner_id.name or ''}",
-                'date': fields.Date.context_today(self).strftime("%d/%m/%Y"),
+                'date': current_date.strftime("%d/%m/%Y"),
+                'day': f"          {arabic_day_str}", # <==== إضافة اليوم بالعربية
+                'nationality': f"          كويتي",      # <==== إضافة الجنسية ثابتة "كويتي"
                 'governorate': f"          {clean_gov_name}",
                 'region': f"          {project.region_id.name if getattr(project, 'region_id', False) else ''}",
                 'block': f"          {getattr(project, 'block_no', '')}",
                 'plot': f"          {getattr(project, 'plot_no', '')}",
                 'area': str(getattr(project, 'area', '') or ''),
-                'civil': f"          {getattr(project, 'civil_number', '')}", # <==== التعديل هنا (الإضافة)
+                'civil': f"          {getattr(project, 'civil_number', '')}",
                 'customer signature text': project.partner_id.name or '',
                 'company signature text': self.env.company.name or '',
             }
