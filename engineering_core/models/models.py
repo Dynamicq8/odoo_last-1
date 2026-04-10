@@ -28,7 +28,7 @@ class ResPartner(models.Model):
     block_no = fields.Char(string="القطعة (Block)")
     street_no = fields.Char(string="الضاحيه")
     area = fields.Char(string="مساحة الارض (Area)")
-    electricity_receipt = fields.Char(string="ايصال تيار كهربا") # تم إضافة الحقل هنا
+    electricity_receipt = fields.Char(string="رقم المخطط المساحي") # تم إضافة الحقل هنا
     
     governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة")
     region_id = fields.Many2one('kuwait.region', string="المنطقة (Region)")

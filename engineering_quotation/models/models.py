@@ -138,7 +138,7 @@ class SaleOrder(models.Model):
     street_no = fields.Char(string="الضاحيه", store=True)
     area = fields.Char(string="مساحة الارض", store=True)
     
-    electricity_receipt = fields.Char(string="ايصال تيار كهربا")
+    electricity_receipt = fields.Char(string="رقم المخطط المساحي")
     civil_number = fields.Char(string="الرقم المدني", store=True) # تم إضافة الحقل الجديد هنا
 
     governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة", store=True)
