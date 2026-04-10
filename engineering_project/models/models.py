@@ -407,7 +407,7 @@ class SaleOrder(models.Model):
         gov_id = getattr(self, 'governorate_id', False)
         reg_id = getattr(self, 'region_id', False)
         elec = getattr(self, 'electricity_receipt', False)
-        civil_no = getattr(self, 'civil_number', False) # <-- تم استدعاء الرقم المدني هنا
+        civil_no = getattr(self, 'civil_number', False)
         
         project_vals = {
             'name': f"{self.name} - {self.partner_id.name or ''}",
@@ -422,7 +422,7 @@ class SaleOrder(models.Model):
             'governorate_id': gov_id.id if gov_id else False,
             'region_id': reg_id.id if reg_id else False,
             'electricity_receipt': elec,
-            'civil_number': civil_no, # <-- تم نقل الرقم المدني للمشروع هنا
+            'civil_number': civil_no,
             'engineering_package_id': self.engineering_package_id.id if self.engineering_package_id else False,
         }
         project = self.env['project.project'].create(project_vals)
@@ -613,6 +613,44 @@ class ProjectProject(models.Model):
         self.workflow_started = True
         self._trigger_next_workflow_step()
 
+        # --- إشعار بدء المشروع وفتح المهام الأولية للمستخدمين ---
+        unlocked_tasks = self.env['project.task'].search([
+            ('project_id', '=', self.id),
+            ('is_disabled', '=', False),
+            ('user_ids', '!=', False),
+            ('workflow_step', '!=', False)
+        ])
+        
+        user_tasks = {}
+        for task in unlocked_tasks:
+            for user in task.user_ids:
+                if user not in user_tasks:
+                    user_tasks[user] = []
+                user_tasks[user].append(task.name)
+                
+        for user, task_names in user_tasks.items():
+            task_list_html = "".join([f"<li>{name}</li>" for name in task_names])
+            message = _(
+                "<div style='direction: rtl; text-align: right;'>"
+                "<p>مرحباً <b>%(user_name)s</b>،</p>"
+                "<p>تم بدء العمل في المشروع <b>%(project_name)s</b>.</p>"
+                "<p>المهام الموكلة إليك والمتاحة للبدء فيها الآن هي:</p>"
+                "<ul>%(task_list)s</ul>"
+                "</div>"
+            ) % {
+                'user_name': user.name,
+                'project_name': self.name,
+                'task_list': task_list_html
+            }
+            # إرسال الرسالة مع تحديد الأشخاص لإرسال تنبيه لهم
+            self.message_post(
+                body=message,
+                subject=_('إشعار بدء المشروع وفتح المهام'),
+                partner_ids=[user.partner_id.id],
+                message_type='notification',
+                subtype_xmlid='mail.mt_comment'
+            )
+
     def _trigger_next_workflow_step(self, completed_code=False, **kwargs):
         self.ensure_one()
 
@@ -624,6 +662,8 @@ class ProjectProject(models.Model):
         tasks = self.env['project.task'].search([('project_id', '=', self.id)])
         task_states = {t.workflow_step: t.state for t in tasks if t.workflow_step}
 
+        unlocked_in_this_run = self.env['project.task']
+
         for task in tasks.filtered(lambda t: t.is_disabled and t.workflow_step):
             step_template = next((s for s in workflow if s['code'] == task.workflow_step), None)
 
@@ -632,12 +672,45 @@ class ProjectProject(models.Model):
 
                 if not depends_on:
                     task.is_disabled = False
+                    unlocked_in_this_run |= task
                     continue
 
                 all_dependencies_met = all(task_states.get(dep_code) == '03_approved' for dep_code in depends_on)
 
                 if all_dependencies_met:
                     task.is_disabled = False
+                    unlocked_in_this_run |= task
+
+        # --- إشعار المهام الجديدة التي تم فك قفلها للتو بناءً على التقدم ---
+        if unlocked_in_this_run:
+            user_unlocked_tasks = {}
+            for task in unlocked_in_this_run:
+                if task.user_ids:
+                    for user in task.user_ids:
+                        if user not in user_unlocked_tasks:
+                            user_unlocked_tasks[user] = []
+                        user_unlocked_tasks[user].append(task.name)
+            
+            for user, task_names in user_unlocked_tasks.items():
+                task_list_html = "".join([f"<li>{name}</li>" for name in task_names])
+                message = _(
+                    "<div style='direction: rtl; text-align: right;'>"
+                    "<p>مرحباً <b>%(user_name)s</b>،</p>"
+                    "<p>بناءً على تقدم سير العمل، تم فتح مهام جديدة لك في المشروع <b>%(project_name)s</b> وهي جاهزة للبدء:</p>"
+                    "<ul>%(task_list)s</ul>"
+                    "</div>"
+                ) % {
+                    'user_name': user.name,
+                    'project_name': self.name,
+                    'task_list': task_list_html
+                }
+                self.message_post(
+                    body=message,
+                    subject=_('إشعار بفتح مهام جديدة'),
+                    partner_ids=[user.partner_id.id],
+                    message_type='notification',
+                    subtype_xmlid='mail.mt_comment'
+                )
 
     def _create_task_for_step(self, step_data, is_disabled=False):
         stages_map = self._get_project_stages_map()
@@ -1079,7 +1152,10 @@ class KuwaitRegion(models.Model):
     name = fields.Char(string='المنطقة', required=True)
     governorate_id = fields.Many2one('kuwait.governorate', string="المحافظة", required=True)
 
-
+# ==============================================================================
+#  TASK CONSTRUCTION PHASE CHECKLIST 
+#  (EDITED TO AUTOMATICALLY REMOVE PLUS SIGN & FORMAT AS NEW LINE)
+# ==============================================================================
 class ProjectTaskPhase(models.Model):
     _name = 'project.task.phase'
     _description = 'Task Construction Phase Checklist'
@@ -1090,3 +1166,23 @@ class ProjectTaskPhase(models.Model):
     floor_category = fields.Char(string='الدور (Floor)', required=True)
     name = fields.Text(string='المرحلة (Phase)', required=True)
     is_completed = fields.Boolean(string='تم (Completed)', default=False)
+
+    @api.onchange('name')
+    def _onchange_name(self):
+        # Auto-format instantly on the interface: replace '+' with new lines
+        if self.name and '+' in self.name:
+            self.name = '\n'.join([part.strip() for part in self.name.split('+') if part.strip()])
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        # Ensure it safely saves with newlines in the Database, so it prints perfectly
+        for vals in vals_list:
+            if vals.get('name') and '+' in str(vals.get('name', '')):
+                vals['name'] = '\n'.join([p.strip() for p in str(vals['name']).split('+') if p.strip()])
+        return super(ProjectTaskPhase, self).create(vals_list)
+
+    def write(self, vals):
+        # Ensure it safely updates with newlines in the Database
+        if vals.get('name') and '+' in str(vals.get('name', '')):
+            vals['name'] = '\n'.join([p.strip() for p in str(vals['name']).split('+') if p.strip()])
+        return super(ProjectTaskPhase, self).write(vals)

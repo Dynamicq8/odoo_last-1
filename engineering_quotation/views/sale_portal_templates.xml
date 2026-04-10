@@ -2,131 +2,107 @@
     <template id="sale_order_portal_content_inherit_engineering" inherit_id="sale.sale_order_portal_content">
         <xpath expr="//div[@id='informations']" position="after">
             
-            <div class="row mt-4 mb-4" id="engineering_details">
-                <div class="col-12">
-                    <h5 class="mb-3 text-primary">تفاصيل المشروع (Project Details)</h5>
-                    <hr/>
+            <div class="mt-4 mb-4" id="engineering_details_enhanced">
+                
+                <!-- 1. PROJECT DETAILS SECTION -->
+                <div class="card shadow-sm border-0 mb-4 rounded">
+                    <div class="card-header bg-white pt-4 pb-2 border-bottom-0">
+                        <h5 class="mb-0 text-primary font-weight-bold">
+                            <i class="fa fa-building" style="margin-left: 8px;"></i>تفاصيل المشروع (Project Details)
+                        </h5>
+                        <hr class="mt-3 mb-0 text-muted"/>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Column 1: Type & Service -->
+                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
+                                <div class="p-3 bg-light rounded h-100 border border-light">
+                                    <div class="mb-3" t-if="sale_order.building_type">
+                                        <span class="text-muted d-block mb-1" style="font-size: 0.85em;"><i class="fa fa-home" style="margin-left: 5px;"></i>نوع العقار (Building Type)</span>
+                                        <strong style="font-size: 1.1em;"><span t-field="sale_order.building_type"/></strong>
+                                    </div>
+                                    <div class="mb-3" t-if="sale_order.service_type">
+                                        <span class="text-muted d-block mb-1" style="font-size: 0.85em;"><i class="fa fa-cogs" style="margin-left: 5px;"></i>نوع الخدمة (Service Type)</span>
+                                        <strong style="font-size: 1.1em;"><span t-field="sale_order.service_type"/></strong>
+                                    </div>
+                                    <div class="mb-1" t-if="sale_order.area">
+                                        <span class="text-muted d-block mb-1" style="font-size: 0.85em;"><i class="fa fa-expand" style="margin-left: 5px;"></i>المساحة (Area)</span>
+                                        <strong style="font-size: 1.1em;"><span t-field="sale_order.area"/></strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Column 2: Location -->
+                            <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
+                                <div class="p-3 bg-light rounded h-100 border border-light">
+                                    <div class="mb-3" t-if="sale_order.governorate_id">
+                                        <span class="text-muted d-block mb-1" style="font-size: 0.85em;"><i class="fa fa-map-marker" style="margin-left: 5px;"></i>المحافظة (Governorate)</span>
+                                        <strong style="font-size: 1.1em;"><span t-esc="sale_order.governorate_id.name.replace('محافظة', '').replace('محافظه', '').strip()"/></strong>
+                                    </div>
+                                    <div class="mb-3" t-if="sale_order.region_id">
+                                        <span class="text-muted d-block mb-1" style="font-size: 0.85em;"><i class="fa fa-map" style="margin-left: 5px;"></i>المنطقة (Region)</span>
+                                        <strong style="font-size: 1.1em;"><span t-field="sale_order.region_id.name"/></strong>
+                                    </div>
+                                    
+                                    <div class="row text-center mt-3 pt-3 border-top">
+                                        <div class="col-4" t-if="sale_order.block_no">
+                                            <span class="text-muted d-block mb-1" style="font-size: 0.85em;">القطعة</span>
+                                            <strong><span t-field="sale_order.block_no"/></strong>
+                                        </div>
+                                        <div class="col-4" t-if="sale_order.street_no">
+                                            <span class="text-muted d-block mb-1" style="font-size: 0.85em;">الشارع</span>
+                                            <strong><span t-field="sale_order.street_no"/></strong>
+                                        </div>
+                                        <div class="col-4" t-if="sale_order.plot_no">
+                                            <span class="text-muted d-block mb-1" style="font-size: 0.85em;">القسيمة</span>
+                                            <strong><span t-field="sale_order.plot_no"/></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Column 1: Type -->
-                <div class="col-lg-6 col-md-6 col-sm-12">
-                    <div class="mb-2" t-if="sale_order.building_type">
-                        <strong>نوع العقار (Building Type):</strong>
-                        <span t-field="sale_order.building_type"/>
+                <!-- 2. PACKAGE PRICE SECTION -->
+                <div class="alert alert-primary shadow-sm mb-4 border-0 d-flex justify-content-between align-items-center rounded" t-if="sale_order.engineering_package_id and sale_order.engineering_package_id.list_price">
+                    <div>
+                        <h5 class="mb-0 font-weight-bold text-primary">
+                            <i class="fa fa-tags" style="margin-left: 8px;"></i>سعر الباقة (Package Price)
+                        </h5>
                     </div>
-                    <div class="mb-2" t-if="sale_order.service_type">
-                        <strong>نوع الخدمة (Service Type):</strong>
-                        <span t-field="sale_order.service_type"/>
-                    </div>
-
-                    <!-- NEW LINE: Total Services Price -->
-                    <div class="mb-2" t-if="sale_order.amount_untaxed">
-                        <strong>سعر جميع الخدمات:</strong>
-                        <span t-field="sale_order.amount_untaxed"/>
-                    </div>
-
-                    <!-- NEW LINE: Package Price -->
-                    <div class="mb-2" t-if="sale_order.engineering_package_id and sale_order.engineering_package_id.list_price">
-                        <strong>سعر الباقة:</strong>
-                        <span t-field="sale_order.engineering_package_id.list_price"/>
-                    </div>
-
-                     <div class="mb-2" t-if="sale_order.area">
-                        <strong>المساحة (Area):</strong>
-                        <span t-field="sale_order.area"/>
+                    <div>
+                        <h4 class="mb-0 font-weight-bold text-primary">
+                            <span t-field="sale_order.engineering_package_id.list_price"/>
+                        </h4>
                     </div>
                 </div>
 
-                <!-- Column 2: Location -->
-                <div class="col-lg-6 col-md-6 col-sm-12">
-                    <div class="mb-2" t-if="sale_order.governorate_id">
-                        <strong>المحافظة (Governorate):</strong>
-                        <span t-esc="sale_order.governorate_id.name.replace('محافظة', '').replace('محافظه', '').strip()"/>
+                <!-- 3. REQUIRED DOCUMENTS SECTION -->
+                <t t-if="sale_order.required_documents">
+                    <div class="card shadow-sm border-0 mb-4 rounded" id="required_documents_section">
+                        <div class="card-header bg-white pt-4 pb-2 border-bottom-0">
+                            <h5 class="mb-0 text-info font-weight-bold">
+                                <i class="fa fa-folder-open" style="margin-left: 8px;"></i>المستندات المطلوبة (Required Documents)
+                            </h5>
+                            <hr class="mt-3 mb-0 text-muted"/>
+                        </div>
+                        <div class="card-body">
+                            <!-- Changed from Red to Blue Info Alert -->
+                            <div class="alert alert-info d-flex align-items-center shadow-sm mb-4 border-0">
+                                <i class="fa fa-info-circle fa-2x" style="margin-left: 15px;"></i>
+                                <div style="font-size: 1.05em; line-height: 1.6;">
+                                    في حالة الموافقة على عرض السعر، يرجى إرسال هذه المستندات إلينا على الرقم التالي: <strong style="font-size: 1.2em;">22091228</strong>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-light rounded border border-light shadow-sm text-dark" style="font-size: 1.05em; line-height: 1.8;">
+                                <span t-field="sale_order.required_documents"/>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-2" t-if="sale_order.region_id">
-                        <strong>المنطقة (Region):</strong>
-                        <span t-field="sale_order.region_id.name"/>
-                    </div>
-                    <div class="mb-2" t-if="sale_order.block_no">
-                        <strong>القطعة (Block):</strong>
-                        <span t-field="sale_order.block_no"/>
-                    </div>
-                    <div class="mb-2" t-if="sale_order.street_no">
-                        <strong>الشارع (Street):</strong>
-                        <span t-field="sale_order.street_no"/>
-                    </div>
-                    <div class="mb-2" t-if="sale_order.plot_no">
-                        <strong>رقم القسيمة (Plot):</strong>
-                        <span t-field="sale_order.plot_no"/>
-                    </div>
-                </div>
+                </t>
+
             </div>
-
-            <!-- PACKAGE FEATURES OR DESCRIPTION BLOCK -->
-            <t t-if="sale_order.engineering_package_id">
-                
-                <!-- 1. Check if Features exist on the Package -->
-                <t t-if="sale_order.engineering_package_id.feature_ids">
-                    <div class="row mt-4 mb-4" id="package_features_section">
-                        <div class="col-12">
-                            <h5 class="mb-3 text-primary">مميزات الباقة (Package Features)</h5>
-                            <hr/>
-                            
-                            <!-- Features as Normal Text (No Icons) -->
-                            <div class="mb-3">
-                                <t t-foreach="sale_order.engineering_package_id.feature_ids" t-as="feature">
-                                    <div t-out="feature.name"/>
-                                </t>
-                            </div>
-
-                            <!-- Package Price After Features -->
-                            <div class="mt-3" t-if="sale_order.engineering_package_id.list_price">
-                                <strong>سعر الخدمات: </strong>
-                                <span t-field="sale_order.engineering_package_id.list_price"/>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </t>
-                
-                <!-- 2. If Features are empty, check if Description exists -->
-                <t t-elif="sale_order.engineering_package_id.description and sale_order.engineering_package_id.description != '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'">
-                    <div class="row mt-4 mb-4" id="package_description_section">
-                        <div class="col-12">
-                            <h5 class="mb-3 text-primary">تفاصيل الباقة (Package Details)</h5>
-                            <hr/>
-                            
-                            <!-- Description as Normal Text -->
-                            <div class="mb-3" t-field="sale_order.engineering_package_id.description"/>
-
-                            <!-- Package Price After Description -->
-                            <div class="mt-3" t-if="sale_order.engineering_package_id.list_price">
-                                <strong>سعر الخدمات: </strong>
-                                <span t-field="sale_order.engineering_package_id.list_price"/>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </t>
-
-            </t>
-            <!-- END PACKAGE BLOCK -->
-
-            <!-- REQUIRED DOCUMENTS BLOCK (NEW) -->
-            <t t-if="sale_order.required_documents">
-                <div class="row mt-4 mb-4" id="required_documents_section">
-                    <div class="col-12">
-                        <h5 class="mb-3 text-danger">
-                        في حالة الموافقة على عرض السعر، يرجى إرسال هذه المستندات إلينا على الرقم التالي: 22091228
-                        </h5>                        
-                        <hr/>
-                        <div class="bg-light p-3 rounded border">
-                            <span t-field="sale_order.required_documents"/>
-                        </div>
-                    </div>
-                </div>
-            </t>
-            <!-- END REQUIRED DOCUMENTS BLOCK -->
 
         </xpath>
     </template>

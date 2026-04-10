@@ -10,110 +10,118 @@
     <template id="report_saleorder_custom_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <!-- Using Odoo's standard layout wrapper for better RTL support -->
                 <t t-call="web.basic_layout">
-                    <div class="page o_report_layout_custom_engineering" style="direction: rtl; text-align: right; font-family: 'Tajawal', sans-serif;">
+                    <!-- Added page-break-inside avoid to force one page -->
+                    <div class="page o_report_layout_custom_engineering" style="direction: rtl; text-align: right; font-family: 'Tajawal', sans-serif; font-size: 14px; page-break-inside: avoid;">
                         
-                        <!-- HEADER WITH LOGO FROM SETTINGS -->
-                        <div class="row custom-header-eng" style="border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 10px;">
-                            <div class="col-3">
-                                <!-- قمنا بتكبير اللوجو هنا عبر زيادة max-height -->
-                                <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)" style="max-height: 180px; max-width: 100%; object-fit: contain;" alt="Logo"/>
+                        <!-- HEADER WITH LOGO -->
+                        <div class="row" style="border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 15px;">
+                            <div class="col-4">
+                                <!-- تم تصغير اللوجو قليلاً لضمان بقاء المحتوى في صفحة واحدة -->
+                                <img t-if="doc.company_id.logo" t-att-src="image_data_uri(doc.company_id.logo)" style="max-height: 110px; max-width: 100%; object-fit: contain;" alt="Logo"/>
                             </div>
-                            <div class="col-9 text-right" style="padding-top: 20px;">
-                                <h2 style="margin:0; padding:0; font-weight: bold;">ديناميك للإستشارات الهندسية</h2>
-                                <h3 style="margin:0; padding:0; color: #333;">DYNAMIC ENGINEERING CONSULTANTS</h3>
+                            <div class="col-8 text-left" style="padding-top: 15px;">
+                                <h2 style="margin:0; padding:0; font-weight: bold; color: #2c3e50;">ديناميك للإستشارات الهندسية</h2>
+                                <h4 style="margin:0; padding:0; color: #7f8c8d; font-weight: bold;">DYNAMIC ENGINEERING CONSULTANTS</h4>
                             </div>
                         </div>
 
                         <!-- BLACK TITLE BAR -->
-                        <div style="background-color: #000; color: #fff; text-align: center; padding: 5px; font-size: 14px; margin-bottom: 20px; font-weight: bold;">
+                        <div style="background-color: #2c3e50; color: #fff; text-align: center; padding: 6px; font-size: 13px; margin-bottom: 15px; border-radius: 4px; font-weight: bold;">
                             إستشاريون (تصميم وإشراف) - معماري - إنشائي - مباني وإنشاءات - تصميم - إدارة مشاريع
                         </div>
 
-                        <!-- DATE -->
-                        <div class="row">
-                            <div class="col-12 text-left" style="font-size: 16px;">
+                        <!-- MAIN TITLE & DATE -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col-6 text-right">
                                 <strong>تاريخ: </strong> <span t-field="doc.date_order" t-options='{"widget": "date"}'/>
                             </div>
+                            <div class="col-6 text-left">
+                                <strong>رقم العرض: </strong> <span t-field="doc.name"/>
+                            </div>
                         </div>
-
-                        <!-- MAIN TITLE -->
-                        <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                            <h3 style="text-decoration: underline; font-weight: bold;">عرض سعر خدمات إستشارية</h3>
+                        
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <h3 style="text-decoration: underline; font-weight: bold; color: #2c3e50; margin: 0;">عرض سعر خدمات إستشارية</h3>
                         </div>
 
                         <!-- SUBJECT & CUSTOMER -->
-                        <div style="margin-bottom: 20px; line-height: 1.8;">
-                            <strong>الموضوع: </strong> عرض سعر تصميم وترخيص وإشراف مبنى <span t-field="doc.building_type"/>
-                            <br/>
-                            <strong>السادة / </strong> <span t-field="doc.partner_id.name"/> المحترمين،
-                            <br/>
-                            تحية طيبة وبعد،،،
+                        <div style="margin-bottom: 15px; line-height: 1.6;">
+                            <strong>السادة / </strong> <span t-field="doc.partner_id.name"/> المحترمين،<br/>
+                            تحية طيبة وبعد،،،<br/>
+                            <strong>الموضوع: </strong> عرض سعر تصميم وترخيص وإشراف مبنى <span t-if="doc.building_type" t-field="doc.building_type"/>
                         </div>
 
-                        <!-- FIXED GOVERNORATE LOGIC HERE -->
-                        <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; background-color: #fcfcfc;">
-                            <strong>بيانات الموقع:</strong>
-                            المحافظة: <span t-if="doc.governorate_id" t-esc="doc.governorate_id.name.replace('محافظة', '').replace('محافظه', '').strip()"/> | 
-                            المنطقة: <span t-field="doc.region_id.name"/> | 
-                            القطعة: <span t-field="doc.block_no"/> | 
-                            قسيمة: <span t-field="doc.plot_no"/> | 
-                            الضاحية: <span t-field="doc.street_no"/>
+                        <!-- 1. SERVICES AND PROJECT DETAILS -->
+                        <div style="margin-bottom: 15px; border: 1px solid #bdc3c7; border-radius: 6px; padding: 15px; background-color: #f8f9fa;">
+                            <h5 style="color: #2980b9; margin-top: 0; margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px;">
+                                تفاصيل الخدمة والمشروع (Project Details)
+                            </h5>
+                            <table style="width: 100%; font-size: 14px;">
+                                <tr>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                        <strong>نوع الخدمة:</strong> <span t-if="doc.service_type" t-field="doc.service_type"/>
+                                    </td>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                        <strong>المساحة:</strong> <span t-if="doc.area" t-field="doc.area"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                        <strong>المحافظة:</strong> <span t-if="doc.governorate_id" t-esc="doc.governorate_id.name.replace('محافظة', '').replace('محافظه', '').strip()"/>
+                                    </td>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                        <strong>المنطقة:</strong> <span t-if="doc.region_id" t-field="doc.region_id.name"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                        <strong>القطعة:</strong> <span t-if="doc.block_no" t-field="doc.block_no"/>
+                                    </td>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                        <strong>الشارع:</strong> <span t-if="doc.street_no" t-field="doc.street_no"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                        <strong>رقم القسيمة:</strong> <span t-if="doc.plot_no" t-field="doc.plot_no"/>
+                                    </td>
+                                    <td style="width: 50%; padding: 4px 0;">
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
 
-                        <!-- SERVICES LIST (FEATURES OR DESCRIPTION) -->
-                        <div style="margin-bottom: 30px;">
-                            <p style="font-size: 16px; font-weight: bold;">يسرنا أن نقدم لكم عرض السعر بالخدمات التالية:</p>
-                            
-                            <t t-if="doc.engineering_package_id">
-                                
-                                <!-- 1. Check if Features exist on the Package -->
-                                <t t-if="doc.engineering_package_id.feature_ids">
-                                    <ul style="margin-right: 20px; padding-right: 20px; list-style-type: none; font-size: 15px;">
-                                        <t t-foreach="doc.engineering_package_id.feature_ids" t-as="feature">
-                                            <li style="margin-bottom: 8px;">
-                                                <span t-if="feature.included" style="color: green; font-weight: bold; font-size: 18px;">✔</span>
-                                                <span t-if="not feature.included" style="color: red; font-weight: bold; font-size: 18px;">✖</span>
-                                                <span t-out="feature.name" style="margin-right: 8px;"/>
-                                            </li>
-                                        </t>
-                                    </ul>
-                                </t>
-                                
-                                <!-- 2. If Features are empty, check if Description exists -->
-                                <t t-elif="doc.engineering_package_id.description and doc.engineering_package_id.description != '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'">
-                                    <div t-out="doc.engineering_package_id.description" style="margin-right: 20px; font-size: 15px;"/>
-                                </t>
-
-                            </t>
-                        </div>
-
-                        <!-- FINANCIAL TOTAL -->
-                        <div style="margin-top: 30px; font-size: 16px; padding: 10px; background-color: #eef8f1; border: 1px solid #d6e9c6;">
-                            <strong>إجمالي قيمة الأتعاب المالية: </strong> 
-                            (<span t-esc="doc.amount_in_arabic_words()"/> دينار كويتي لا غير)
-                        </div>
-
-                        <div style="margin-top: 40px; font-size: 16px;">
-                            مع خالص التحية والتقدير،،،
-                            <br/><br/>
-                            <strong>ديناميك ديزاين للإستشارات الهندسية</strong>
-                        </div>
-                        
-  <!-- REQUIRED DOCUMENTS BLOCK (NEW) -->
-                        <t t-if="doc.required_documents">
-                            <div style="margin-bottom: 30px; padding: 15px; border: 1px solid #e0e0e0; background-color: #f9f9f9; border-radius: 5px;">
-                                <h4 style="color: #d9534f; margin-top: 0; margin-bottom: 15px; font-weight: bold; text-decoration: underline;">
-في حالة الموافقة على عرض السعر، يرجى إرسال هذه المستندات إلينا على الرقم التالي: 22091228
+                        <!-- 2. PACKAGE PRICE -->
+                        <t t-if="doc.engineering_package_id and doc.engineering_package_id.list_price">
+                            <div style="margin-bottom: 15px; padding: 12px; background-color: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; text-align: center;">
+                                <h4 style="margin: 0; color: #1565c0; font-weight: bold;">
+                                    إجمالي سعر الباقة: <span t-field="doc.engineering_package_id.list_price"/>
                                 </h4>
-                                <div style="font-size: 15px; line-height: 1.6; padding-right: 20px;">
+                            </div>
+                        </t>
+
+                        <!-- 3. REQUIRED DOCUMENTS (Changed to Blue Style) -->
+                        <t t-if="doc.required_documents">
+                            <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #b3d4fc; background-color: #eaf4ff; border-radius: 6px;">
+                                <h5 style="color: #0056b3; margin-top: 0; margin-bottom: 10px; font-weight: bold;">
+                                    في حالة الموافقة على عرض السعر، يرجى إرسال هذه المستندات إلينا على الرقم: 22091228
+                                </h5>
+                                <div style="font-size: 14px; line-height: 1.6; color: #333;">
                                     <span t-field="doc.required_documents"/>
                                 </div>
                             </div>
                         </t>
+
+                        <!-- SIGNATURE -->
+                        <div style="margin-top: 20px; font-size: 14px; text-align: left;">
+                            مع خالص التحية والتقدير،،،
+                            <br/><br/><br/>
+                            <strong style="color: #2c3e50; font-size: 16px;">ديناميك ديزاين للإستشارات الهندسية</strong>
+                        </div>
+                        
                         <!-- FOOTER -->
-                        <div class="footer" style="border-top: 2px solid black; text-align: center; font-size: 11px; padding-top: 10px; margin-top: 30px;">
+                        <div class="footer" style="border-top: 2px solid #2c3e50; text-align: center; font-size: 11px; padding-top: 8px; margin-top: 15px; color: #555;">
                             مدينة الكويت - قبلة - شارع الصالحية - مبنى رقم (18) الدور الأول مكتب رقم (1)
                             <br/>
                             E-mail: info@DynamicSaud.com | Mobile: 99674300 - 50855599
