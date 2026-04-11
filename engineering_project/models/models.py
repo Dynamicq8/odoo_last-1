@@ -1055,8 +1055,8 @@ class ProjectTask(models.Model):
         }
 
     def action_download_project_pdf(self):
-    self.ensure_one()
-    return self.env.ref('engineering_project.action_report_project_description_pdf').report_action(self)
+        self.ensure_one()
+        return self.env.ref('engineering_project.action_report_project_description_pdf').report_action(self)
 
     @api.model
     def _send_periodic_task_reminders(self):
