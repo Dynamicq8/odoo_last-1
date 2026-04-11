@@ -800,7 +800,7 @@ class ProjectTask(models.Model):
     ('01_in_progress', 'In Progress (قيد التنفيذ)'),
     ('02_changes_requested', 'Changes Requested (مطلوب تعديلات)'),
     ('03_approved', 'Approved (معتمد)'),
-], string='Status', default='01_in_progress', tracking=True)
+    ], string='Status', default='01_in_progress', tracking=True)
     
     workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
     is_disabled = fields.Boolean(string="مقفلة (Disabled)", default=False)
@@ -811,7 +811,20 @@ class ProjectTask(models.Model):
 
     is_paperwork_task = fields.Boolean(string="Is Paperwork Task", compute="_compute_task_category", store=False)
     is_engineering_task = fields.Boolean(string="Is Engineering Task", compute="_compute_task_category", store=False)
+    closed_subtask_count = fields.Integer(compute='_compute_subtask_count')
 
+    @api.depends('child_ids.state', 'child_ids.stage_id')
+    def _compute_subtask_count(self):
+        # استدعاء دالة أودو الافتراضية للحفاظ على الحساب الكلي للمهام
+        if hasattr(super(ProjectTask, self), '_compute_subtask_count'):
+            super(ProjectTask, self)._compute_subtask_count()
+            
+        for task in self:
+            # تعديل عداد المهام المنجزة ليحتسب '03_approved' كحالة منتهية
+            closed_tasks = task.child_ids.filtered(
+                lambda t: t.state in['03_approved', '1_done', '1_canceled']
+            )
+            task.closed_subtask_count = len(closed_tasks)
     @api.depends('workflow_step')
     def _compute_task_category(self):
         for task in self:

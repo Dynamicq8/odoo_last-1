@@ -605,7 +605,20 @@ class ProjectTask(models.Model):
     workflow_step = fields.Char(string="Workflow Trigger", readonly=True)
     is_disabled = fields.Boolean(string="مقفلة (Disabled)", default=False)
     phase_ids = fields.One2many('project.task.phase', 'task_id', string='مراحل التنفيذ (Phases)')
+    closed_subtask_count = fields.Integer(compute='_compute_subtask_count')
 
+    @api.depends('child_ids.state', 'child_ids.stage_id')
+    def _compute_subtask_count(self):
+        # استدعاء دالة أودو الافتراضية للحفاظ على الحساب الكلي للمهام
+        if hasattr(super(ProjectTask, self), '_compute_subtask_count'):
+            super(ProjectTask, self)._compute_subtask_count()
+            
+        for task in self:
+            # تعديل عداد المهام المنجزة ليحتسب '03_approved' كحالة منتهية
+            closed_tasks = task.child_ids.filtered(
+                lambda t: t.state in['03_approved', '1_done', '1_canceled']
+            )
+            task.closed_subtask_count = len(closed_tasks)
     def write(self, vals):
         if 'stage_id' in vals or 'state' in vals:
             for task in self:
