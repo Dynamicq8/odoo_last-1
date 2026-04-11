@@ -92,13 +92,41 @@
                             </table>
                         </div>
 
-                        <!-- 2. PACKAGE PRICE -->
-                        <t t-if="doc.engineering_package_id and doc.engineering_package_id.list_price">
-                            <div style="margin-bottom: 15px; padding: 12px; background-color: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; text-align: center;">
-                                <h4 style="margin: 0; color: #1565c0; font-weight: bold;">
-                                    إجمالي سعر الباقة: <span t-field="doc.engineering_package_id.list_price"/>
-                                </h4>
+                        <!-- 2. PACKAGE DETAILS & PRICE -->
+                        <t t-if="doc.engineering_package_id">
+                            <div style="margin-bottom: 15px; border: 1px solid #bdc3c7; border-radius: 6px; padding: 15px; background-color: #f8f9fa;">
+                                <h5 style="color: #2980b9; margin-top: 0; margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px;">
+                                    تفاصيل الباقة (Package Details)
+                                </h5>
+                                
+                                <!-- Check if Features exist on the Package -->
+                                <t t-if="doc.engineering_package_id.feature_ids">
+                                    <div style="margin-bottom: 10px;">
+                                        <ul style="list-style-type: none; padding: 0; margin: 0;">
+                                            <t t-foreach="doc.engineering_package_id.feature_ids" t-as="feature">
+                                                <li style="margin-bottom: 8px; font-size: 14px;">
+                                                    <span style="color: #28a745; margin-left: 8px; font-size: 16px;">&#10004;</span>
+                                                    <span t-out="feature.name"/>
+                                                </li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+                                
+                                <!-- If Features are empty, check if Description exists -->
+                                <t t-elif="doc.engineering_package_id.description and doc.engineering_package_id.description != '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'">
+                                    <div style="margin-bottom: 10px; font-size: 14px; line-height: 1.6;" t-field="doc.engineering_package_id.description"/>
+                                </t>
                             </div>
+
+                            <!-- Package Price -->
+                            <t t-if="doc.engineering_package_id.list_price">
+                                <div style="margin-bottom: 15px; padding: 12px; background-color: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; text-align: center;">
+                                    <h4 style="margin: 0; color: #1565c0; font-weight: bold;">
+                                        إجمالي سعر الباقة: <span t-field="doc.engineering_package_id.list_price"/>
+                                    </h4>
+                                </div>
+                            </t>
                         </t>
 
                         <!-- 3. REQUIRED DOCUMENTS (Changed to Blue Style) -->
