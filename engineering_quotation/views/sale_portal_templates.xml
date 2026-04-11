@@ -1,16 +1,11 @@
 <odoo>
     <template id="sale_order_portal_content_inherit_engineering" inherit_id="sale.sale_order_portal_content">
 
-        <!-- Remove the products table section entirely -->
-        <xpath expr="//t[@t-call='sale.sale_order_portal_table']" position="replace"/>
+        <!-- Remove the products table by targeting its known id in Odoo 17 -->
+        <xpath expr="//table[@id='sales_order_table']" position="replace"/>
 
-        <!-- Remove the total/amount summary section -->
-        <xpath expr="//div[hasclass('o_portal_total_table')]" position="replace"/>
-
-        <!-- Also target any direct table inside #details as fallback -->
-        <xpath expr="//div[@id='details']" position="replace">
-            <div id="details"/>
-        </xpath>
+        <!-- Remove the #details div entirely -->
+        <xpath expr="//div[@id='details']" position="replace"/>
 
         <xpath expr="//div[@id='informations']" position="after">
             
