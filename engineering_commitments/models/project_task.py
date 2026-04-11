@@ -2,9 +2,10 @@
 import logging
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-import base64 # Import base64 for image handling
-import re     # Keep re for WhatsApp logic
-import urllib.parse # Keep urllib.parse for WhatsApp logic
+import base64
+import re
+import urllib.parse
+import json # <--- ADDED THIS LINE HERE
 
 _logger = logging.getLogger(__name__)
 
