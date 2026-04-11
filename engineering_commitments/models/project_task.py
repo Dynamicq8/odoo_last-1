@@ -474,6 +474,7 @@ class ProjectProject(models.Model):
                 'plot': getattr(project, 'plot_no', ''),
                 'area': str(getattr(project, 'area', '') or ''),
                 'civil': getattr(project, 'civil_number', ''),
+                'electricity_receipt': getattr(project, 'electricity_receipt', ''), # <--- ADDED REPLACEMENT
                 'customer signature text': project.partner_id.name or '',
                 'company signature text': self.env.company.name or '',
             }
