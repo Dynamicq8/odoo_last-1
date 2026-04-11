@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 import base64
 import re
 import urllib.parse
-import json # <--- ADDED THIS LINE HERE
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ class SignTemplate(models.Model):
 
 
 # Refactored direct actions to be more flexible
-def _action_sign_now_direct(self_record): # Changed self to self_record to avoid conflict with class self
+def _action_sign_now_direct(self_record):
     self_record.ensure_one()
     if not self_record.sign_request_id:
         raise UserError(_("No generated document yet."))
@@ -66,7 +66,7 @@ def _action_sign_now_direct(self_record): # Changed self to self_record to avoid
         lambda r: r.partner_id.id == user.partner_id.id
     )
     if not request_item:
-        request_item = request.request_item_ids[:1] # Fallback to first if user not found
+        request_item = request.request_item_ids[:1]
     if not request_item:
         raise UserError(_("You are not assigned to sign this document, and no other signers were found."))
 
@@ -77,7 +77,7 @@ def _action_sign_now_direct(self_record): # Changed self to self_record to avoid
     }
 
 
-def _action_send_whatsapp_direct(self_record): # Changed self to self_record
+def _action_send_whatsapp_direct(self_record):
     """
     Build a WhatsApp URL containing the signing link and open it in a new tab.
     The phone number is read from the customer (partner_id) on the linked
@@ -111,7 +111,6 @@ def _action_send_whatsapp_direct(self_record): # Changed self to self_record
     phone = (partner.mobile or partner.phone or '').strip()
 
     if not phone:
-        # Last resort: current user
         phone = (self_record.env.user.partner_id.mobile or self_record.env.user.partner_id.phone or '').strip()
 
     if not phone:
@@ -122,11 +121,7 @@ def _action_send_whatsapp_direct(self_record): # Changed self to self_record
 
     # ------------------------------------------------------------------ #
     # 3. Normalise phone to international format
-    #    Strips spaces, dashes, parentheses.
-    #    If number starts with 0, replace leading 0 with country code 965
-    #    (Kuwait default – adjust as needed).
     # ------------------------------------------------------------------ #
-    
     phone_clean = re.sub(r'[\s\-\(\)]+', '', phone)
     if phone_clean.startswith('00'):
         phone_clean = '+' + phone_clean[2:]
@@ -135,7 +130,7 @@ def _action_send_whatsapp_direct(self_record): # Changed self to self_record
     phone_clean = phone_clean.lstrip('+')           # wa.me does not want the leading +
 
     # ------------------------------------------------------------------ #
-    # 4. Build the signing URL (Includes access_token so no login needed)
+    # 4. Build the signing URL
     # ------------------------------------------------------------------ #
     request_item = request.request_item_ids.filtered(
         lambda r: r.partner_id.id == partner.id
@@ -185,7 +180,6 @@ class EngineeringProjectCommitment(models.Model):
     def action_sign_now(self):
         return _action_sign_now_direct(self)
 
-    # ADDED WhatsApp feature
     def action_send_whatsapp(self):
         return _action_send_whatsapp_direct(self)
 
@@ -201,8 +195,7 @@ class EngineeringTaskCommitment(models.Model):
 
     def action_sign_now(self):
         return _action_sign_now_direct(self)
-        
-    # ADDED WhatsApp feature
+
     def action_send_whatsapp(self):
         return _action_send_whatsapp_direct(self)
 
@@ -312,12 +305,10 @@ class ProjectProject(models.Model):
         """
         domain = [('document_type', '=', doc_type)]
 
-        # Read from project directly (set at project creation from sale order)
         building_type = self.building_type or False
         service_type = self.service_type or False
         pack = self.engineering_package_id or False
 
-        # Fallback to sale order in case project was created without these values
         if not building_type and self.sale_order_id:
             building_type = self.sale_order_id.building_type
         if not service_type and self.sale_order_id:
@@ -325,19 +316,16 @@ class ProjectProject(models.Model):
         if not pack and self.sale_order_id:
             pack = getattr(self.sale_order_id, 'engineering_package_id', False)
 
-        # 1. Building Type filter (CRITICAL FIX: Included 'False' for older/unset templates)
         if building_type:
             domain.append(('building_type', 'in', [building_type, 'all', False]))
         else:
             domain.append(('building_type', 'in', ['all', False]))
 
-        # 2. Service Type filter (CRITICAL FIX: Included 'False' for older/unset templates)
         if service_type:
             domain.append(('service_type', 'in', [service_type, 'all', False]))
         else:
             domain.append(('service_type', 'in', ['all', False]))
 
-        # 3. Package filter
         if pack:
             domain.extend(['|', ('package_id', '=', False), ('package_id', '=', pack.id)])
         else:
@@ -421,7 +409,7 @@ class ProjectProject(models.Model):
         return True
 
     # ---------------------------------------------------------
-    # SHARED PDF GENERATOR - MODIFIED TO INCLUDE SEAL IMAGE
+    # SHARED PDF GENERATOR
     # ---------------------------------------------------------
     def _generate_pdfs_for_lines(self, lines):
         project = self
@@ -430,11 +418,11 @@ class ProjectProject(models.Model):
 
         role_customer = self.env.ref('sign.sign_item_role_customer', raise_if_not_found=False)
         current_partner = self.env.user.partner_id
-        company = self.env.company # Get the current company record
+        company = self.env.company
 
-        # Get the company seal image (base64) if available
+        # Get the company seal image (base64 Binary field value) if available
         company_seal_b64 = company.company_seal_image if company.company_seal_image else False
-        company_seal_filename = company.company_seal_filename or "seal.png"
+        company_seal_filename = company.company_seal_filename or 'seal.png'
 
         for line in lines:
             if line.sign_request_id and line.sign_request_id.state == 'signed':
@@ -463,7 +451,6 @@ class ProjectProject(models.Model):
             raw_gov_name = project.governorate_id.name if getattr(project, 'governorate_id', False) else ''
             clean_gov_name = raw_gov_name.replace('محافظة', '').replace('محافظه', '').strip()
 
-            # --- التعديل لترجمة اليوم من الإنجليزية إلى العربية ---
             current_date = fields.Date.context_today(self)
             arabic_days = {
                 0: 'الإثنين',
@@ -476,12 +463,11 @@ class ProjectProject(models.Model):
             }
             arabic_day_str = arabic_days.get(current_date.weekday(), '')
 
-            # --- القاموس المحدث ---
             replacements = {
                 'name': f"          {project.partner_id.name or ''}",
                 'date': current_date.strftime("%d/%m/%Y"),
-                'day': f"          {arabic_day_str}", # <==== إضافة اليوم بالعربية
-                'nationality': f"          كويتي",      # <==== إضافة الجنسية ثابتة "كويتي"
+                'day': f"          {arabic_day_str}",
+                'nationality': f"          كويتي",
                 'governorate': f"          {clean_gov_name}",
                 'region': f"          {project.region_id.name if getattr(project, 'region_id', False) else ''}",
                 'block': f"          {getattr(project, 'block_no', '')}",
@@ -496,42 +482,50 @@ class ProjectProject(models.Model):
                 field_name = (item.name or '').strip().lower()
                 _logger.warning(f"FIELD DETECTED >>> '{field_name}'")
 
-                # --- NEW LOGIC FOR FILLING 'SEAL' FIELD WITH IMAGE ---
-               if field_name == 'seal' and company_seal_b64:
-                # Odoo Sign image fields expect a plain base64 data URL, not a JSON object.
-                # company.company_seal_image is stored as base64-encoded bytes (Binary field).
-                # We decode the bytes to a plain string, then build a data URL.
-                if isinstance(company_seal_b64, bytes):
-                    seal_b64_str = company_seal_b64.decode('utf-8')
-                else:
-                    seal_b64_str = company_seal_b64  # already a string
+                # -------------------------------------------------------
+                # SEAL IMAGE FIELD — FIX
+                # Odoo Sign image fields require a plain base64 data URL
+                # string (e.g. "data:image/png;base64,..."), NOT a JSON
+                # object.  company.company_seal_image is a Binary field
+                # already stored as base64 bytes by Odoo.
+                # -------------------------------------------------------
+                if field_name == 'seal' and company_seal_b64:
+                    # Decode bytes → plain string if necessary
+                    if isinstance(company_seal_b64, bytes):
+                        seal_b64_str = company_seal_b64.decode('utf-8')
+                    else:
+                        seal_b64_str = company_seal_b64  # already a string
 
-                # Detect MIME type from filename, default to png
-                fname = (company.company_seal_filename or 'seal.png').lower()
-                if fname.endswith('.jpg') or fname.endswith('.jpeg'):
-                    mime = 'image/jpeg'
-                elif fname.endswith('.gif'):
-                    mime = 'image/gif'
-                else:
-                    mime = 'image/png'
+                    # Detect MIME type from the stored filename
+                    fname = company_seal_filename.lower()
+                    if fname.endswith('.jpg') or fname.endswith('.jpeg'):
+                        mime = 'image/jpeg'
+                    elif fname.endswith('.gif'):
+                        mime = 'image/gif'
+                    else:
+                        mime = 'image/png'  # safe default
 
-                value_to_store = f"data:{mime};base64,{seal_b64_str}"
+                    # Build a proper data URL — this is what Odoo Sign expects
+                    value_to_store = f"data:{mime};base64,{seal_b64_str}"
 
-                _logger.warning(
-                    f"FILLING SEAL FIELD with IMAGE data URL (first 80 chars): "
-                    f"{value_to_store[:80]}..."
-                )
+                    _logger.warning(
+                        f"FILLING SEAL FIELD with data URL "
+                        f"(mime={mime}, first 80 chars): {value_to_store[:80]}..."
+                    )
 
-                signer = sign_request.request_item_ids.filtered(
-                    lambda r: r.role_id.id == item.responsible_id.id
-                )
-                if signer:
-                    self.env['sign.request.item.value'].sudo().create({
-                        'sign_request_id': sign_request.id,
-                        'sign_request_item_id': signer[0].id,
-                        'sign_item_id': item.id,
-                        'value': value_to_store,
-                    })
+                    signer = sign_request.request_item_ids.filtered(
+                        lambda r: r.role_id.id == item.responsible_id.id
+                    )
+                    if signer:
+                        self.env['sign.request.item.value'].sudo().create({
+                            'sign_request_id': sign_request.id,
+                            'sign_request_item_id': signer[0].id,
+                            'sign_item_id': item.id,
+                            'value': value_to_store,
+                        })
+                # -------------------------------------------------------
+                # END SEAL FIX
+                # -------------------------------------------------------
 
                 elif field_name in replacements:
                     value = replacements[field_name]
@@ -641,11 +635,6 @@ class ProjectTask(models.Model):
         return True
 
     def _generate_pdfs_for_lines(self, lines):
-        # We need to explicitly pass 'self' (the task record) to the project's method
-        # if the project's method relies on project-specific context.
-        # However, if the project method already gets the project from the lines,
-        # we can keep it as is. For safety, let's adapt it to use the project
-        # associated with the task for consistency.
         if self.project_id:
             self.project_id._generate_pdfs_for_lines(lines)
         else:
