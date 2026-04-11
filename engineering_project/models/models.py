@@ -1055,19 +1055,8 @@ class ProjectTask(models.Model):
         }
 
     def action_download_project_pdf(self):
-        """
-        ============================================================
-        NEW: Download project description as a well-designed PDF
-        with company logo and all project details.
-        ============================================================
-        """
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.report',
-            'report_name': 'engineering_project.report_project_description_pdf',
-            'report_type': 'qweb-pdf',
-            'data': {'res_ids': [self.id]},
-        }
+    self.ensure_one()
+    return self.env.ref('engineering_project.action_report_project_description_pdf').report_action(self)
 
     @api.model
     def _send_periodic_task_reminders(self):
