@@ -8,7 +8,6 @@
         'base',
         'sign',
         'project',
-        'engineering_project', # Pointing to the main module name
     ],
     'data': [
         'security/ir.model.access.csv',
