@@ -4,7 +4,7 @@
     'summary': "Links projects to sales orders and manages engineering project workflows.",
     'author': "Engineering Office",
     'category': 'Services/Engineering',
-    'version': '17.0.1.0.0',
+    'version': '19.0.1.0.0',
     'depends': [
         'project',
         'sale_management',

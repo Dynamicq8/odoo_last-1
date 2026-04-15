@@ -29,12 +29,12 @@
                             <!-- Content -->
                             <div class="mt-4 mb-4">
                                 <h4 class="text-primary">محتوى العقد (Contract Body)</h4>
-                                <div class="p-3 border" t-raw="contract.contract_body"/>
+                                <div class="p-3 border" t-out="contract.contract_body"/>
                             </div>
 
                             <div class="mt-4 mb-4">
                                 <h4 class="text-primary">الشروط والأحكام (Terms &amp; Conditions)</h4>
-                                <div class="p-3 border" t-raw="contract.terms_conditions"/>
+                                <div class="p-3 border" t-out="contract.terms_conditions"/>
                             </div>
 
                             <hr/>

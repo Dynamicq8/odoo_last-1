@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _, Command
 from odoo.exceptions import UserError
 
 class SaleOrder(models.Model):
@@ -47,8 +47,8 @@ class SaleOrder(models.Model):
             raise UserError(_("This package '%s' does not have a related product. Please create one from the package form.") % package.name)
 
         # Clear existing lines and add the package product
-        self.order_line = [(5, 0, 0)]
-        self.order_line = [(0, 0, {
+        self.order_line = [Command.clear()]
+        self.order_line = [Command.create({
             'product_id': package.product_id.id,
             'name': package.product_id.name,
             'product_uom_qty': 1,

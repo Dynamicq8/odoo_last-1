@@ -2,7 +2,7 @@
 {
     'name': "Engineering Commitments",
     'summary': "Manage Municipality Commitments & Autofill PDFs via Sign App",
-    'version': '1.0',
+    'version': '19.0.1.0',
     'category': 'Services/Project',
     'depends': [
         'base',

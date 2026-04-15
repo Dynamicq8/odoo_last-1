@@ -43,11 +43,11 @@
         <field name="name">engineering.pledge.template.tree</field>
         <field name="model">engineering.pledge.template</field>
         <field name="arch" type="xml">
-            <tree>
+            <list>
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="building_type"/>
-            </tree>
+            </list>
         </field>
     </record>
 

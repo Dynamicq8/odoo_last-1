@@ -1,6 +1,6 @@
 {
     'name': 'Sign Arabic Fix',
-    'version': '17.0.1.0',
+    'version': '19.0.1.0',
     'category': 'Sign',
     'summary': 'Fixes Arabic text rendering (Right-to-Left) in Sign PDF',
     'depends': ['sign'],

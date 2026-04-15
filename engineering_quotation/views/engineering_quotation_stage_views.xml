@@ -3,14 +3,14 @@
         <field name="name">engineering.quotation.stage.tree</field>
         <field name="model">engineering.quotation.stage</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <list editable="bottom">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="next_stage_id"/>
                 <field name="button_name"/>
                 <field name="is_approved_stage"/>
                 <field name="is_rejected_stage"/>
-            </tree>
+            </list>
         </field>
     </record>
 

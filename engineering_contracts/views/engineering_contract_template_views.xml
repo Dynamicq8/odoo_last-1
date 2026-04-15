@@ -38,13 +38,13 @@
         <field name="name">engineering.contract.template.tree</field>
         <field name="model">engineering.contract.template</field>
         <field name="arch" type="xml">
-            <tree string="Contract Templates">
+            <list string="Contract Templates">
                 <field name="name"/>
                 <field name="building_type"/>
                 <field name="service_type"/>
                 <field name="package_type"/>
                 <field name="active"/>
-            </tree>
+            </list>
         </field>
     </record>
 

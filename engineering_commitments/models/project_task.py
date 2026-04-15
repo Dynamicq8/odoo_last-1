@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _, Command
 from odoo.exceptions import UserError
 import base64
 import re
@@ -437,7 +437,7 @@ class ProjectProject(models.Model):
 
             for role in roles:
                 partner = project.partner_id if (role_customer and role.id == role_customer.id) else current_partner
-                signers.append((0, 0, {'role_id': role.id, 'partner_id': partner.id}))
+                signers.append(Command.create({'role_id': role.id, 'partner_id': partner.id}))
 
             if not signers:
                 raise UserError(_("Template has no signers."))

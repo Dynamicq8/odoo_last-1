@@ -86,11 +86,7 @@
                         </page>
                     </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -100,7 +96,7 @@
         <field name="name">engineering.contract.tree</field>
         <field name="model">engineering.contract</field>
         <field name="arch" type="xml">
-            <tree string="Engineering Contracts" decoration-info="state == 'draft'" 
+            <list string="Engineering Contracts" decoration-info="state == 'draft'" 
                   decoration-warning="state == 'sent'" decoration-success="state in ('signed', 'active')">
                 <field name="name"/>
                 <field name="partner_id"/>
@@ -111,7 +107,7 @@
                 <field name="contract_amount"/>
                 <field name="contract_date"/>
                 <field name="state"/>
-            </tree>
+            </list>
         </field>
     </record>
 

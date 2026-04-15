@@ -78,12 +78,12 @@
                       invisible="not show_site_visit_reports">
 
                     <field name="site_visit_report_ids" nolabel="1">
-                        <tree>
+                        <list>
                             <field name="name"/>
                             <field name="visit_date"/>
                             <field name="visitor_id"/>
                             <field name="sent_to_customer"/>
-                        </tree>
+                        </list>
                     </field>
 
                 </page>

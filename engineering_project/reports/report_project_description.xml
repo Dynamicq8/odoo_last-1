@@ -145,7 +145,7 @@
                         <t t-if="task.description">
                             <div style="background: #fdfefe; border: 1px solid #d5d8dc; padding: 10px 14px; margin-bottom: 16px; border-radius: 4px;">
                                 <h4 style="color: #1a5276; margin: 0 0 10px 0; font-size: 15px;">الوصف</h4>
-                                <div style="font-size: 13px; line-height: 1.8; color: #2c3e50;" t-raw="task.description"/>
+                                <div style="font-size: 13px; line-height: 1.8; color: #2c3e50;" t-out="task.description"/>
                             </div>
                         </t>
 

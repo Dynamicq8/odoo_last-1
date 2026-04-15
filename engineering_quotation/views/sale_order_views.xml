@@ -44,12 +44,12 @@
             <xpath expr="//page[@name='other_information']" position="inside">
                 <group string="سجل المراحل (Stage History)">
                     <field name="stage_history_ids" nolabel="1" readonly="1">
-                        <tree>
+                        <list>
                             <field name="from_stage_id"/>
                             <field name="to_stage_id"/>
                             <field name="changed_by_id"/>
                             <field name="change_date"/>
-                        </tree>
+                        </list>
                     </field>
                 </group>
             </xpath>

@@ -1,6 +1,6 @@
 {
     'name': "Sign Template Renamer",
-    'version': '1.0',
+    'version': '19.0.1.0',
     'category': 'Sign',
     'summary': 'Helper to rename sign template fields when UI is buggy.',
     'depends': ['sign'], # Depends on the sign module

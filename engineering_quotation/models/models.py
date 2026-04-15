@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _, Command
 from odoo.exceptions import UserError, ValidationError
 import datetime
 import urllib.parse
@@ -397,7 +397,7 @@ class SaleOrder(models.Model):
             'move_type': 'out_invoice',
             'partner_id': self.partner_id.id,
             'invoice_date': fields.Date.today(),
-            'invoice_line_ids': [(0, 0, {'product_id': product_fee.id, 'quantity': 1, 'price_unit': 50.0, 'name': 'رسوم فتح ملف وتصميم مبدئي'})],
+            'invoice_line_ids': [Command.create({'product_id': product_fee.id, 'quantity': 1, 'price_unit': 50.0, 'name': 'رسوم فتح ملف وتصميم مبدئي'})],
         }
         invoice = self.env['account.move'].create(invoice_vals)
         return {'name': _('Open Invoice'), 'view_mode': 'form', 'res_model': 'account.move', 'res_id': invoice.id, 'type': 'ir.actions.act_window'}

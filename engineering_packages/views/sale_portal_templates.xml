@@ -9,8 +9,8 @@
                         <h4 class="mb-0">مميزات الباقة (Package Features)</h4>
                     </div>
                     <div class="card-body">
-                        <!-- Use t-raw for HTML fields to ensure tags render -->
-                        <div t-raw="sale_order.package_features_html"/>
+                        <!-- Use t-out for HTML fields to ensure tags render -->
+                        <div t-out="sale_order.package_features_html"/>
                     </div>
                 </div>
             </t>

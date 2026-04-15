@@ -106,7 +106,7 @@
             <!-- ============================================================ -->
             <!-- Add ملاحظات as an inline column inside the child_ids tree    -->
             <!-- ============================================================ -->
-            <xpath expr="//field[@name='child_ids']/tree/field[last()]" position="after">
+            <xpath expr="//field[@name='child_ids']/list/field[last()]" position="after">
                 <field name="notes"
                        string="ملاحظات"
                        optional="show"
@@ -140,12 +140,12 @@
                     </div>
 
                     <field name="phase_ids" context="{'default_task_id': active_id}" readonly="is_disabled">
-                        <tree decoration-success="is_completed==True" decoration-muted="is_completed==False">
+                        <list decoration-success="is_completed==True" decoration-muted="is_completed==False">
                             <field name="sequence" widget="handle"/>
                             <field name="floor_category" string="الدور"/>
                             <field name="name" string="المرحلة" widget="text" class="text-wrap"/>
                             <field name="is_completed" widget="boolean_toggle" string="تم"/>
-                        </tree>
+                        </list>
                         
                         <form>
                             <sheet>
@@ -185,7 +185,7 @@
                       ">
 
                     <field name="sketch_ids" nolabel="1" readonly="is_disabled">
-                        <tree>
+                        <list>
                             <field name="name"/>
                             <field name="create_date" string="تاريخ الإنشاء"/>
                             <field name="created_by_id"/>
@@ -194,7 +194,7 @@
                                     icon="fa-pencil"
                                     string="تعديل"
                                     help="Open Sketch Editor"/>
-                        </tree>
+                        </list>
 
                         <form>
                             <sheet>
@@ -229,7 +229,7 @@
                         قم برفع صور، ملفات PDF، أو أي مستندات أخرى كإثباتات للمهمة. (اضغط على إضافة سطر للرفع)
                     </p>
                     <field name="proof_attachment_ids" nolabel="1">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="name" string="اسم الملف"/>
                             <field name="mimetype" readonly="1" optional="hide"/>
                             <field name="create_date" readonly="1"/>
@@ -239,7 +239,7 @@
                                     string="إرسال واتساب"
                                     icon="fa-whatsapp"
                                     class="btn-success"/>
-                        </tree>
+                        </list>
                     </field>
                 </page>
 

@@ -85,7 +85,7 @@
                     </div>
 
                     <field name="commitment_ids">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="sign_template_id"
                                    domain="[('document_type', '=', 'commitment')]"
                                    options="{'no_create': True}"/>
@@ -107,7 +107,7 @@
                                     class="btn-success"
                                     icon="fa-whatsapp"
                                     invisible="not sign_request_id"/>
-                        </tree>
+                        </list>
                     </field>
                 </page>
 
@@ -144,7 +144,7 @@
                     </div>
 
                     <field name="company_contract_ids">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="sign_template_id"
                                    domain="[('document_type', '=', 'company_contract')]"
                                    options="{'no_create': True}"/>
@@ -165,7 +165,7 @@
                                     class="btn-success"
                                     icon="fa-whatsapp"
                                     invisible="not sign_request_id"/>
-                        </tree>
+                        </list>
                     </field>
                 </page>
 
@@ -195,7 +195,7 @@
                     </div>
 
                     <field name="phase_approval_ids" invisible="state != '03_approved'">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="sign_template_id"
                                    domain="[('document_type', '=', 'phases_approval')]"
                                    options="{'no_create': True}"/>
@@ -209,7 +209,7 @@
                                     string="إثبات (Sign Now)"
                                     class="btn-primary"
                                     invisible="not sign_request_id"/>
-                        </tree>
+                        </list>
                     </field>
                 </page>
 
@@ -247,7 +247,7 @@
                     </div>
 
                     <field name="commitment_ids">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="sign_template_id"
                                    domain="[('document_type', '=', 'commitment')]"
                                    options="{'no_create': True}"/>
@@ -269,7 +269,7 @@
                                     class="btn-success"
                                     icon="fa-whatsapp"
                                     invisible="not sign_request_id"/>
-                        </tree>
+                        </list>
                     </field>
                 </page>
 
@@ -290,7 +290,7 @@
                     </div>
 
                     <field name="company_contract_ids">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="sign_template_id"
                                    domain="[('document_type', '=', 'company_contract')]"
                                    options="{'no_create': True}"/>
@@ -311,7 +311,7 @@
                                     class="btn-success"
                                     icon="fa-whatsapp"
                                     invisible="not sign_request_id"/>
-                        </tree>
+                        </list>
                     </field>
                 </page>
 
@@ -332,7 +332,7 @@
                     </div>
 
                     <field name="phase_approval_ids">
-                        <tree editable="bottom">
+                        <list editable="bottom">
                             <field name="sign_template_id"
                                    domain="[('document_type', '=', 'phases_approval')]"
                                    options="{'no_create': True}"/>
@@ -346,7 +346,7 @@
                                     string="إثبات (Sign Now)"
                                     class="btn-primary"
                                     invisible="not sign_request_id"/>
-                        </tree>
+                        </list>
                     </field>
                 </page>
             </xpath>

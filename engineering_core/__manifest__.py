@@ -10,7 +10,7 @@
     'author': "Engineering Office",
     'website': "https://www.yourcompany.com",
     'category': 'Services/Engineering',
-    'version': '17.0.1.0.0',
+    'version': '19.0.1.0.0',
     'depends': ['base', 'crm', 'sale_management', 'project'],
     'data': [
         # 1. Security file must be loaded first

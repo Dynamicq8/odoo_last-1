@@ -3,7 +3,7 @@
     'summary': "Manages document uploads and implements the WhatsApp redirect send feature.",
     'author': "Engineering Office",
     'category': 'Services/Engineering',
-    'version': '17.0.1.0.0',
+    'version': '19.0.1.0.0',
     'depends': [
         'engineering_core',
         'sale_management',

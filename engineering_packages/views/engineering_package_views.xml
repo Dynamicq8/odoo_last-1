@@ -38,23 +38,23 @@
                         </page>
                         <page string="منتجات الباقة (Bundle Products)">
                             <field name="product_line_ids">
-                                <tree editable="bottom">
+                                <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="product_id"/>
                                     <field name="quantity"/>
                                     <field name="product_uom_id"/>
                                     <field name="price_unit"/>
                                     <field name="subtotal"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="مميزات الباقة (Features)">
                             <field name="feature_ids">
-                                <tree editable="bottom">
+                                <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="name"/>
                                     <field name="included" widget="boolean_toggle"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>
@@ -68,7 +68,7 @@
         <field name="name">engineering.package.tree</field>
         <field name="model">engineering.package</field>
         <field name="arch" type="xml">
-            <tree string="Engineering Packages">
+            <list string="Engineering Packages">
                 <field name="sequence" widget="handle"/>
                 <field name="code"/>
                 <field name="name"/>
@@ -77,7 +77,7 @@
                 <field name="service_type"/> <!-- Added service_type here -->
                 <field name="list_price"/>
                 <field name="active"/>
-            </tree>
+            </list>
         </field>
     </record>
 
