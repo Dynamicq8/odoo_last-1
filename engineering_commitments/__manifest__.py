@@ -8,6 +8,7 @@
         'base',
         'sign',
         'project',
+        'engineering_project',
     ],
     'data': [
         'security/ir.model.access.csv',

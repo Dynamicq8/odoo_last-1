@@ -8,6 +8,7 @@
     'depends': [
         'engineering_core',
         'project',
+        'engineering_project',
     ],
     'data': [
         'security/ir.model.access.csv',
