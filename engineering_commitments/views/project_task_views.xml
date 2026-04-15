@@ -38,7 +38,7 @@
             <!-- ======================================================== -->
             <!-- NEW: ADD BUTTON TO SUBTASKS LIST (Beside View & Delete)  -->
             <!-- ======================================================== -->
-            <xpath expr="//field[@name='child_ids']/tree" position="inside">
+            <xpath expr="//field[@name='child_ids']/list" position="inside">
                 <!-- Ensure state is loaded in the tree so the condition works -->
                 <field name="state" invisible="1"/>
 
