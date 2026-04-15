@@ -123,7 +123,7 @@
                 <filter string="مسودة (Draft)" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="مرسل للتوقيع (Sent)" name="sent" domain="[('state', '=', 'sent')]"/>
                 <filter string="موقع (Signed)" name="signed" domain="[('state', '=', 'signed')]"/>
-                <filter string="نشط (Active)" name="active" domain="[('state', '=', 'active')]"/>
+                <filter string="نشط (Active)" name="filter_active" domain="[('state', '=', 'active')]"/>
                 <separator/>
                 <filter string="سكن خاص" name="residential" domain="[('building_type', '=', 'residential')]"/>
                 <filter string="استثماري" name="investment" domain="[('building_type', '=', 'investment')]"/>
