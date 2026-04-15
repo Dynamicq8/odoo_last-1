@@ -334,7 +334,6 @@ class SaleOrder(models.Model):
         'engineering.quotation.stage',
         string='Quotation Stage',
         tracking=True,
-        default=lambda self: self.env['engineering.quotation.stage'].search([], order='sequence', limit=1)
     )
     stage_history_ids = fields.One2many('engineering.quotation.stage.history', 'quotation_id', string='Stage History')
 
