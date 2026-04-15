@@ -92,21 +92,13 @@
                 <field name="list_price"/>
                 <field name="currency_id"/>
                 <templates>
-                    <t t-name="kanban-box">
-                        <div class="oe_kanban_global_click">
-                            <div class="oe_kanban_details">
-                                <strong class="o_kanban_record_title">
-                                    <field name="name"/>
-                                </strong>
-                                <div class="o_kanban_tags_section">
-                                    <field name="package_type"/>
-                                </div>
-                                <div class="o_kanban_record_bottom">
-                                    <div class="oe_kanban_bottom_left">
-                                        <field name="list_price" widget="monetary"/>
-                                    </div>
-                                </div>
-                            </div>
+                    <t t-name="card">
+                        <field name="name"/>
+                        <div>
+                            <field name="package_type"/>
+                        </div>
+                        <div>
+                            <field name="list_price" widget="monetary"/>
                         </div>
                     </t>
                 </templates>
@@ -140,7 +132,7 @@
                 <filter string="ترميم" name="renovation" domain="[('service_type', '=', 'renovation')]"/>
                 <filter string="قواطع داخلية" name="internal_partitions" domain="[('service_type', '=', 'internal_partitions')]"/>
                 <filter string="مظلات / حدائق" name="shades_garden" domain="[('service_type', '=', 'shades_garden')]"/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="نوع الباقة" name="group_type" context="{'group_by': 'package_type'}"/>
                     <filter string="نوع المبنى" name="group_building" context="{'group_by': 'building_type'}"/>
                     <filter string="نوع الخدمة" name="group_service" context="{'group_by': 'service_type'}"/> <!-- Added group by for service type -->

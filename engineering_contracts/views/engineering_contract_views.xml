@@ -129,7 +129,7 @@
                 <filter string="استثماري" name="investment" domain="[('building_type', '=', 'investment')]"/>
                 <filter string="تجاري" name="commercial" domain="[('building_type', '=', 'commercial')]"/>
                 <filter string="صناعي" name="industrial" domain="[('building_type', '=', 'industrial')]"/>
-                <group expand="0" string="Group By">
+                <group>
                     <filter string="العميل (Customer)" name="group_partner" context="{'group_by': 'partner_id'}"/>
                     <filter string="نوع المبنى (Building Type)" name="group_building" context="{'group_by': 'building_type'}"/>
                     <filter string="نوع الخدمة (Service Type)" name="group_service" context="{'group_by': 'service_type'}"/>
