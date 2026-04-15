@@ -17,7 +17,7 @@
     <record id="engineering_quotation_stage_action" model="ir.actions.act_window">
         <field name="name">Quotation Stages</field>
         <field name="res_model">engineering.quotation.stage</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     
     <menuitem id="menu_engineering_quotation_stages"

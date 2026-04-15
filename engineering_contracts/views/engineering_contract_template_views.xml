@@ -52,6 +52,6 @@
     <record id="action_engineering_contract_template" model="ir.actions.act_window">
         <field name="name">قوالب العقود (Contract Templates)</field>
         <field name="res_model">engineering.contract.template</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 </odoo>
