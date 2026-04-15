@@ -270,11 +270,11 @@
                 <field name="is_disabled" invisible="1"/>
             </xpath>
 
-            <xpath expr="//t[@t-name='kanban-box']/div" position="attributes">
-                <attribute name="t-attf-style">opacity: #{record.is_disabled.raw_value ? '0.4' : '1.0'}; pointer-events: #{record.is_disabled.raw_value ? 'none' : 'auto'};</attribute>
+            <xpath expr="//t[@t-name='card']/main" position="attributes">
+                <attribute name="t-att-style">record.is_disabled.raw_value ? 'opacity: 0.4; pointer-events: none;' : ''</attribute>
             </xpath>
 
-            <xpath expr="//strong[hasclass('o_kanban_record_title')]" position="after">
+            <xpath expr="//t[@t-name='card']/main/field[@name='name']" position="after">
                 <div t-if="record.is_disabled.raw_value" class="text-danger mt-1" style="font-weight: bold; font-size: 11px;">
                     <i class="fa fa-lock"/> مقفلة (بانتظار المهام السابقة)
                 </div>
