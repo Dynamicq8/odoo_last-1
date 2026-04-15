@@ -90,12 +90,14 @@
                         string="الذهاب للمشروع (Go to Project)" type="object" icon="fa-briefcase"/>
             </xpath>
 
-            <xpath expr="//sheet/div[hasclass('oe_title')]" position="before">
+            <xpath expr="//sheet//h1//field[@name='name']" position="before">
                 <field name="is_disabled" invisible="1"/>
                 <field name="is_paperwork_task" invisible="1"/>
                 <field name="is_engineering_task" invisible="1"/>
                 <field name="workflow_step" invisible="1"/>
+            </xpath>
 
+            <xpath expr="//sheet//h1" position="before">
                 <div class="alert alert-danger text-center" role="alert" invisible="not is_disabled" style="margin-bottom: 10px;">
                     <i class="fa fa-lock fa-2x"/> <br/>
                     <strong>هذه المهمة مقفلة (Disabled)!</strong><br/>

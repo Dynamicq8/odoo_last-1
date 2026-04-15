@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api, _, http, Command
+from odoo import models, fields, api, _, Command
 from odoo.exceptions import UserError, ValidationError
 import datetime
 import urllib.parse
