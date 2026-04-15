@@ -6,11 +6,10 @@
             <field name="name">Send Periodic Task Reminders (10 Hours)</field>
             <field name="model_id" ref="project.model_project_task"/>
             <field name="state">code</field>
-            <!-- This calls the python function we just created -->
             <field name="code">model._send_periodic_task_reminders()</field>
+            <field name="user_id" ref="base.user_root"/>
             <field name="interval_number">10</field>
             <field name="interval_type">hours</field>
-            <field name="numbercall">-1</field> <!-- -1 means it runs forever -->
             <field name="active" eval="True"/>
         </record>
     </data>
