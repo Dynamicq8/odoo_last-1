@@ -141,7 +141,7 @@
                         </span>
                     </div>
 
-                    <field name="phase_ids" context="{'default_task_id': active_id}" readonly="is_disabled">
+                    <field name="phase_ids" context="{'default_task_id': id}" readonly="is_disabled">
                         <list decoration-success="is_completed==True" decoration-muted="is_completed==False">
                             <field name="sequence" widget="handle"/>
                             <field name="floor_category" string="الدور"/>
